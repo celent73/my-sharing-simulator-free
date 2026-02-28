@@ -1,0 +1,8 @@
+# Remove Payment Functionality
+
+- [ ] Investigate application for payment links, pricing components, or premium feature locks.
+  - [ ] Search for keywords: "payment", "premium", "pro", "price", "subscribe"
+  - [ ] Review UI for pricing elements or locked features.
+- [ ] Remove pricing or upgrade UI components.
+- [ ] Remove logic that restricts features to premium users.
+- [ ] Verify the application functions correctly with all features unlocked.

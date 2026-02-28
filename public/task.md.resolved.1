@@ -1,0 +1,14 @@
+# Remove Payment Functionality
+
+- [x] Investigate application for payment links, pricing components, or premium feature locks.
+  - [x] Search for keywords: "payment", "premium", "pro", "price", "subscribe"
+  - [x] Review UI for pricing elements or locked features.
+- [ ] Remove pricing or upgrade UI components.
+  - [ ] Remove [components/PremiumModal.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/components/PremiumModal.tsx) logic and UI.
+  - [ ] Remove [components/TrialExpiredModal.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/components/TrialExpiredModal.tsx) logic and UI.
+- [ ] Remove logic that restricts features to premium users.
+  - [ ] Update [App.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/App.tsx) to set `isPremium` to always `true` and remove Stripe/License checking logic.
+  - [ ] Remove the input caps in [App.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/App.tsx) (e.g. `directRecruits > 2` check).
+  - [ ] Clean up [components/ModalManager.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/components/ModalManager.tsx) to remove the premium/trial modals.
+  - [ ] Update [utils/featuresData.ts](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/utils/featuresData.ts) to remove the "Premium Features" card.
+- [ ] Verify the application functions correctly with all features unlocked.

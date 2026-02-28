@@ -1,0 +1,15 @@
+# Remove Payment Functionality and Update Logo
+
+- [x] Investigate application for payment links, pricing components, or premium feature locks.
+- [ ] Implement new Logo.
+  - [ ] Save the provided image as the new application logo in the `public` folder or appropriate assets folder.
+  - [ ] Update any references to the logo if necessary.
+- [ ] Remove pricing or upgrade UI components.
+  - [ ] Update [components/PremiumModal.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/components/PremiumModal.tsx) to return `null`.
+  - [ ] Update [components/TrialExpiredModal.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/components/TrialExpiredModal.tsx) to return `null`.
+- [ ] Remove logic that restricts features to premium users.
+  - [ ] Update [App.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/App.tsx) to set `isPremium` to always `true` and remove Stripe/License logic.
+  - [ ] Remove input caps in [App.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/App.tsx).
+  - [ ] Update [components/ModalManager.tsx](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/components/ModalManager.tsx) to remove the premium/trial modals.
+  - [ ] Update [utils/featuresData.ts](file:///c:/Users/celen/OneDrive/Desktop/My%20Sharing%20Simulator/utils/featuresData.ts) to remove the "Premium Features" card.
+- [ ] Verify the application functions correctly with all features unlocked and the new logo is displayed.

@@ -1,0 +1,2666 @@
+﻿diff --git a/components/BonusProgress.tsx b/components/BonusProgress.tsx
+index ccc570c..d0eb112 100644
+--- a/components/BonusProgress.tsx
++++ b/components/BonusProgress.tsx
+@@ -84,7 +84,7 @@ const BonusCard: React.FC<BonusCardProps> = ({
+               )}
+               {isCompleted && (
+                 <div className="flex flex-col items-center gap-1 ml-auto bg-white/40 dark:bg-black/20 p-2 rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-inner">
+-                  <span className="text-[9px] text-gray-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('focus_mode.active')}</span>
++                  <span className="text-[9px] text-gray-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('bonus.bonus_active')}</span>
+                   <button
+                     onClick={onToggle}
+                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 shadow-md ${isActive ? 'bg-blue-600 ring-2 ring-blue-500/20' : 'bg-slate-300 dark:bg-slate-700'}`}
+diff --git a/components/CashbackFocusMode.tsx b/components/CashbackFocusMode.tsx
+index ed0205e..c538df7 100644
+--- a/components/CashbackFocusMode.tsx
++++ b/components/CashbackFocusMode.tsx
+@@ -487,8 +487,11 @@ export const CashbackFocusMode: React.FC<CashbackFocusModeProps> = ({ isOpen, on
+                                     initial={{ opacity: 0, y: 20 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     transition={{ delay: 0.2 }}
+-                                    className="relative z-30 mb-10 w-full flex justify-center"
++                                    className="relative z-30 mb-8 w-full flex flex-col items-center"
+                                 >
++                                    <div className="mb-3 text-white/40 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">
++                                        {getLabel('cashback_detailed.insert_spending')}
++                                    </div>
+                                     <div className="flex items-center justify-center gap-1 bg-zinc-900/60 border border-white/10 rounded-[2.5rem] py-6 px-10 backdrop-blur-xl shadow-2xl min-w-[200px] max-w-[300px]">
+                                         <span className="text-5xl sm:text-6xl font-light text-white/50 mb-1">Ôé¼</span>
+                                         <input
+@@ -500,14 +503,21 @@ export const CashbackFocusMode: React.FC<CashbackFocusModeProps> = ({ isOpen, on
+                                             autoFocus
+                                         />
+                                     </div>
+-                                    <div className="absolute -bottom-8 left-0 right-0 text-center text-white/40 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">
+-                                        {getLabel('cashback_detailed.insert_spending')}
+-                                    </div>
+                                 </motion.div>
+ 
+                                 <div className="relative z-10 w-full min-h-[180px] flex flex-col items-center justify-center">
+                                     {parsedAmount > 0 ? (
+                                         <div className="flex flex-col items-center">
++                                            {/* RETURN LABEL MOVED HERE */}
++                                            <motion.div
++                                                className="mb-3 px-4 py-1.5 bg-zinc-900/40 border border-white/5 rounded-full text-white/40 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] backdrop-blur-md"
++                                                initial={{ opacity: 0 }}
++                                                animate={{ opacity: 1 }}
++                                                transition={{ delay: 0.3 }}
++                                            >
++                                                {getLabel('cashback_detailed.return') + ` (${selectedBrand.percentage}%)`}
++                                            </motion.div>
++
+                                             <motion.div
+                                                 className="relative flex items-center justify-center gap-2 sm:gap-4"
+                                                 initial={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
+@@ -520,10 +530,10 @@ export const CashbackFocusMode: React.FC<CashbackFocusModeProps> = ({ isOpen, on
+                                                     animate={{ rotate: 12, scale: 1 }}
+                                                     transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                                                 >
+-                                                    <Sparkles size={48} className="text-yellow-400 fill-yellow-400 drop-shadow-[0_0_25px_rgba(250,204,21,0.6)]" />
++                                                    <Sparkles size={40} className="text-yellow-400 fill-yellow-400 drop-shadow-[0_0_25px_rgba(250,204,21,0.6)]" />
+                                                 </motion.div>
+ 
+-                                                <div className="text-6xl sm:text-8xl font-black leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/70 drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] pb-2 pr-2">
++                                                <div className="text-5xl sm:text-7xl font-black leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/70 drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] pb-2 pr-2">
+                                                     Ôé¼ {cashbackReturn.toLocaleString(language === 'de' ? 'de-DE' : 'it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                 </div>
+                                             </motion.div>
+@@ -560,18 +570,6 @@ export const CashbackFocusMode: React.FC<CashbackFocusModeProps> = ({ isOpen, on
+                                 </div>
+                             </div>
+ 
+-                            <motion.div
+-                                className="mt-8 text-white/40 text-sm font-medium tracking-wide uppercase relative z-20"
+-                                initial={{ opacity: 0 }}
+-                                animate={{ opacity: 1 }}
+-                                transition={{ delay: 0.5 }}
+-                            >
+-                                {parsedAmount > 0 ?
+-                                    (getLabel('cashback_detailed.return') + ` (${selectedBrand.percentage}%)`) :
+-                                    ""
+-                                }
+-                            </motion.div>
+-
+                             {/* ACTION BUTTONS */}
+                             <motion.div
+                                 className="mt-12 flex flex-col sm:flex-row gap-3 relative z-20 w-full max-w-sm px-4"
+diff --git a/components/academy/ContractSimulator.tsx b/components/academy/ContractSimulator.tsx
+index 6647b79..652a88d 100644
+--- a/components/academy/ContractSimulator.tsx
++++ b/components/academy/ContractSimulator.tsx
+@@ -1,739 +1,589 @@
+-import React, { useState } from 'react';
+-import { motion } from 'framer-motion';
+-import { Upload, Search, Check, FileText, ChevronDown, AlertCircle, Save, Info } from 'lucide-react';
++import React, { useState, useEffect } from 'react';
++import { motion, AnimatePresence } from 'framer-motion';
++import {
++    Upload, Search, Check, ChevronDown, Save, Info, ArrowRight, ArrowLeft,
++    User, Home, PartyPopper, Mail, Smartphone, FileText, Lock, Clock, Eye
++} from 'lucide-react';
+ import { useLanguage } from '../../contexts/LanguageContext';
++import AIScannerModal from '../AIScannerModal';
++import { ExtractedBillData } from '../../utils/aiService';
+ 
+ const ContractSimulator: React.FC = () => {
+     const { t } = useLanguage();
+-
+-    // Form State (Simplified for basic interaction)
++    const [currentStep, setCurrentStep] = useState(1);
++    const [isScannerOpen, setIsScannerOpen] = useState(false);
++    const [lastScanType, setLastScanType] = useState<'electricity' | 'gas' | 'any'>('any');
++    const [selectedProfile, setSelectedProfile] = useState<'light' | 'green' | null>(null);
++    const [sigStep, setSigStep] = useState<number>(1); // 1: Table, 2: Loading, 3-9: Contract View with Overlays
++    const [otp, setOtp] = useState(['', '', '', '']);
++
++    // Form State
+     const [formData, setFormData] = useState({
+-        sponsor: '',
+-        familyUtility: '',
+-        clientType: 'Persona Fisica',
+-        firstName: '',
+-        lastName: '',
+-        email: '',
+-        fiscalCode: '',
+-        gender: '',
+-        birthDate: '',
+-        birthPlace: '',
+-        residenceAddress: '',
+-        zipCode: '',
+-        phone: '',
+-        mobile: '',
+-
+-        // Supply Data
+-        immobileType: '',
+-        residency: true,
+-        agency: false,
+-        supplyAddress: '',
+-        supplyZip: '',
+-
+-        // Light
+-        lightPod: '',
+-        lightResidence: 'Si',
+-        lightUso: 'Domestico',
+-        lightAnnualConsumption: '',
+-        lightPower: '',
+-        lightContractualPower: '',
+-        lightVoltage: '',
+-        marketOrigin: '',
+-
+-        // Gas
+-        gasPdr: '',
+-        gasUsage: '',
+-
+-        // Payment
+-        paymentMethod: 'ADDEBITO DIRETTO SU CONTO (SDD)',
+-        iban: '',
+-        holderName: '',
+-
+-        // Consents
+-        marketing: false,
+-        profiling: false,
+-        rethinking: false,
++        firstName: '', lastName: '', email: '', fiscalCode: '',
++        city: '', address: '', zip: '', podPdr: '', power: '3.3',
++        consumption: '', isDemo: false
++    });
++
++    const [docs, setDocs] = useState<{ [key: string]: boolean }>({
++        id: false, cf: false, bill: false
+     });
+ 
+-    const handleScrollToTop = () => {
+-        const element = document.getElementById('contract-form-container');
+-        if (element) element.scrollTo({ top: 0, behavior: 'smooth' });
++    const [acceptanceChecks, setAcceptanceChecks] = useState<{ [key: string]: boolean }>({
++        check1: false, check2: false, check3: false, check4: false,
++        check5: false, check6: false, check7: false, check8: false
++    });
++
++    const allChecked = Object.values(acceptanceChecks).every(v => v);
++
++    const toggleAllChecks = () => {
++        const newState = !allChecked;
++        setAcceptanceChecks({
++            check1: newState, check2: newState, check3: newState, check4: newState,
++            check5: newState, check6: newState, check7: newState, check8: newState
++        });
+     };
+ 
+-    return (
+-        <div id="contract-form-container" className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-4 sm:p-6 rounded-[2rem] no-scrollbar">
+-            <div className="max-w-[95%] mx-auto space-y-6 pb-20">
+-
+-                {/* Header Title */}
+-                <div className="flex items-center justify-between mb-6">
+-                    <h1 className="text-2xl sm:text-3xl font-bold text-[#003366] dark:text-blue-400 tracking-tight">
+-                        Nuovo Contratto
+-                    </h1>
+-                </div>
++    const populateDemoData = () => {
++        setFormData({
++            firstName: 'Mario', lastName: 'Rossi', email: 'mario.rossi@example.com',
++            fiscalCode: 'RSSMRA80A01H501U', city: 'Roma', address: 'Via del Corso 1',
++            zip: '00186', podPdr: 'IT001E12345678', power: '3.3', consumption: '2500',
++            isDemo: true
++        });
++        setDocs({ id: true, cf: true, bill: true });
++    };
+ 
+-                {/* Video Tutorial Banner */}
+-                <div
+-                    onClick={() => window.open('https://youtu.be/I-qvbrjrkjs', '_blank')}
+-                    className="bg-[#FF6600] text-white p-3 rounded-lg flex items-center gap-2 text-sm font-bold shadow-md cursor-pointer hover:bg-orange-600 transition-colors"
+-                >
+-                    <div className="bg-white/20 p-1 rounded-full"><Info size={16} /></div>
+-                    <span>Video Tutorial: Come inserire un Contratto con Union Energia?</span>
+-                </div>
++    const handleNext = () => {
++        if (currentStep < 9) setCurrentStep(currentStep + 1);
++    };
+ 
+-                {/* Upload Sections (Bill Scanning) */}
+-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                    {/* Light Bill */}
+-                    <div className="bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-xl flex flex-col justify-between gap-4 relative overflow-hidden group">
+-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+-                            <Upload size={64} className="text-blue-600" />
+-                        </div>
+-                        <div>
+-                            <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 font-bold mb-1">
+-                                <Search size={16} />
+-                                <span>Novit├á: carica la fattura e precompila il contratto con l'IA!</span>
+-                            </div>
+-                            <h3 className="text-lg font-bold text-[#003366] dark:text-white">Fattura Luce</h3>
+-                            <p className="text-xs text-blue-700 dark:text-blue-300 leading-tight mt-1">
+-                                La pi├╣ recente o contenente consumo annuo, indirizzo di fornitura, dati di fornitura completi
+-                            </p>
+-                        </div>
+-                        <button className="self-end bg-[#0099FF] hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded shadow-md transition-all flex items-center gap-1 z-10 w-full sm:w-auto justify-center">
+-                            Aggiungi allegato <span className="text-lg leading-none">+</span>
+-                        </button>
+-                    </div>
++    const handleBack = () => {
++        if (currentStep > 1) setCurrentStep(currentStep - 1);
++    };
+ 
+-                    {/* Gas Bill */}
+-                    <div className="bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4 rounded-xl flex flex-col justify-between gap-4 relative overflow-hidden group">
+-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+-                            <Upload size={64} className="text-orange-600" />
+-                        </div>
+-                        <div>
+-                            <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300 font-bold mb-1">
+-                                <Search size={16} />
+-                                <span>Novit├á: carica la fattura e precompila il contratto con l'IA!</span>
+-                            </div>
+-                            <h3 className="text-lg font-bold text-[#FF6600] dark:text-orange-400">Fattura Gas</h3>
+-                            <p className="text-xs text-orange-700 dark:text-orange-300 leading-tight mt-1">
+-                                La pi├╣ recente o contenente consumo annuo, indirizzo di fornitura, dati di fornitura completi
+-                            </p>
+-                        </div>
+-                        <button className="self-end bg-[#FF6600] hover:bg-orange-600 text-white text-xs font-bold py-2 px-4 rounded shadow-md transition-all flex items-center gap-1 z-10 w-full sm:w-auto justify-center">
+-                            Aggiungi allegato <span className="text-lg leading-none">+</span>
+-                        </button>
+-                    </div>
+-                </div>
++    const handleApplyScan = (data: ExtractedBillData) => {
++        const elec = data.electricity;
++        const gas = data.gas;
+ 
+-                {/* Sponsor & Family Info */}
+-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                    <div>
+-                        <label className="block text-[10px] uppercase text-blue-600 font-bold mb-1 ml-1">Sponsor Codice/Ref *</label>
+-                        <input
+-                            type="text"
+-                            value={formData.sponsor}
+-                            onChange={(e) => setFormData({ ...formData, sponsor: e.target.value })}
+-                            className="w-full bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 rounded p-2 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:border-blue-500"
+-                        />
+-                        <p className="text-[9px] text-orange-500 mt-1 ml-1 bg-yellow-50 dark:bg-transparent px-1 inline-block rounded">Per cambiare Sponsor inizia a scrivere nella casella il nome del membro</p>
+-                    </div>
+-                    <div>
+-                        <label className="block text-[10px] uppercase text-gray-500 font-bold mb-1 ml-1">Family Utility</label>
+-                        <input
+-                            type="text"
+-                            value={formData.familyUtility}
+-                            onChange={(e) => setFormData({ ...formData, familyUtility: e.target.value })}
+-                            className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded p-2 text-sm text-gray-500 dark:text-gray-400 outline-none focus:border-blue-500"
+-                        />
+-                    </div>
+-                </div>
++        setFormData(prev => ({
++            ...prev,
++            podPdr: elec?.pod || gas?.pdr || prev.podPdr,
++            consumption: (elec?.consumption || gas?.consumption || prev.consumption).toString(),
++            power: elec?.power?.toString() || prev.power
++        }));
++    };
+ 
+-                {/* SECTION: Dati Cliente */}
+-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+-                    <div className="bg-[#004080] dark:bg-blue-900 p-3 flex justify-between items-center">
+-                        <span className="text-white font-bold text-sm uppercase tracking-wide">Dati cliente persona fisica (uso domestico) o del rappresentante legale o delegato (altri usi o business)</span>
+-                        <ChevronDown className="text-white" size={16} />
++    // Auto-transition for loading state
++    useEffect(() => {
++        if (currentStep === 8 && sigStep === 2) {
++            const timer = setTimeout(() => setSigStep(3), 2000);
++            return () => clearTimeout(timer);
++        }
++    }, [currentStep, sigStep]);
++
++    const renderProgress = () => (
++        <div className="flex items-center justify-between mb-8 max-w-lg mx-auto px-4">
++            {[1, 2, 3, 4, 5, 6, 7, 8].map((step) => (
++                <React.Fragment key={step}>
++                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-500 shadow-md ${currentStep >= step
++                        ? 'bg-[#FF6600] text-white ring-4 ring-orange-500/10'
++                        : 'bg-white dark:bg-slate-800 text-gray-400 border border-slate-200 dark:border-slate-700'
++                        }`}>
++                        {currentStep > step ? <Check size={14} strokeWidth={3} /> : step}
+                     </div>
+-                    <div className="p-4 space-y-4">
+-                        <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded text-xs text-blue-800 dark:text-blue-300 mb-2 border border-blue-100 dark:border-blue-800">
+-                            Cerca tra le anagrafiche dei tuoi contratti per nome, cognome, email, ragione sociale o CF o recupera i dati cliccando sui risultati.
+-                        </div>
+-
+-                        <input
+-                            type="text"
+-                            placeholder="INIZIA A SCRIVERE PER CERCARE..."
+-                            className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded p-2 text-xs outline-none focus:border-blue-500 mb-2"
+-                        />
+-
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div className="col-span-1 md:col-span-2">
+-                                <label className="lbl">Tipologia cliente</label>
+-                                <select
+-                                    className="inp"
+-                                    value={formData.clientType}
+-                                    onChange={(e) => setFormData({ ...formData, clientType: e.target.value })}
+-                                >
+-                                    <option value=""></option>
+-                                    <option>Persona fisica</option>
+-                                    <option>Ditta individuale</option>
+-                                    <option>Societ├á di persone: s.a.s, s.n.c.</option>
+-                                    <option>Societ├á di capitali: s.r.l., s.r.l.s., s.p.a.</option>
+-                                    <option>Condominio</option>
+-                                    <option>Associazione</option>
+-                                    <option>Caserme, scuole, case di riposo, orfanotrofi, condomini ( circolare ministero delle finanze n.82/e del 7/4/1999)</option>
+-                                    <option>Pubblica illluminazione</option>
+-                                    <option>Pubblica amministrazione</option>
+-                                </select>
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Nome *</label>
+-                                <input type="text" className="inp" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Cognome *</label>
+-                                <input type="text" className="inp" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Email *</label>
+-                                <input type="email" className="inp" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Conferma Email *</label>
+-                                <input type="email" className="inp" value={formData.email} onChange={() => { }} />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">CF *</label>
+-                                <input type="text" className="inp uppercase" value={formData.fiscalCode} onChange={(e) => setFormData({ ...formData, fiscalCode: e.target.value })} />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Sesso</label>
+-                                <select className="inp bg-white" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })}>
+-                                    <option value=""></option>
+-                                    <option value="M">M</option>
+-                                    <option value="F">F</option>
+-                                </select>
+-                            </div>
+-                        </div>
++                    {step < 8 && (
++                        <div className={`flex-1 h-0.5 mx-1 rounded-full duration-500 transition-colors ${currentStep > step ? 'bg-[#FF6600]' : 'bg-slate-200 dark:bg-slate-700'
++                            }`} />
++                    )}
++                </React.Fragment>
++            ))}
++        </div>
++    );
+ 
+-                        {/* Residence & Contact Info */}
+-                        <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-slate-700 mt-2">
+-                            {/* Comune Nascita + Soppresso */}
+-                            <div>
+-                                <div className="flex flex-col md:flex-row md:items-end gap-4">
+-                                    <div className="flex-grow w-full">
+-                                        <label className="lbl">Comune nascita *</label>
+-                                        <input type="text" className="inp uppercase" placeholder="INIZIA A SCRIVERE PER CERCARE..." />
+-                                    </div>
+-                                    <label className="flex items-center gap-2 mb-2 cursor-pointer whitespace-nowrap">
+-                                        <input type="checkbox" className="w-4 h-4 rounded text-blue-600" />
+-                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Comune di nascita soppresso?</span>
+-                                    </label>
+-                                </div>
+-                                <p className="text-[11px] text-gray-500 bg-yellow-50 dark:bg-yellow-900/20 p-1.5 mt-1 rounded border border-yellow-100 dark:border-yellow-800/30">
+-                                    Selezionare <span className="font-bold">'Estero'</span> per comuni non italiani. Se il comune di nascita ├¿ soppresso, selezionare la denominazione attuale e spuntare la casella "Comune di nascita soppresso"?
+-                                </p>
+-                            </div>
++    const renderStep1 = () => (
++        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
++            <div className="flex items-center gap-3 mb-2">
++                <div className="p-2 bg-blue-500/20 rounded-lg text-blue-500"><User size={20} /></div>
++                <h2 className="text-xl font-bold dark:text-white">{t('academy.contract.step1_title')}</h2>
++            </div>
++            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
++                <div className="space-y-1">
++                    <label className="lbl">{t('academy.contract.label_name')}</label>
++                    <input type="text" className="inp" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
++                </div>
++                <div className="space-y-1">
++                    <label className="lbl">{t('academy.contract.label_surname')}</label>
++                    <input type="text" className="inp" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} />
++                </div>
++                <div className="col-span-full space-y-1">
++                    <label className="lbl">{t('academy.contract.label_cf')}</label>
++                    <input type="text" className="inp uppercase" value={formData.fiscalCode} onChange={e => setFormData({ ...formData, fiscalCode: e.target.value })} />
++                </div>
++                <div className="col-span-full space-y-1">
++                    <label className="lbl">{t('academy.contract.label_email')}</label>
++                    <input type="email" className="inp" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
++                </div>
++            </div>
++        </motion.div>
++    );
+ 
+-                            {/* Data Nascita */}
+-                            <div>
+-                                <label className="lbl">Data nascita **</label>
+-                                <div className="flex gap-2 items-center">
+-                                    <input type="text" placeholder="GIORNO" className="inp text-center flex-1" />
+-                                    <span className="text-gray-400 font-light">/</span>
+-                                    <input type="text" placeholder="MESE" className="inp text-center flex-1" />
+-                                    <span className="text-gray-400 font-light">/</span>
+-                                    <input type="text" placeholder="ANNO" className="inp text-center flex-1" />
+-                                </div>
+-                            </div>
++    const renderStep2 = () => (
++        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
++            <div className="flex items-center gap-3 mb-2">
++                <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-500"><Home size={20} /></div>
++                <h2 className="text-xl font-bold dark:text-white">{t('academy.contract.step2_title')}</h2>
++            </div>
++            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
++                <div className="col-span-full space-y-1">
++                    <label className="lbl">{t('academy.contract.label_address')}</label>
++                    <input type="text" className="inp" placeholder={t('academy.contract.placeholder_address')} value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
++                </div>
++                <div className="space-y-1">
++                    <label className="lbl">{t('academy.contract.label_city')}</label>
++                    <input type="text" className="inp" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} />
++                </div>
++                <div className="space-y-1">
++                    <label className="lbl">{t('academy.contract.label_zip')}</label>
++                    <input type="text" className="inp" value={formData.zip} onChange={e => setFormData({ ...formData, zip: e.target.value })} />
++                </div>
++                <div className="col-span-full md:col-span-1 space-y-1">
++                    <label className="lbl">{t('academy.contract.label_pod')}</label>
++                    <input type="text" className="inp uppercase" placeholder={t('academy.contract.placeholder_pod')} value={formData.podPdr} onChange={e => setFormData({ ...formData, podPdr: e.target.value })} />
++                </div>
++            </div>
++        </motion.div>
++    );
+ 
+-                            {/* Comune Residenza + Indirizzo Split */}
+-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                                <div>
+-                                    <label className="lbl">Comune residenza *</label>
+-                                    <input type="text" className="inp uppercase" placeholder="INIZIA A SCRIVERE PER CERCARE..." />
+-                                </div>
+-                                <div>
+-                                    <label className="lbl">Indirizzo residenza</label>
+-                                    <div className="flex gap-2">
+-                                        <input type="text" className="inp w-1/3" placeholder="AD ES. VIA, PIAZZA..." />
+-                                        <input type="text" className="inp w-2/3" placeholder="AD ES. GARIBALDI..." />
+-                                    </div>
+-                                </div>
+-                            </div>
+-                            <p className="text-[11px] text-gray-500 bg-yellow-50 dark:bg-yellow-900/20 p-1.5 rounded border border-yellow-100 dark:border-yellow-800/30 inline-block">
+-                                Selezionare <span className="font-bold">'Estero'</span> per comuni non italiani.
+-                            </p>
+-
+-                            {/* Civico + CAP */}
+-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                                <div>
+-                                    <label className="lbl">Civico residenza *</label>
+-                                    <input type="text" className="inp" />
+-                                </div>
+-                                <div>
+-                                    <label className="lbl">CAP residenza *</label>
+-                                    <input type="text" className="inp" />
+-                                </div>
+-                            </div>
++    const renderStep3 = () => (
++        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 text-center">
++            <div className="flex flex-col items-center gap-4 py-8">
++                <div className="w-20 h-20 bg-orange-100 dark:bg-orange-500/20 rounded-full flex items-center justify-center text-[#FF6600]"><Upload size={40} /></div>
++                <div>
++                    <h2 className="text-2xl font-black dark:text-white mb-2">{t('academy.contract.step3_title')}</h2>
++                    <p className="text-sm text-gray-400 font-medium max-w-xs mx-auto">{t('academy.contract.upload_sub')}</p>
++                </div>
++                <button onClick={() => { setLastScanType('any'); setIsScannerOpen(true); }} className="mt-4 bg-[#FF6600] text-white font-black py-4 px-8 rounded-2xl flex items-center gap-3 shadow-xl hover:bg-orange-600 transition-all active:scale-95 group">
++                    <Search className="group-hover:scale-110 transition-transform" />
++                    {t('academy.contract.upload_cta')}
++                </button>
++            </div>
++        </motion.div>
++    );
+ 
+-                            {/* Telefono + Cellulare */}
+-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                                <div>
+-                                    <label className="lbl">Telefono fisso</label>
+-                                    <input type="text" className="inp" />
+-                                </div>
+-                                <div>
+-                                    <label className="lbl">Cellulare</label>
+-                                    <div className="flex gap-2">
+-                                        <div className="relative">
+-                                            <select className="inp w-20 appearance-none bg-white dark:bg-slate-800 pr-6">
+-                                                <option>+39</option>
+-                                            </select>
+-                                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+-                                                <ChevronDown size={12} />
+-                                            </div>
+-                                        </div>
+-                                        <input type="text" className="inp flex-grow" />
+-                                    </div>
+-                                </div>
+-                            </div>
++    const renderStep4 = () => (
++        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-2 gap-4">
++            {/* Selection logic... simplified for brevity, keeping existing structure */}
++            <div className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl">
++                <div className="mb-4 text-blue-500"><User size={48} /></div>
++                <h3 className="text-xs font-black text-blue-900 dark:text-blue-400 mb-6 uppercase tracking-wider text-center">{t('academy.contract.profile_selection.client_title')}</h3>
++                <button onClick={() => { setSelectedProfile('light'); handleNext(); }} className="w-full py-4 rounded-xl font-black text-xs bg-blue-600 text-white shadow-lg active:scale-95 transition-all uppercase tracking-widest">{t('academy.contract.profile_selection.choose_light')}</button>
++            </div>
++            <div className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl">
++                <div className="mb-4 text-emerald-500"><div className="grid grid-cols-2 gap-0.5">{[1, 2, 3, 4].map(i => <User key={i} size={18} />)}</div></div>
++                <h3 className="text-xs font-black text-emerald-600 dark:text-emerald-400 mb-6 uppercase tracking-wider text-center">{t('academy.contract.profile_selection.member_title')}</h3>
++                <button onClick={() => { setSelectedProfile('green'); handleNext(); }} className="w-full py-4 rounded-xl font-black text-xs bg-emerald-600 text-white shadow-lg active:scale-95 transition-all uppercase tracking-widest">{t('academy.contract.profile_selection.choose_green')}</button>
++            </div>
++        </motion.div>
++    );
+ 
+-                            {/* Email Recapito Fatture */}
+-                            <div>
+-                                <label className="lbl">Email per recapito fatture</label>
+-                                <input type="email" className="inp" />
+-                                <p className="text-[11px] text-gray-500 bg-yellow-50 dark:bg-yellow-900/20 p-1.5 mt-1 rounded border border-yellow-100 dark:border-yellow-800/30 inline-block">
+-                                    Compilare solo se diversa dalla email di registrazione
+-                                </p>
+-                            </div>
+-                        </div>
++    const renderStep5 = () => (
++        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
++            <div className="bg-blue-600 rounded-t-2xl p-4 flex justify-between items-center text-white">
++                <span className="text-xs font-black uppercase tracking-wider">{t('academy.contract.acceptance.title')}</span>
++                <ChevronDown size={16} />
++            </div>
++            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-b-2xl border-x border-b border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
++                <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-4 rounded-xl">
++                    <p className="text-[10px] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">{t('academy.contract.acceptance.checkbox_warning')}</p>
++                </div>
++                <div className="space-y-3">
++                    <button onClick={toggleAllChecks} className="flex items-center gap-3 p-3 w-full bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-colors group">
++                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${allChecked ? 'bg-[#FF6600] border-[#FF6600]' : 'border-slate-300 dark:border-slate-600'}`}>{allChecked && <Check size={14} className="text-white" strokeWidth={4} />}</div>
++                        <span className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-tight">{t('academy.contract.acceptance.accept_all_checks') || "SELEZIONA TUTTO"}</span>
++                    </button>
++                    {/* Checkboxes... simplified */}
++                    <div className="grid gap-2">
++                        {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
++                            <button key={num} onClick={() => setAcceptanceChecks(prev => ({ ...prev, [`check${num}`]: !prev[`check${num}`] }))} className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
++                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${acceptanceChecks[`check${num}`] ? 'bg-orange-500 border-orange-500' : 'border-slate-200 dark:border-slate-700'}`}>{acceptanceChecks[`check${num}`] && <Check size={10} className="text-white" strokeWidth={4} />}</div>
++                                <span className="text-[10px] font-bold text-slate-500">Concetto di accettazione {num}</span>
++                            </button>
++                        ))}
+                     </div>
+                 </div>
++                <div className="flex justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
++                    <button onClick={handleBack} className="text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest"><ArrowLeft size={14} className="inline mr-1" /> Back</button>
++                    <button onClick={handleNext} disabled={!allChecked} className={`font-black py-3 px-10 rounded-xl shadow-lg flex items-center gap-2 text-xs uppercase transition-all active:scale-95 ${allChecked ? 'bg-orange-600 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>SAVE <Save size={16} /></button>
++                </div>
++            </div>
++        </motion.div>
++    );
+ 
+-                {/* SECTION: Dati Fornitura (Immobile) */}
+-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+-                    <div className="bg-[#004080] dark:bg-blue-900 p-3 flex justify-between items-center">
+-                        <span className="text-white font-bold text-sm uppercase tracking-wide">Dati fornitura</span>
+-                        <ChevronDown className="text-white" size={16} />
++    const renderStep6 = () => (
++        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
++            <div className="bg-blue-600 rounded-t-2xl p-3 flex justify-between items-center text-white">
++                <span className="text-[10px] font-black uppercase tracking-wider">{t('academy.contract.docs.title')}</span>
++            </div>
++            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-b-2xl border-x border-b border-slate-100 dark:border-slate-800 shadow-lg space-y-6">
++                {[
++                    { id: 'id', lbl: 'id_card', files: ['ident_fronte.pdf', 'ident_retro.pdf'] },
++                    { id: 'cf', lbl: 'fiscal_code', files: [] },
++                    { id: 'bill', lbl: 'bill', files: [] }
++                ].map((doc) => (
++                    <div key={doc.id} className="pb-4 border-b border-gray-100 dark:border-slate-800 last:border-0 flex justify-between items-center">
++                        <h4 className="text-[10px] font-black text-gray-400 uppercase">{t(`academy.contract.docs.${doc.lbl}`)}</h4>
++                        <button className="bg-blue-700 text-white text-[9px] font-black py-2 px-3 rounded-lg flex items-center gap-2 uppercase tracking-widest">ADD DOC +</button>
+                     </div>
+-                    <div className="p-4 space-y-6">
+-                        {/* Diritto su immobile */}
+-                        <div>
+-                            <label className="lbl">Diritto su immobile</label>
+-                            <select
+-                                className="inp"
+-                                value={formData.propertyRight}
+-                                onChange={(e) => setFormData({ ...formData, propertyRight: e.target.value })}
+-                            >
+-                                <option value=""></option>
+-                                <option>Proprietario</option>
+-                                <option>Usufrutto</option>
+-                                <option>Titolare di altro diritto</option>
+-                                <option>Rappresentante legale</option>
+-                                <option>Affittuario</option>
+-                            </select>
+-                        </div>
++                ))}
++                <div className="flex justify-end pt-4"><button onClick={handleNext} className="bg-orange-600 text-white font-black py-3 px-8 rounded-xl shadow-lg active:scale-95 text-xs uppercase tracking-widest">CONTINUE</button></div>
++            </div>
++        </motion.div>
++    );
+ 
+-                        {/* Checkboxes */}
+-                        <div className="space-y-4">
+-                            <label className="flex items-center gap-2 cursor-pointer">
+-                                <input
+-                                    type="checkbox"
+-                                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+-                                    checked={formData.ivaReduced}
+-                                    onChange={(e) => setFormData({ ...formData, ivaReduced: e.target.checked })}
+-                                />
+-                                <span className="text-sm text-gray-700 dark:text-gray-300">Iva agevolata?</span>
+-                            </label>
+-
+-                            <label className="flex items-center gap-2 cursor-pointer">
+-                                <input
+-                                    type="checkbox"
+-                                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+-                                    checked={formData.acciseReduced}
+-                                    onChange={(e) => setFormData({ ...formData, acciseReduced: e.target.checked })}
+-                                />
+-                                <span className="text-sm text-gray-700 dark:text-gray-300">Accise agevolate?</span>
+-                            </label>
+-                        </div>
++    const renderStep7 = () => (
++        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
++            <div className="bg-blue-600 rounded-t-2xl p-3 flex justify-between items-center text-white"><span className="text-[10px] font-black uppercase tracking-wider">Verifica Pratica</span></div>
++            <div className="bg-white dark:bg-slate-800/50 p-8 rounded-b-2xl border-x border-b border-slate-100 dark:border-slate-800 shadow-2xl relative">
++                <div className="flex flex-col md:flex-row items-center gap-10">
++                    <div className="relative w-40 h-40">
++                        <svg className="w-full h-full transform -rotate-90"><circle cx="80" cy="80" r="70" className="stroke-slate-100 dark:stroke-slate-800 fill-none" strokeWidth="12" /><circle cx="80" cy="80" r="70" className="stroke-orange-500 fill-none transition-all duration-1000" strokeWidth="12" strokeDasharray="440" strokeDashoffset="330" strokeLinecap="round" /></svg>
++                        <div className="absolute inset-0 flex items-center justify-center flex-col"><span className="text-3xl font-black text-slate-800 dark:text-white">25%</span></div>
++                    </div>
++                    <p className="flex-1 text-[11px] font-bold text-blue-900 dark:text-blue-300 leading-relaxed text-center md:text-left">{t('academy.contract.status.subtitle')}</p>
++                </div>
++                <div className="mt-8 flex justify-center"><button onClick={handleNext} className="bg-slate-900 text-white font-black py-4 px-10 rounded-2xl shadow-xl active:scale-95 transition-all text-xs uppercase tracking-widest">PROCEED TO SIGNATURE</button></div>
++            </div>
++        </motion.div>
++    );
+ 
+-                        {/* Indirizzo Fornitura */}
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Comune fornitura*</label>
+-                                <input
+-                                    type="text"
+-                                    className="inp uppercase"
+-                                    placeholder="INIZIA A SCRIVERE PER CERCARE..."
+-                                    value={formData.supplyMunicipality}
+-                                    onChange={(e) => setFormData({ ...formData, supplyMunicipality: e.target.value })}
+-                                />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Indirizzo fornitura</label>
+-                                <div className="flex gap-2">
+-                                    <input type="text" className="inp w-1/3" placeholder="AD ES. VIA, PIAZZA..." />
+-                                    <input
+-                                        type="text"
+-                                        className="inp w-2/3"
+-                                        placeholder="AD ES. GARIBALDI..."
+-                                        value={formData.supplyAddress}
+-                                        onChange={(e) => setFormData({ ...formData, supplyAddress: e.target.value })}
+-                                    />
+-                                </div>
+-                            </div>
++    const renderStep8 = () => (
++        <AnimatePresence mode="wait">
++            {sigStep === 1 && (
++                <motion.div key="sig1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
++                    <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800">
++                        <div className="flex justify-between items-center mb-6">
++                            <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Firma Digitale</h3>
+                         </div>
+-
+-                        {/* Civico + CAP */}
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Civico fornitura*</label>
+-                                <input
+-                                    type="text"
+-                                    className="inp"
+-                                    value={formData.supplyCivic}
+-                                    onChange={(e) => setFormData({ ...formData, supplyCivic: e.target.value })}
+-                                />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">CAP fornitura*</label>
+-                                <input
+-                                    type="text"
+-                                    className="inp"
+-                                    value={formData.supplyCap}
+-                                    onChange={(e) => setFormData({ ...formData, supplyCap: e.target.value })}
+-                                />
+-                            </div>
++                        <div className="overflow-x-auto no-scrollbar">
++                            <table className="w-full text-left">
++                                <thead>
++                                    <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-widest">
++                                        <th className="pb-3 px-2">Documento</th>
++                                        <th className="pb-3 px-2">Data Avvio</th>
++                                        <th className="pb-3 px-2">Stato</th>
++                                        <th className="pb-3 px-2">Email</th>
++                                        <th className="pb-3 px-2 text-right">Azione</th>
++                                    </tr>
++                                </thead>
++                                <tbody>
++                                    <tr className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
++                                        <td className="py-4 px-2">CTE e Contratto</td>
++                                        <td className="py-4 px-2">14/04/2025</td>
++                                        <td className="py-4 px-2"><span className="bg-blue-500 text-white px-2 py-0.5 rounded text-[8px] uppercase font-black">In firma</span></td>
++                                        <td className="py-4 px-2 text-slate-400">{formData.email || 'mario.rossi@...'}</td>
++                                        <td className="py-4 px-2 text-right">
++                                            <button onClick={() => setSigStep(2)} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-lg shadow-orange-500/20 flex items-center gap-1 inline-flex">
++                                                Firma ora <ArrowRight size={10} />
++                                            </button>
++                                        </td>
++                                    </tr>
++                                </tbody>
++                            </table>
+                         </div>
+                     </div>
+-                </div>
+-
+-                {/* SECTION: Dati Luce */}
+-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+-                    <div className="bg-[#004080] dark:bg-blue-900 p-3 flex justify-between items-center">
+-                        <span className="text-white font-bold text-sm uppercase tracking-wide">Dati fornitura luce elettrica</span>
+-                        <ChevronDown className="text-white" size={16} />
++                </motion.div>
++            )}
++
++            {sigStep === 2 && (
++                <motion.div key="sig2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-2xl space-y-8">
++                    <div className="flex items-center gap-2">
++                        <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center text-white font-black text-xl">e</div>
++                        <span className="text-2xl font-black text-slate-800 tracking-tighter italic">Sign AnyWhere</span>
+                     </div>
+-                    <div className="p-4 space-y-4">
+-                        <div className="text-[10px] text-blue-600 mb-2">Lasciare i campi vuoti in caso di contratto solo Gas Naturale.</div>
+-
+-                        {/* POD & Uso */}
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Codice POD*</label>
+-                                <div className="flex gap-1 items-center">
+-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">IT</span>
+-                                    <input type="text" className="inp w-12 text-center" />
+-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">E</span>
+-                                    <input
+-                                        type="text"
+-                                        className="inp flex-grow bg-yellow-50 dark:bg-yellow-900/10"
+-                                        placeholder=""
+-                                        value={formData.lightPod}
+-                                        onChange={(e) => setFormData({ ...formData, lightPod: e.target.value })}
+-                                    />
+-                                </div>
+-                                <p className="text-[10px] bg-yellow-100 text-gray-700 px-2 py-1 mt-1 rounded inline-block">
+-                                    Il codice POD ├¿ di 14 cifre complessive. Per i contatori da 15 cifre eliminare l'ultimo numero.
+-                                </p>
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Uso</label>
+-                                <div className="flex gap-4 mt-2">
+-                                    <label className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+-                                        <input
+-                                            type="radio"
+-                                            name="lightUso"
+-                                            className="w-4 h-4 text-blue-600"
+-                                            checked={formData.lightUso === 'Domestico'}
+-                                            onChange={() => setFormData({ ...formData, lightUso: 'Domestico' })}
+-                                        />
+-                                        Domestico
+-                                    </label>
+-                                    <label className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+-                                        <input
+-                                            type="radio"
+-                                            name="lightUso"
+-                                            className="w-4 h-4 text-blue-600"
+-                                            checked={formData.lightUso === 'Altri usi'}
+-                                            onChange={() => setFormData({ ...formData, lightUso: 'Altri usi' })}
+-                                        />
+-                                        Altri usi
+-                                    </label>
+-                                </div>
+-                            </div>
+-                        </div>
+-
+-                        {/* Residente */}
+-                        <div>
+-                            <label className="lbl">Residente*</label>
+-                            <div className="flex gap-4 mt-2">
+-                                <label className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+-                                    <input
+-                                        type="radio"
+-                                        name="lightResidence"
+-                                        className="w-4 h-4 text-blue-600"
+-                                        checked={formData.lightResidence === 'Si'}
+-                                        onChange={() => setFormData({ ...formData, lightResidence: 'Si' })}
+-                                    />
+-                                    Si
+-                                </label>
+-                                <label className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+-                                    <input
+-                                        type="radio"
+-                                        name="lightResidence"
+-                                        className="w-4 h-4 text-blue-600"
+-                                        checked={formData.lightResidence === 'No'}
+-                                        onChange={() => setFormData({ ...formData, lightResidence: 'No' })}
+-                                    />
+-                                    No
+-                                </label>
++                    <div className="flex flex-col items-center gap-3">
++                        <div className="w-8 h-8 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
++                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Documento in caricamento, attendi per favore...</p>
++                    </div>
++                </motion.div>
++            )}
++
++            {sigStep >= 3 && (
++                <motion.div key="sig3plus" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[600px] relative">
++                    <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center sticky top-0 z-20">
++                        <div className="flex items-center gap-2">
++                            <span className="text-slate-800 font-black tracking-tight italic">eSign</span>
++                            <div className="flex items-center gap-1 ml-4 bg-slate-200 p-1 rounded-lg">
++                                <ArrowLeft size={12} className="text-slate-400" />
++                                <ArrowRight size={12} className="text-slate-800" />
+                             </div>
+                         </div>
+-
+-                        {/* Consumo & Potenza Disponibile */}
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Consumo annuo*</label>
+-                                <input
+-                                    type="text"
+-                                    className="inp"
+-                                    value={formData.lightAnnualConsumption}
+-                                    onChange={(e) => setFormData({ ...formData, lightAnnualConsumption: e.target.value })}
+-                                />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Potenza disponibile*</label>
+-                                <select
+-                                    className="inp"
+-                                    value={formData.lightPower}
+-                                    onChange={(e) => setFormData({ ...formData, lightPower: e.target.value })}
+-                                >
+-                                    <option value=""></option>
+-                                    <option value="1,7">1,7</option>
+-                                    <option value="2,2">2,2</option>
+-                                    <option value="3,3">3,3</option>
+-                                    <option value="5">5</option>
+-                                    <option value="6,6">6,6</option>
+-                                    <option value="8,8">8,8</option>
+-                                    <option value="11">11</option>
+-                                    <option value="16,5">16,5</option>
+-                                    <option value="22">22</option>
+-                                </select>
+-                            </div>
++                        <div className="bg-blue-600 text-white px-6 py-2 rounded font-black text-[10px] uppercase shadow-inner">
++                            {sigStep >= 7 ? "Contratto firmato correttamente" : "Inizia qui per firmare il tuo documento"}
+                         </div>
++                        <button
++                            onClick={sigStep >= 7 && sigStep < 8 ? () => setSigStep(8) : undefined}
++                            className={`${sigStep >= 7 && sigStep < 8 ? 'bg-cyan-500 text-white hover:bg-cyan-400 active:scale-95 shadow-lg shadow-cyan-500/20' : 'bg-slate-200 text-slate-600 cursor-default'} px-4 py-2 rounded font-black text-[10px] uppercase tracking-widest transition-all`}
++                        >
++                            Completa
++                        </button>
++                    </div>
+ 
+-                        {/* Potenza Contrattuale & Tensione */}
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Potenza contrattuale (impegnata) *</label>
+-                                <input
+-                                    type="text"
+-                                    className="inp"
+-                                    value={formData.lightContractualPower}
+-                                    onChange={(e) => setFormData({ ...formData, lightContractualPower: e.target.value })}
+-                                />
++                    <div className="flex-1 overflow-y-auto p-8 relative bg-slate-500/10 no-scrollbar">
++                        <div className="max-w-2xl mx-auto bg-white shadow-lg p-12 min-h-[1000px] border border-slate-200 relative">
++                            {sigStep >= 7 && (
++                                <div className="absolute bottom-20 right-20 text-right space-y-1">
++                                    <p className="text-[8px] font-black text-slate-800">Firmato da: DANIELE DI CECCO</p>
++                                    <p className="text-[8px] font-bold text-slate-400">Numero telefonico: +393663092786</p>
++                                    <p className="text-[8px] font-bold text-slate-400">Transactiontoken: 6744</p>
++                                    <p className="text-[8px] font-bold text-slate-400">Ora/data firma: 14-04-2025 15:52:08</p>
++                                    <p className="text-[8px] font-bold text-slate-400">Indirizzo IP: 93.35.222.22</p>
++                                </div>
++                            )}
++                            {/* Contract Content Simulation */}
++                            <div className="flex justify-between items-start mb-12">
++                                <div className="w-20 h-20 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xs text-center p-2">UNION<br />ENERGIA</div>
++                                <div className="text-right">
++                                    <h4 className="text-xl font-black text-blue-900 tracking-tighter">Modulo di adesione</h4>
++                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Fornitura Energia Elettrica</p>
++                                </div>
+                             </div>
+-                            <div>
+-                                <label className="lbl">Tensione*</label>
+-                                <select
+-                                    className="inp"
+-                                    value={formData.lightVoltage}
+-                                    onChange={(e) => setFormData({ ...formData, lightVoltage: e.target.value })}
+-                                >
+-                                    <option value=""></option>
+-                                    <option value="Bassa Tensione Monofase 220">Bassa Tensione Monofase 220</option>
+-                                    <option value="Bassa tensione monofase 230">Bassa tensione monofase 230</option>
+-                                    <option value="BT Trifase 380">BT Trifase 380</option>
+-                                    <option value="Bassa tensione Trifase 400">Bassa tensione Trifase 400</option>
+-                                    <option value="BT Trifase 420">BT Trifase 420</option>
+-                                    <option value="Media tensione">Media tensione</option>
+-                                </select>
++                            <div className="space-y-4">
++                                <div className="h-4 bg-slate-100 rounded w-1/3" />
++                                <div className="grid grid-cols-2 gap-4">
++                                    <div className="h-10 bg-slate-50 border border-slate-200 rounded p-2 text-[10px] font-bold">MARCELLO ZERRA</div>
++                                    <div className="h-10 bg-slate-50 border border-slate-200 rounded p-2 text-[10px] font-bold">GRPD119394</div>
++                                </div>
++                                <div className="h-40 bg-slate-50 border border-slate-100 rounded" />
++                                <div className="h-20 bg-slate-50 border border-slate-100 rounded" />
++                                <div className="h-20 bg-slate-50 border border-slate-100 rounded" />
++                                <div className="h-40 bg-slate-50 border border-slate-100 rounded" />
+                             </div>
+                         </div>
+ 
+-                        {/* Mercato Provenienza */}
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Mercato di provenienza*</label>
+-                                <select
+-                                    className="inp"
+-                                    value={formData.marketOrigin}
+-                                    onChange={(e) => setFormData({ ...formData, marketOrigin: e.target.value })}
++                        {/* Phase 3 Sign Box Overlay */}
++                        {sigStep === 3 && (
++                            <div className="absolute top-[400px] left-1/2 -translate-x-1/2 z-10">
++                                <motion.button
++                                    onClick={() => setSigStep(4)}
++                                    whileHover={{ scale: 1.05 }}
++                                    className="bg-emerald-50 text-emerald-700 border-2 border-dashed border-emerald-400 py-6 px-12 rounded-xl shadow-2xl flex flex-col items-center gap-2 group transition-all hover:bg-emerald-100"
+                                 >
+-                                    <option value=""></option>
+-                                    <option value="Salvaguardia">Salvaguardia</option>
+-                                    <option value="Maggior tutela">Maggior tutela</option>
+-                                    <option value="Mercato libero">Mercato libero</option>
+-                                    <option value="Tutela graduale">Tutela graduale</option>
+-                                </select>
++                                    <Lock size={20} className="text-emerald-500" />
++                                    <span className="font-black text-lg">Clicca per firmare!</span>
++                                </motion.button>
+                             </div>
+-                        </div>
++                        )}
+                     </div>
+-                </div>
+ 
+-                {/* SECTION: Dati Gas */}
+-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+-                    <div className="bg-[#004080] dark:bg-blue-900 p-3 flex justify-between items-center">
+-                        <span className="text-white font-bold text-sm uppercase tracking-wide">Dati fornitura gas naturale</span>
+-                        <ChevronDown className="text-white" size={16} />
+-                    </div>
+-                    <div className="p-4 space-y-4">
+-                        <div className="text-[10px] text-blue-600 mb-2">Lasciare i campi vuoti in caso di contratto solo Luce Elettrica.</div>
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">PDR *</label>
+-                                <input type="text" className="inp" />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Uso</label>
+-                                <div className="flex gap-4 mt-2 flex-wrap">
+-                                    <label className="flex items-center gap-1 text-xs"><input type="radio" name="uso_gas" className="text-blue-600" /> Domestico</label>
+-                                    <label className="flex items-center gap-1 text-xs"><input type="radio" name="uso_gas" className="text-blue-600" /> Altri Usi</label>
+-                                    <label className="flex items-center gap-1 text-xs"><input type="radio" name="uso_gas" className="text-blue-600" /> Condominio</label>
+-                                </div>
+-                            </div>
+-                        </div>
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Distributore</label>
+-                                <input type="text" className="inp" />
+-                            </div>
+-                            <div>
+-                                <label className="lbl">Consumo annuo smc *</label>
+-                                <input type="text" className="inp" />
+-                            </div>
+-                        </div>
++                    <div className="bg-blue-50/95 backdrop-blur p-4 border-t border-blue-200 flex items-center justify-between text-blue-900 font-bold text-[10px] z-20">
++                        <span>Permetti al nostro sito web di consentire un'esperienza di firma di prima classe memorizzando i dati nella memoria locale del browser.</span>
++                        <button className="bg-blue-600 text-white px-4 py-2 rounded font-black uppercase tracking-widest text-[9px]">Accetta Tutto</button>
+                     </div>
+-                </div>
+ 
+-                {/* SECTION: Modalit├á di Pagamento */}
+-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+-                    <div className="bg-[#004080] dark:bg-blue-900 p-3 flex justify-between items-center">
+-                        <span className="text-white font-bold text-sm uppercase tracking-wide">Modalit├á di pagamento</span>
+-                        <ChevronDown className="text-white" size={16} />
+-                    </div>
+-                    <div className="p-4 space-y-4">
+-                        <div>
+-                            <label className="lbl">Metodo di pagamento</label>
+-                            <select className="inp">
+-                                <option>ADDEBITO DIRETTO SU CONTO (SDD)</option>
+-                            </select>
+-                        </div>
++                    {/* MODALS OVERLAY */}
++                    <AnimatePresence>
++                        {/* Passo 4: Seleziona tipo firma */}
++                        {sigStep === 4 && (
++                            <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 text-left">
++                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
++                                    <div className="bg-slate-50 p-6 border-b border-slate-100 text-left">
++                                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Seleziona il tipo di firma</h3>
++                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Scegli come apporre la tua firma sul documento</p>
++                                    </div>
++                                    <div className="p-8 space-y-6">
++                                        <div className="p-6 bg-blue-50 border-2 border-blue-500 rounded-2xl flex items-start gap-4">
++                                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0 mt-1"><Check size={14} /></div>
++                                            <div>
++                                                <h4 className="font-black text-blue-900 text-sm">Firma con un SMS di conferma</h4>
++                                                <p className="text-[10px] font-bold text-blue-700/60 leading-relaxed mt-1">Conferma la tua firma con un codice OTP che verr├á inviato al tuo cellulare</p>
++                                            </div>
++                                        </div>
++                                        <div className="grid grid-cols-2 gap-4">
++                                            <button onClick={() => setSigStep(3)} className="bg-white border border-slate-200 py-4 px-6 rounded-xl font-black text-[10px] text-slate-400 uppercase tracking-widest hover:border-slate-400 transition-colors">Ignora</button>
++                                            <button onClick={() => setSigStep(5)} className="bg-emerald-600 py-4 px-6 rounded-xl font-black text-[10px] text-white uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 transition-all flex items-center justify-center gap-2">Prosegui <ArrowRight size={14} /></button>
++                                        </div>
++                                    </div>
++                                </motion.div>
++                            </div>
++                        )}
+ 
+-                        <div className="text-[10px] mt-4 flex justify-between items-center text-gray-500 font-bold border-b border-gray-200 pb-1 mb-2">
+-                            <span>Nel caso in cui il titolare del conto sia diverso...</span>
+-                            <button className="bg-[#FF6600] text-white px-2 py-1 rounded text-[10px] uppercase">Copia da intestatario</button>
+-                        </div>
++                        {/* Passo 5: Invia SMS */}
++                        {sigStep === 5 && (
++                            <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 text-left">
++                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
++                                    <div className="bg-slate-50 p-6 border-b border-slate-100 text-left">
++                                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Firma con il codice via SMS</h3>
++                                    </div>
++                                    <div className="p-8 space-y-6">
++                                        <p className="text-sm font-bold text-slate-600 leading-relaxed">Vuoi inviare il codice via SMS per iniziare il processo di firma?</p>
++                                        <div className="grid grid-cols-3 gap-3">
++                                            <button onClick={() => setSigStep(4)} className="bg-white border border-slate-200 py-3 rounded-xl font-black text-[10px] text-slate-400 uppercase tracking-widest transition-all">Ignora</button>
++                                            <button onClick={() => setSigStep(4)} className="bg-white border border-slate-200 py-3 rounded-xl font-black text-[10px] text-slate-400 uppercase tracking-widest transition-all">Annulla</button>
++                                            <button onClick={() => setSigStep(6)} className="bg-cyan-500 hover:bg-cyan-400 py-3 rounded-xl font-black text-[10px] text-white uppercase tracking-widest shadow-lg shadow-cyan-500/20 transition-all">Invia</button>
++                                        </div>
++                                    </div>
++                                </motion.div>
++                            </div>
++                        )}
+ 
+-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                            <div>
+-                                <label className="lbl">Nome titolare conto corrente *</label>
+-                                <input type="text" className="inp" />
++                        {/* Passo 6: Inserimento OTP */}
++                        {sigStep === 6 && (
++                            <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 text-left">
++                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-3xl shadow-2xl max-sm w-full overflow-hidden border border-slate-200">
++                                    <div className="bg-slate-50 p-6 border-b border-slate-100 text-center text-left">
++                                        <h3 className="text-lg font-black text-slate-800 tracking-tight">Inserisci il codice OTP</h3>
++                                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Inserisci il codice a 4 cifre ricevuto via SMS</p>
++                                    </div>
++                                    <div className="p-8 space-y-8">
++                                        <div className="flex justify-center gap-4">
++                                            {otp.map((digit, idx) => (
++                                                <input
++                                                    key={idx}
++                                                    type="text"
++                                                    maxLength={1}
++                                                    value={digit}
++                                                    onChange={(e) => {
++                                                        const newOtp = [...otp];
++                                                        newOtp[idx] = e.target.value.replace(/[^0-9]/g, '');
++                                                        setOtp(newOtp);
++                                                        if (e.target.value && idx < 3) {
++                                                            const next = e.target.nextElementSibling as HTMLInputElement;
++                                                            next?.focus();
++                                                        }
++                                                    }}
++                                                    className="w-12 h-14 bg-slate-50 border-2 border-slate-200 rounded-xl text-center text-xl font-black text-slate-800 focus:border-cyan-500 focus:bg-white outline-none transition-all"
++                                                />
++                                            ))}
++                                        </div>
++                                        <button
++                                            onClick={() => setSigStep(7)}
++                                            disabled={otp.some(d => !d)}
++                                            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${otp.every(d => d) ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-slate-100 text-slate-300'}`}
++                                        >
++                                            Conferma Firma
++                                        </button>
++                                    </div>
++                                </motion.div>
+                             </div>
+-                            <div>
+-                                <label className="lbl">Cognome titolare conto corrente *</label>
+-                                <input type="text" className="inp" />
++                        )}
++
++                        {/* Passo 8: Completa Documento Confirm (Foto 18) */}
++                        {sigStep === 8 && (
++                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 text-left">
++                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
++                                    <div className="bg-slate-50 p-6 border-b border-slate-100 text-left">
++                                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Completa documento</h3>
++                                    </div>
++                                    <div className="p-8 space-y-6">
++                                        <p className="text-sm font-bold text-slate-600 leading-relaxed">Sei sicuro di voler completare il documento?</p>
++                                        <div className="flex justify-end gap-3">
++                                            <button onClick={() => setSigStep(7)} className="bg-white border border-slate-200 py-3 px-6 rounded-xl font-black text-[10px] text-slate-400 uppercase tracking-widest">Annulla</button>
++                                            <button onClick={() => setSigStep(9)} className="bg-cyan-500 hover:bg-cyan-400 py-3 px-6 rounded-xl font-black text-[10px] text-white uppercase tracking-widest shadow-lg shadow-cyan-500/20">Completa</button>
++                                        </div>
++                                    </div>
++                                </motion.div>
+                             </div>
+-                            <div className="col-span-1 md:col-span-2">
+-                                <label className="lbl">IBAN *</label>
+-                                <input type="text" className="inp" />
++                        )}
++
++                        {/* Passo 9: Scarica Documento (Foto 19) */}
++                        {sigStep === 9 && (
++                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 text-left">
++                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
++                                    <div className="bg-slate-50 p-6 border-b border-slate-100 text-left">
++                                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Scarica il documento</h3>
++                                    </div>
++                                    <div className="p-8 space-y-6">
++                                        <div className="space-y-4">
++                                            <p className="text-xs font-bold text-slate-500">Grazie per aver firmato con eSignAnyWhere!</p>
++                                            <div className="grid grid-cols-1 gap-2">
++                                                {['Documento', 'Audit Trail', 'Documento & Audit Trail', 'Documento & Audit Trail compressi'].map((type) => (
++                                                    <button key={type} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[11px] text-slate-700 hover:bg-slate-100 transition-colors">
++                                                        <Upload size={14} className="text-blue-500 rotate-180" />
++                                                        {type}
++                                                    </button>
++                                                ))}
++                                            </div>
++                                            <div className="pt-4 border-t border-slate-100">
++                                                <p className="text-[10px] font-black text-slate-400 uppercase mb-3">Documento/i originale/i</p>
++                                                <button className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl font-bold text-[11px] text-blue-600 hover:border-blue-500 transition-all">
++                                                    <FileText size={14} />
++                                                    Contratto_CTE_118394_1744645837.pdf
++                                                </button>
++                                            </div>
++                                        </div>
++                                        <div className="flex justify-end pt-4">
++                                            <button onClick={handleNext} className="bg-white border border-slate-200 py-3 px-8 rounded-xl font-black text-[10px] text-slate-700 uppercase tracking-widest hover:bg-slate-50">Chiudi</button>
++                                        </div>
++                                    </div>
++                                </motion.div>
+                             </div>
+-                        </div>
+-                        <button className="bg-[#004080] text-white text-xs font-bold py-2 px-4 rounded mt-2 flex items-center gap-2">
+-                            Carica fotocopia Codice Fiscale <Upload size={14} />
+-                        </button>
+-                    </div>
+-                </div>
++                        )}
++                    </AnimatePresence>
++                </motion.div>
++            )}
++        </AnimatePresence>
++    );
+ 
+-                {/* SECTION: Privacy & Ripensamento */}
+-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+-                    <div className="bg-[#004080] dark:bg-blue-900 p-3 flex justify-between items-center">
+-                        <span className="text-white font-bold text-sm uppercase tracking-wide">Diritto di ripensamento</span>
+-                        <ChevronDown className="text-white" size={16} />
+-                    </div>
+-                    <div className="p-4 space-y-2">
+-                        <p className="text-[10px] text-gray-500 leading-relaxed text-justify">
+-                            Ai sensi del Codice del Consumo... dichiarando di aver ricevuto le informazioni...
+-                        </p>
+-                        <label className="flex items-start gap-2 mt-2 cursor-pointer">
+-                            <input type="checkbox" className="mt-1 w-4 h-4 text-blue-600 rounded" />
+-                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300">
+-                                Accetto e richiedo l'attivazione immediata della fornitura, rinunciando al diritto di ripensamento...
+-                            </span>
+-                        </label>
+-                    </div>
+-                </div>
++    const renderStep9 = () => (
++        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12 px-6">
++            <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20"><PartyPopper size={48} className="text-emerald-500" /></div>
++            <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 leading-tight">{t('academy.contract.success_title')}</h2>
++            <p className="text-slate-500 dark:text-slate-400 font-bold mb-12 max-w-sm mx-auto leading-relaxed">{t('academy.contract.success_desc')}</p>
++            <button onClick={() => { setCurrentStep(1); setFormData({ firstName: '', lastName: '', email: '', fiscalCode: '', city: '', address: '', zip: '', podPdr: '', power: '3.3', consumption: '', isDemo: false }); setSelectedProfile(null); setAcceptanceChecks({ check1: false, check2: false, check3: false, check4: false, check5: false, check6: false, check7: false, check8: false }); setSigStep(1); }} className="bg-[#FF6600] text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-orange-500/20 active:scale-95 transition-all uppercase text-sm tracking-widest">{t('academy.contract.new_sim')}</button>
++        </motion.div>
++    );
+ 
+-                {/* SECTION: Documenti */}
+-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+-                    <div className="bg-[#004080] dark:bg-blue-900 p-3 flex justify-between items-center">
+-                        <span className="text-white font-bold text-sm uppercase tracking-wide">Documenti</span>
+-                        <ChevronDown className="text-white" size={16} />
+-                    </div>
+-                    <div className="p-4 space-y-4">
+-                        <div className="flex justify-between items-center border-b border-gray-100 dark:border-slate-700 pb-2">
+-                            <span className="text-xs font-bold text-blue-900 dark:text-blue-300">Documento di Identit├á (Fronte/Retro e LEGGIBILE)</span>
+-                            <button className="bg-[#0055AA] hover:bg-blue-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1">
+-                                Aggiungi allegato <span className="text-sm">+</span>
+-                            </button>
+-                        </div>
+-                        <div className="flex justify-between items-center border-b border-gray-100 dark:border-slate-700 pb-2">
+-                            <span className="text-xs font-bold text-blue-900 dark:text-blue-300">Codice Fiscale / Tessera Sanitaria</span>
+-                            <button className="bg-[#0055AA] hover:bg-blue-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1">
+-                                Aggiungi allegato <span className="text-sm">+</span>
+-                            </button>
++    return (
++        <div id="contract-form-container" className="h-full bg-transparent overflow-hidden flex flex-col no-scrollbar">
++            {currentStep < 9 && (
++                <div className="shrink-0 mb-6">
++                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
++                        <div className="flex items-center gap-4">
++                            <div className="flex flex-col">
++                                <h1 className="text-xl font-black text-[#003366] dark:text-blue-400 tracking-tight leading-none">{currentStep >= 5 ? `Contratto GRPD119394` : t('academy.contract.title')}</h1>
++                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1.5">{t('academy.contract.tutorial_tag')}</p>
++                            </div>
+                         </div>
++                        <button onClick={populateDemoData} className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm active:scale-95"><User size={14} className="text-orange-500" />{t('academy.contract.demo_btn')}</button>
+                     </div>
++                    {renderProgress()}
+                 </div>
+-
+-                {/* Footer Actions */}
+-                <div className="flex justify-end pt-4">
+-                    <motion.button
+-                        whileHover={{ scale: 1.02 }}
+-                        whileTap={{ scale: 0.98 }}
+-                        className="bg-[#FF6600] hover:bg-orange-600 text-white font-bold py-3 px-8 rounded flex items-center gap-2 shadow-lg"
+-                    >
+-                        <Save size={18} />
+-                        SALVA
+-                    </motion.button>
++            )}
++
++            <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
++                <AnimatePresence mode="wait">
++                    {currentStep === 1 && renderStep1()}
++                    {currentStep === 2 && renderStep2()}
++                    {currentStep === 3 && renderStep3()}
++                    {currentStep === 4 && renderStep4()}
++                    {currentStep === 5 && renderStep5()}
++                    {currentStep === 6 && renderStep6()}
++                    {currentStep === 7 && renderStep7()}
++                    {currentStep === 8 && renderStep8()}
++                    {currentStep === 9 && renderStep9()}
++                </AnimatePresence>
++            </div>
++
++            {currentStep < 8 && currentStep !== 4 && currentStep !== 5 && currentStep !== 6 && (
++                <div className="shrink-0 pt-6 border-t border-slate-100 dark:border-slate-800/50 flex justify-between gap-4">
++                    <button onClick={handleBack} disabled={currentStep === 1} className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-black text-sm transition-all ${currentStep === 1 ? 'opacity-30 cursor-not-allowed text-gray-400' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-lg active:scale-95'}`}><ArrowLeft size={18} />{t('common.back')}</button>
++                    <button onClick={handleNext} className="bg-[#FF6600] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl flex items-center gap-2 hover:bg-orange-600 active:scale-95 transition-all">{t('academy.contract.next_btn')} <ArrowRight size={18} /></button>
+                 </div>
+-
+-                {/* Custom Styling for "inp" and "lbl" classes handled via style tag for scope */}
+-                <style>{`
+-                    .lbl {
+-                        display: block;
+-                        font-size: 10px;
+-                        font-weight: 700;
+-                        color: #3b82f6;
+-                        margin-bottom: 4px;
+-                        text-transform: uppercase;
+-                    }
+-                    .dark .lbl {
+-                        color: #60a5fa;
+-                    }
+-                    .inp {
+-                        width: 100%;
+-                        background-color: transparent;
+-                        border: 1px solid #e2e8f0;
+-                        border-radius: 4px;
+-                        padding: 8px;
+-                        font-size: 13px;
+-                        color: #334155;
+-                        outline: none;
+-                    }
+-                    .dark .inp {
+-                        border-color: #334155;
+-                        color: #e2e8f0;
+-                    }
+-                    .inp:focus {
+-                        border-color: #3b82f6;
+-                        background-color: #eff6ff;
+-                    }
+-                    .dark .inp:focus {
+-                        background-color: #1e293b;
+-                    }
+-                `}</style>
+-            </div >
+-        </div >
++            )}
++
++            <AIScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} onConfirm={handleApplyScan} scanType={lastScanType} />
++
++            <style>{`
++                .lbl { display: block; font-size: 10px; font-weight: 800; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
++                .dark .lbl { color: #94a3b8; }
++                .inp { width: 100%; background-color: white; border: 2px solid #f1f5f9; border-radius: 1rem; padding: 12px 16px; font-size: 14px; font-weight: 700; color: #1e293b; outline: none; transition: all 0.2s; }
++                .dark .inp { background-color: #0f172a; border-color: #1e293b; color: #f1f5f9; }
++                .inp:focus { border-color: #FF6600; background-color: #fffaf5; box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.1); }
++                .dark .inp:focus { background-color: #0f172a; }
++                .no-scrollbar::-webkit-scrollbar { display: none; }
++                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
++            `}</style>
++        </div>
+     );
+ };
+ 
+diff --git a/utils/aiService.ts b/utils/aiService.ts
+index 4967df3..e576680 100644
+--- a/utils/aiService.ts
++++ b/utils/aiService.ts
+@@ -21,6 +21,8 @@ export interface ExtractedBillData {
+         spread?: number;
+         totalAmount?: number;
+         energyQuota?: number;
++        pod?: string;
++        power?: number;
+     };
+     gas?: {
+         consumption?: number; // Smc
+@@ -29,6 +31,7 @@ export interface ExtractedBillData {
+         spread?: number;
+         totalAmount?: number;
+         energyQuota?: number;
++        pdr?: string;
+     };
+ }
+ 
+@@ -213,7 +216,9 @@ export const analyzeBillImage = async (inputBase64: string, priorityType: 'elect
+                 "energyQuota": number|null (Ôé¼ spesa materia energia), 
+                 "fixedCosts": number|null (Ôé¼ mensili commercializzazione/PCV, es: 11.50), 
+                 "pun": number|null (prezzo base PUN), 
+-                "spread": number|null (margine spread es: 0.021) 
++                "spread": number|null (margine spread es: 0.021),
++                "pod": string|null (codice IT...),
++                "power": number|null (potenza impegnata es: 3.3)
+             },
+             "gas": { 
+                 "consumption": number|null (Smc totali), 
+@@ -221,7 +226,8 @@ export const analyzeBillImage = async (inputBase64: string, priorityType: 'elect
+                 "energyQuota": number|null (Ôé¼ spesa materia gas), 
+                 "fixedCosts": number|null (Ôé¼ mensili commercializzazione/QVD, es: 11.50), 
+                 "psv": number|null (prezzo base PSV), 
+-                "spread": number|null (margine spread es: 0.12) 
++                "spread": number|null (margine spread es: 0.12),
++                "pdr": string|null (codice 14 cifre)
+             }
+           }
+         `;
+diff --git a/utils/translations.ts b/utils/translations.ts
+index 325ab46..d76b143 100644
+--- a/utils/translations.ts
++++ b/utils/translations.ts
+@@ -1,4 +1,4 @@
+-export type Language = 'it' | 'de' | 'en';
++´╗┐export type Language = 'it' | 'de' | 'en';
+ 
+ export const translations = {
+   it: {
+@@ -543,7 +543,8 @@ export const translations = {
+       card_remaining_suffix: "contratti.",
+       role_pro: "Pro Manager",
+       role_reg: "Regional Manager",
+-      role_nat: "National Manager"
++      role_nat: "National Manager",
++      bonus_active: "Bonus attivo"
+     },
+     chart: {
+       evolution: "Evoluzione Guadagni",
+@@ -787,6 +788,7 @@ export const translations = {
+       you: "Tu"
+     },
+     common: {
++      back: "Indietro",
+       next: "Avanti",
+       finish: "Fatto",
+       done: "Ok",
+@@ -819,9 +821,94 @@ export const translations = {
+         submit_btn: "Invia Contratto",
+         success_title: "Contratto Simulato con Successo! ­ƒÄë",
+         success_desc: "Hai completato la procedura di inserimento. Nella realt├á, riceverai una mail di conferma.",
+-        new_sim: "Nuova Simulazione"
++        new_sim: "Nuova Simulazione",
++        acceptance: {
++          title: "Accettazione e Firma Contratto",
++          subtitle: "Si prega di effettuare la scelta dell'offerta e salvare.",
++          offer_title: "Offerte disponibili",
++          offer_green: "Offerta Azzeriamola Green",
++          offer_details: "PUN + 0,020 Ôé¼/Kwh SENZA deposito cauzionale",
++          save_btn: "SALVA",
++          checkbox_warning: "Gentile cliente, prima di procedere con la firma ti preghiamo di verificare gli allegati e i seguenti dati, spuntare tutte le caselle e salvare. In caso di allegati poco leggibili e con dati non conformi a quanto indicato nel contratto la pratica non potr├á essere lavorata con conseguenti ritardi nell'ingresso in fornitura.",
++          check1: "L'indirizzo email {email} e il numero di cellulare {phone} sono corretti",
++          check2: "La fattura allegata ├¿ la pi├╣ recente e contiene tutti i dati di fornitura (indirizzo, codice fiscale, piva se business, pod se luce, pdr/matricola se gas) e consumi",
++          check3: "Il codice fiscale presente nella fattura allegata ├¿ lo stesso indicato nel contratto {cf}",
++          check4: "Il documento di identit├á allegato presenta sia il fronte che il retro ed ├¿ leggibile",
++          check5: "Il codice fiscale allegato presenta sia il fronte che il retro ed ├¿ leggibile",
++          check6: "Il consumo annuo indicato nel contratto {kwh} kWh ├¿ identico a quello presente nella fattura allegata",
++          check7: "L'indirizzo di residenza indicato nel contratto {address} ├¿ corretto.",
++          check8: "L'indirizzo di fornitura indicato nel contratto {address} ├¿ corretto.",
++          signature_title: "1. Accettazione Contratto e CTE",
++          signature_warning: "Attenzione: se hai modificato dei dati, prima di firmare il Contratto, clicca su SALVA per generare il contratto e le CTE aggiornate.",
++          signature_steps: "Per finalizzare il contratto:",
++          signature_step_1: "1. Leggi il contratto PDF precompilato con i tuoi dati inseriti e le Condizioni Tecnico Economiche (CTE) e accettale.",
++          signature_step_2: "2. Firma digitalmente il Contratto e le Condizioni Tecnico Economiche (CTE) (tramite codice di verifica OTP su cellulare) OPPURE Stampa, firma e carica il contratto Firmato e le Condizioni Tecnico Economiche (CTE).",
++          cte_title: "Condizioni Tecnico Economiche Offerta \"Azzeriamola Green domestico luce Persona fisica SENZA DEPOSITO \" (AZ1LCZXDMGAC)",
++          digital_sign_title: "2. Firma digitalmente il Contratto e le Condizioni Tecnico Economiche (CTE) (tramite codice di verifica OTP su cellulare) OPPURE Stampa, firma e carica il contratto Firmato e le Condizioni Tecnico Economiche (CTE)",
++          digital_sign_label: "Firma digitale",
++          digital_sign_btn: "Firma digitalmente il contratto",
++          otp_info: "Il cliente ricever├á una email sulla casella {email} contente un link per firmare il Contratto e le Condizioni Tecnico Economiche (CTE); durante il processo di firma il firmatario ricever├á un codice OTP sul numero di cellulare indicato {phone}.",
++          print_sign_title: "Stampa, firma e carica qui sotto il Contratto e le Condizioni Tecnico Economiche (CTE)",
++          download_contract: "Scarica il contratto precompilato",
++          download_cte: "Scarica le Condizioni Tecnico Economiche (CTE)",
++          add_signed_contract: "Aggiungi Contratto firmato",
++          add_signed_cte: "Aggiungi CTE",
++          accept_all_checks: "Ho letto il contratto e le CTE e accetto tutte le condizioni contrattuali e quelle tecnico economiche"
++        },
++        label_email: "Email",
++        label_city: "Citt├á",
++        label_zip: "CAP",
++        placeholder_address: "Via, Piazza...",
++        placeholder_pod: "IT...",
++        info_text: "In questa sessione simulatoria, puoi caricare una bolletta per vedere come l'IA estrae i dati tecnici automaticamente.",
++        tutorial_tag: "Tutorial Session",
++        back_to_profiles: "Torna alla scelta Cliente/Membro",
++        profile_selection: {
++          title: "Scegli Profilo",
++          client_title: "CLIENTE PRIVILEGIATO",
++          member_title: "FAMILY UTILITY",
++          choose_light: "Scegli Union Light",
++          choose_green: "Scegli Azzeriamola Green",
++          fees_light: "Oneri commerciali Ôé¼11,50 mese\nQuota Green Ôé¼2,50 mese (opzionale)",
++          fees_green: "Oneri commerciali Ôé¼11,50 mese + Oneri di Sharing Ôé¼9,30 mese\nQuota Green Inclusa",
++          features: {
++            backoffice: "Backoffice",
++            backoffice_partial: "Backoffice parziale",
++            backoffice_full: "Backoffice completo",
++            app: "App MyUnion",
++            app_pro: "Versione Pro",
++            app_elite: "Versione Elite",
++            cashback: "Super Cashback e programmi fedelt├á",
++            prospect: "Segnalazione Prospect",
++            sharing_project: "Union Sharing Project",
++            university: "Union University",
++            sales: "Incaricato alle Vendite",
++            community: "Ruolo nella Community",
++            academy: "Union Academy e Special Week",
++            we_share: "We.Share",
++            holiday: "Union Holiday"
++          }
++        },
++        docs: {
++          title: "Documenti",
++          subtitle: "Per ogni documento ├¿ possibile allegare pi├╣ file. Si prega di verificare che gli allegati siano completamente LEGGIBILI.",
++          id_card: "Documento di identit├á - Carta di identit├á, patente o passaporto",
++          id_hint: "FRONTE/RETRO E LEGGIBILE",
++          fiscal_code: "Codice Fiscale",
++          bill: "Fattura vecchio fornitore",
++          bill_hint: "La pi├╣ recente e contenente consumo annuo, indirizzo di fornitura, dati di fornitura completi",
++          add_doc: "Aggiungi allegato"
++        },
++        status: {
++          title: "Stato avanzamento contratto",
++          subtitle: "Allega tutti i documenti richiesti, conferma la tua email, accetta, firma il contratto e salva. Attenzione: una volta caricati tutti i documenti non sar├á pi├╣ possibile modificarli.",
++          incomplete: "Incompleto",
++          to_verify: "Da verificare",
++          verified: "Verificato",
++          in_supply: "In fornitura"
++        }
+       }
+-    },
++    }
+   },
+   de: {
+     app: {
+@@ -1285,7 +1372,8 @@ export const translations = {
+       card_remaining_suffix: "Vertr├ñge.",
+       role_pro: "Pro Manager",
+       role_reg: "Regional Manager",
+-      role_nat: "National Manager"
++      role_nat: "National Manager",
++      bonus_active: "Bonus aktiv"
+     },
+     chart: {
+       evolution: "Einkommensentwicklung",
+@@ -1397,7 +1485,8 @@ export const translations = {
+       next: "Weiter",
+       finish: "Fertig",
+       done: "Ok",
+-      months: "Monate"
++      months: "Monate",
++      back: "Zur├╝ck"
+     },
+     focus_mode: {
+       title: "Focus Mode",
+@@ -1613,9 +1702,94 @@ export const translations = {
+         submit_btn: "Vertrag senden",
+         success_title: "Vertrag erfolgreich simuliert! ­ƒÄë",
+         success_desc: "Sie haben den Eingabevorgang abgeschlossen. In der Realit├ñt w├╝rden Sie eine Best├ñtigungs-E-Mail erhalten.",
+-        new_sim: "Neue Simulation"
++        new_sim: "Neue Simulation",
++        acceptance: {
++          title: "Vertragsannahme und Unterschrift",
++          subtitle: "Bitte w├ñhlen Sie das Angebot aus und speichern Sie.",
++          offer_title: "Verf├╝gbare Angebote",
++          offer_green: "Azzeriamola Green Angebot",
++          offer_details: "PUN + 0,020 Ôé¼/Kwh OHNE Kaution",
++          save_btn: "SPEICHERN",
++          checkbox_warning: "Sehr geehrter Kunde, bevor Sie mit der Unterschrift fortfahren, pr├╝fen Sie bitte die Anh├ñnge und die folgenden Daten, haken Sie alle K├ñstchen ab und speichern Sie. Im Falle von schwer lesbaren Anh├ñngen oder Daten, die nicht mit dem Vertrag ├╝bereinstimmen, kann der Antrag nicht bearbeitet werden, was zu Verz├Âgerungen bei der Belieferung f├╝hren kann.",
++          check1: "Die E-Mail-Adresse {email} und die Handynummer {phone} sind korrekt",
++          check2: "Die beigef├╝gte Rechnung ist die aktuellste und enth├ñlt alle Lieferdaten (Adresse, Steuernummer, MwSt-Nummer bei Firmen, POD f├╝r Strom, PDR/Z├ñhlernummer f├╝r Gas) und Verbr├ñuche",
++          check3: "Die auf der beigef├╝gten Rechnung angegebene Steuernummer stimmt mit der im Vertrag {cf} angegebenen ├╝berein",
++          check4: "Der beigef├╝gte Identit├ñtsnachweis zeigt sowohl die Vorder- als auch die R├╝ckseite und ist lesbar",
++          check5: "Die beigef├╝gte Steuernummer zeigt sowohl die Vorder- als auch die R├╝ckseite und ist lesbar",
++          check6: "Der im Vertrag angegebene Jahresverbrauch von {kwh} kWh ist identisch mit dem auf der beigef├╝gten Rechnung",
++          check7: "Die im Vertrag angegebene Wohnadresse {address} ist korrekt.",
++          check8: "Die im Vertrag angegebene Lieferadresse {address} ist korrekt.",
++          signature_title: "1. Vertragsannahme und CTE",
++          signature_warning: "Achtung: Wenn Sie Daten ge├ñndert haben, klicken Sie vor der Vertragsunterzeichnung auf SPEICHERN, um den Vertrag und die aktualisierten CTE zu erstellen.",
++          signature_steps: "Um den Vertrag abzuschlie├ƒen:",
++          signature_step_1: "1. Lesen Sie den mit Ihren Daten vorausgef├╝llten PDF-Vertrag und die Technischen Wirtschaftsbedingungen (CTE) und akzeptieren Sie diese.",
++          signature_step_2: "2. Unterschreiben Sie den Vertrag und die Technischen Wirtschaftsbedingungen (CTE) digital (mittels OTP-Verifizierungscode auf dem Handy) ODER Drucken, unterschreiben und laden Sie den unterschriebenen Vertrag und die Technischen Wirtschaftsbedingungen (CTE) hoch.",
++          cte_title: "Technische Wirtschaftsbedingungen Angebot \"Azzeriamola Green Haushalt Strom Privatperson OHNE KAUTION \" (AZ1LCZXDMGAC)",
++          digital_sign_title: "2. Unterschreiben Sie den Vertrag und die Technischen Wirtschaftsbedingungen (CTE) digital (mittels OTP-Verifizierungscode auf dem Handy) ODER Drucken, unterschreiben und laden Sie den unterschriebenen Vertrag und die Technischen Wirtschaftsbedingungen (CTE) hoch",
++          digital_sign_label: "Digitale Unterschrift",
++          digital_sign_btn: "Vertrag digital unterschreiben",
++          otp_info: "Der Kunde erh├ñlt eine E-Mail an {email} mit einem Link zur Unterzeichnung des Vertrags und der Technischen Wirtschaftsbedingungen (CTE); w├ñhrend des Unterschriftsprozesses erh├ñlt der Unterzeichner einen OTP-Code auf die angegebene Handynummer {phone}.",
++          print_sign_title: "Drucken, unterschreiben und laden Sie hier den Vertrag und die Technischen Wirtschaftsbedingungen (CTE) hoch",
++          download_contract: "Vorausgef├╝llten Vertrag herunterladen",
++          download_cte: "Technische Wirtschaftsbedingungen (CTE) herunterladen",
++          add_signed_contract: "Unterschriebenen Vertrag hinzuf├╝gen",
++          add_signed_cte: "CTE hinzuf├╝gen",
++          accept_all_checks: "Ich habe den Vertrag und die CTE gelesen und akzeptiere alle Vertrags- und technisch-wirtschaftlichen Bedingungen"
++        },
++        label_email: "E-Mail",
++        label_city: "Stadt",
++        label_zip: "PLZ",
++        placeholder_address: "Stra├ƒe, Hausnummer...",
++        placeholder_pod: "DE...",
++        info_text: "In dieser Simulationssitzung k├Ânnen Sie eine Rechnung hochladen, um zu sehen, wie die KI technische Daten automatisch extrahiert.",
++        tutorial_tag: "Simulations-Tutorial",
++        back_to_profiles: "Zur├╝ck zur Kunden-/Mitgliederauswahl",
++        profile_selection: {
++          title: "Profil w├ñhlen",
++          client_title: "PRIVILEGIERTER KUNDE",
++          member_title: "FAMILY UTILITY",
++          choose_light: "Union Light w├ñhlen",
++          choose_green: "Azzeriamola Green w├ñhlen",
++          fees_light: "Verwaltungsgeb├╝hren Ôé¼11,50/Monat\nGreen-Beitrag Ôé¼2,50/Monat (optional)",
++          fees_green: "Verwaltungsgeb├╝hren Ôé¼11,50/Monat + Sharing-Geb├╝hren Ôé¼9,30/Monat\nGreen-Beitrag inklusive",
++          features: {
++            backoffice: "Backoffice",
++            backoffice_partial: "Teilweises Backoffice",
++            backoffice_full: "Vollst├ñndiges Backoffice",
++            app: "MyUnion App",
++            app_pro: "Pro-Version",
++            app_elite: "Elite-Version",
++            cashback: "Super Cashback und Treueprogramme",
++            prospect: "Interessenten-Meldung",
++            sharing_project: "Union Sharing Project",
++            university: "Union University",
++            sales: "Vertriebsbeauftragter",
++            community: "Rolle in der Community",
++            academy: "Union Academy & Special Week",
++            we_share: "We.Share",
++            holiday: "Union Holiday"
++          }
++        },
++      },
++      docs: {
++        title: "Dokumente",
++        subtitle: "Pro Dokument k├Ânnen mehrere Dateien angeh├ñngt werden. Bitte stellen Sie sicher, dass die Anh├ñnge vollst├ñndig LESBAR sind.",
++        id_card: "Identit├ñtsnachweis - Personalausweis, F├╝hrerschein oder Reisepass",
++        id_hint: "VORDER-/R├£CKSEITE UND LESBAR",
++        fiscal_code: "Steuernummer",
++        bill: "Rechnung des Voranbieters",
++        bill_hint: "Die aktuellste mit Jahresverbrauch, Lieferadresse und vollst├ñndigen Lieferdaten",
++        add_doc: "Anhang hinzuf├╝gen"
++      },
++      status: {
++        title: "Vertragsstatus",
++        subtitle: "H├ñngen Sie alle erforderlichen Dokumente an, best├ñtigen Sie Ihre E-Mail, akzeptieren und unterschreiben Sie den Vertrag und speichern Sie. Achtung: Sobald alle Dokumente hochgeladen sind, k├Ânnen diese nicht mehr ge├ñndert werden.",
++        incomplete: "Unvollst├ñndig",
++        to_verify: "Zu pr├╝fen",
++        verified: "Gepr├╝ft",
++        in_supply: "In Belieferung"
+       }
+-    },
++    }
+   },
+   en: {
+     app: {
+@@ -1665,102 +1839,15 @@ export const translations = {
+       needs_units: "NEEDS {{n}} UNITS",
+       unlocked: "UNLOCKED"
+     },
+-    focus_mode: {
+-      title: "Focus Mode",
+-      config_title: "SESSION CONFIGURATION",
+-      mode_instant: "Instant",
+-      mode_pro: "Pro",
+-      goal_label: "Your Goal",
+-      goal_placeholder: "e.g. Close 3 contracts...",
+-      target_label: "Target Contacts OK",
+-      duration_label: "Duration",
+-      minutes: "Minutes",
+-      checklist_title: "Preparation Checklist",
+-      check_silence: "Phone silent / Do not disturb",
+-      check_water: "Water at hand",
+-      check_focus: "Distractions eliminated",
+-      start_btn: "Start Session",
+-      complete_checklist: "(Complete checklist)",
+-      session_goal: "Session Goal",
+-      target: "Target:",
+-      paused: "SESSION PAUSED",
+-      active: "FOCUS ACTIVE",
+-      contacts_ok: "Contacts OK",
+-      attempts: "Attempts",
+-      not_answered: "Not Answered",
+-      answered: "Answered",
+-      stop_btn: "End Session",
+-      completed_title: "SESSION ENDED",
+-      goal_reached_msg: "Fantastic! You reached your goal.",
+-      goal_missed_msg: "Good work! Consistency is key to success.",
+-      goal_reached_badge: "GOAL REACHED",
+-      goal: "Goal",
+-      generic: "Generic",
+-      rhythm: "Rhythm",
+-      time_up_title: "TIME'S UP",
+-      instant_finished_msg: "Instant session ended.",
+-      registered: "You registered",
+-      contacts_useful: "useful contacts.",
+-      new_session: "New Session",
+-      exit: "Exit"
+-    },
+-    fuel_focus: {
+-      title: "Fuel Focus",
+-      step_price: "Pump Price",
+-      step_shopping: "Smart Shopping",
+-      input_spending: "Monthly Food/Other Spending",
+-      expected_cashback: "EXPECTED CASHBACK",
+-      reveal_btn: "REVEAL SAVINGS",
+-      pump_price_label: "PUMP PRICE",
+-      sharing_price_label: "Sharing Price",
+-      monthly_saving: "Monthly Saving",
+-      annual_saving: "Annual Saving",
+-      swipe_close: "Swipe right to close",
+-      cta_share: "Share Result",
+-      tutorial_title: "Welcome to Focus Mode",
+-      tutorial_desc: "An immersive experience to visualize your real savings."
+-    },
+-    fuel_pitch: {
+-      title: "Fuel Saver",
+-      subtitle: "Savings Simulator",
+-      focus_mode_btn: "FOCUS MODE",
+-      pump_price_label: "Pump Price",
+-      sharing_price_label: "Sharing Price",
+-      fuel_price_label: "Fuel Price",
+-      tank_capacity_label: "Tank Capacity",
+-      liters: "Liters",
+-      other_spending_title: "Generate Credits from Other Spending",
+-      monthly_spending_label: "Monthly Spending (Smart Shopping)",
+-      cashback_obtained_label: "Cashback Obtained",
+-      generated_credit_label: "Generated Credit",
+-      cost_reduction_title: "Tank Cost Reduction",
+-      tank_cost_label: "Tank Cost",
+-      fuel_cashback_label: "Fuel Cashback (1.88%)",
+-      other_credits_label: "Other Spending Credits",
+-      new_tank_cost_label: "New Tank Cost",
+-      savings_per_liter_label: "Savings per Liter",
+-      total_savings_label: "Total Savings",
+-      value_12_months_label: "12-Month Value"
+-    },
+-    target_focus: {
+-      title: "Target Focus",
+-      step1_title: "Your Dream",
+-      step1_desc: "What do you want to achieve?",
+-      step2_title: "Your Income",
+-      step2_desc: "How much do you want monthly?",
+-      step3_title: "Your Strategy",
+-      step3_desc: "How much time do you want to invest?",
+-      dream_home: "Dream Home",
+-      dream_car: "New Car",
+-      dream_travel: "Travel",
+-      dream_freedom: "Freedom",
+-      cta_reveal: "Reveal Path",
+-      cta_share: "Share Goal",
+-      result_title: "Your Path",
+-      result_desc: "Here's what you need",
+-      result_contracts: "Necessary Contracts",
+-      result_months: "Estimated Months",
+-      result_rank: "Target Qualification"
++    nav: {
++      light: "Tutorial",
++      pro: "Pro",
++      network: "Network",
++      scanner: "AI Scanner",
++      focus: "Focus Mode",
++      admin: "Admin",
++      partner: "Partner",
++      client: "Client"
+     },
+     nav_mobile: {
+       input: "Input",
+@@ -1782,6 +1869,118 @@ export const translations = {
+       store: "Go to Store",
+       install: "Install App"
+     },
++    cashback_modal: {
++      title: "Cashback Calculator PRO",
++      subtitle: "Customize your monthly spending by category",
++      total_spend: "Total Spend",
++      monthly_return: "Monthly Return",
++      select_brand: "SELECT BRAND",
++      other: "OTHER...",
++      return: "return",
++      reset: "RESET",
++      confirm: "CONFIRM",
++      add_category: "Add Other Category",
++      categories: "categories",
++      estimated_bill: "ESTIMATED BILL",
++      pay_only: "You pay only",
++      profit: "EARNINGS",
++      save: "Savings",
++      bill_zero: "BILL ZEROED!",
++      covered_part: "You covered",
++      extra: "extra!"
++    },
++    contract_modal: {
++      title: "Note on Simulation",
++      body: "For this simulation with 2 contracts, it is assumed that the second added contract is a 'Light Contract' formula, which provides different bonuses and recurrences than the first one.",
++      close_btn: "Got It"
++    },
++    family_pro: {
++      title: "Unlock Career: Family Pro",
++      subtitle: "The qualification that opens unlimited earnings.",
++      mode_builder: "The Builder",
++      mode_sprinter: "The Sprinter",
++      builder_desc: "No time limit. Reach 10 total personal contracts.",
++      sprinter_desc: "60-day goal: 3 Sharing Partners (FU) who each bring 3.",
++      status_locked: "QUALIFICATION LOCKED ­ƒöÆ",
++      status_unlocked: "CAREER UNLOCKED ­ƒöô",
++      bonus_fast_start: "FAST START BONUS",
++      personal_contracts: "Personal Contracts",
++      req_met: "Requirements Met",
++      req_missing: "Requirements Missing"
++    },
++    welcome: {
++      title: "Welcome to",
++      subtitle: "Select your language to get started",
++      install_title: "Install the App",
++      install_desc: "For the best experience, add the app to your Home screen.",
++      install_required_title: "Unlock the Experience",
++      install_required_desc: "This application is designed to work exclusively as an installed App. Follow the instructions to access.",
++      install_wait_text: "ÔÜá´©Å Important note: After pressing 'Install' or 'Add', wait about 5-10 seconds for the icon to appear on your phone.",
++      ios_step1: "Tap the Share button",
++      ios_step2: "Scroll and select 'Add to Home'",
++      android_step1: "Tap the menu (3 dots)",
++      android_step2: "Select 'Install App' or 'Add to Home'",
++      pc_text: "Click the install icon in the address bar at the top right.",
++      start_btn: "Enter the Simulator",
++      choose_lang: "Choose Language / Sprache w├ñhlen"
++    },
++    cashback_detailed: {
++      title: "Cashback PRO Calculator",
++      subtitle: "Customize your monthly spending by category",
++      total_spend: "Total Spend",
++      monthly_return: "Monthly Return",
++      select_brand: "SELECT BRAND",
++      other: "OTHER...",
++      return: "return",
++      reset: "RESET",
++      confirm: "CONFIRM",
++      add_category: "Add Other Category",
++      categories: "categories",
++      estimated_bill: "ESTIMATED BILL",
++      pay_only: "You pay only",
++      profit: "EARNINGS",
++      save: "Savings",
++      bill_zero: "BILL ZEROED!",
++      covered_part: "You covered",
++      extra: "extra!",
++      dont_lose: "DON'T LOSE THEM!",
++      focus_mode: "FOCUS MODE",
++      edit_amount: "Edit amount",
++      insert_here: "Enter here",
++      cat: {
++        alim: "Groceries",
++        igiene: "Personal hygiene",
++        carb: "Fuel",
++        tech: "Hi-Tech",
++        treni: "Transport",
++        school: "School supplies",
++        abb: "Clothing",
++        casa: "Home",
++        regali: "Gifts and Leisure",
++        md: "Discount store",
++        aff_int: "Internet affiliate example"
++      }
++    },
++    assets: {
++      tag: "Wealth Mindset",
++      title: "The Value of Your Asset",
++      desc: "To generate passive income with traditional investments, you would need to own assets worth:",
++      real_estate: "Real Estate",
++      re_desc: "Net Yield ~4%",
++      re_equiv: "Equivalent to owning rental apartments.",
++      bonds: "Government Bonds",
++      bonds_desc: "Bonds ~3%",
++      bonds_note: "Capital locked in for coupon returns.",
++      bank: "Bank",
++      bank_desc: "Deposit Account ~1.5%",
++      bank_note: "Necessary liquidity held in the bank.",
++      footer: "With Union you build this value at zero cost."
++    },
++    analysis_btn: {
++      premium: "Premium Tool",
++      title: "Utility Analysis",
++      subtitle: "Calculate real savings"
++    },
+     union_park: {
+       title: "Sharing Park Simulator",
+       subtitle: "Configure your shared photovoltaic panels",
+@@ -1800,7 +1999,7 @@ export const translations = {
+       reset: "Reset",
+       note: "* Revenue values are estimates based on the set average PUN.",
+       pun_hint: "Enter desired PUN value or seek a quick one:",
+-      zero_bill_title: "Zero Bill Goal",
++      zero_bill_title: "Zero Bill Goal"
+     },
+     pdf: {
+       prepared_by: "Prospectus prepared by",
+@@ -1834,63 +2033,124 @@ export const translations = {
+       total_recurring_3y: "Total Recurring 3 Years",
+       total_est_3y: "Total Estimated (3 Years)"
+     },
+-
+-    simulator: {
+-      title: "Earnings Simulator",
+-      subtitle: "Calculate your potential with Union Energia",
+-      config_title: "Configuration",
+-      contracts_label: "Contracts per Month",
+-      listing_label: "Listing Fee",
+-      results_title: "Your Results",
+-      monthly_income: "Monthly Income",
+-      one_time_bonus: "One-Time Bonus",
+-      total_annual: "Total Annual",
+-      reset_btn: "Reset",
+-      details_btn: "View Details",
+-      calculate_btn: "Calculate",
+-      share_btn: "Share Results",
+-      promo_code: "Promo Code",
+-      apply_btn: "Apply"
++    target_calc: {
++      title: "Calculate Goal",
++      label_income: "Desired Monthly Income (1st Year)",
++      current_params: "Current parameters maintained:",
++      default_params: "Estimate with standard parameters (recommended):",
++      contracts: "Contracts per user",
++      duplication: "Duplication",
++      per_person: "per person",
++      depth: "Depth",
++      levels: "levels",
++      needed: "To reach this goal you need:",
++      directs: "Directs",
++      rounded: "(Rounded to",
++      apply: "Apply to Simulator",
++      feedback_easy: "Easy! You'll do it in a flash.",
++      feedback_medium: "Great! Needs consistency.",
++      feedback_hard: "Challenge Accepted! Go for it.",
++      feedback_insane: "Top Leader Goal! ­ƒÅå"
+     },
+-    common: {
+-      currency: "Ôé¼",
+-      months: "Months",
+-      year: "Year",
+-      years: "Years",
+-      loading: "Loading...",
+-      error: "An error occurred",
+-      success: "Success!",
+-      save: "Save",
+-      cancel: "Cancel",
+-      close: "Close",
+-      back: "Back",
+-      next: "Next",
+-      finish: "Finish",
+-      done: "Done"
++    guide_modal: {
++      title: "Quick Guide",
++      intro: "Here's how to use the simulator in 4 steps:",
++      step1_title: "Set Parameters",
++      step1_desc: "Use the controls on the left to define your network and contracts.",
++      step2_title: "Analyze Results",
++      step2_desc: "Immediately view one-time and recurring earnings.",
++      step3_title: "Discover the WOW",
++      step3_desc: "Unlock advanced projections on dreams, freedom, and pension.",
++      step4_title: "Administrators",
++      step4_desc: "Change mode at the top for condo simulations.",
++      close: "Close Guide",
++      step1_title_short: "Step 1",
++      step2_title_short: "Step 2",
++      step3_title_short: "Step 3",
++      step4_title_short: "Step 4"
+     },
+-    sections: {
+-      hero: {
+-        title: "Build your Recursive Income",
+-        subtitle: "The definitive tool to simulate your growth in Sharing Economy.",
+-        start_button: "Start Now"
++    guide_wow: {
++      title: "Sharing Simulator",
++      highlight: "Tutorial",
++      subtitle: "Your Mini-Academy to master the compensation plan.",
++      close: "Got it, start simulating!",
++      tabs: {
++        intro: "Introduction",
++        network: "Network Development",
++        bonus: "Bonus & Extra",
++        vision: "Future Vision",
++        admin: "Administrators"
+       },
+-      features: {
+-        title: "Why choose Union?",
+-        items: [
+-          { title: "Zero Risk", desc: "No initial investment required." },
+-          { title: "Recursive Income", desc: "Earn every month from bills." },
+-          { title: "Green Energy", desc: "100% Renewable certified energy." },
+-          { title: "Community", desc: "Join a growing group of sharers." }
+-        ]
++      content: {
++        intro_title: "Welcome to your financial future",
++        intro_text: "This is not just a calculator. It is a map for your freedom. Here you can mathematically simulate how small daily actions, replicated over time, create exponential income.",
++        card_input_title: "Input Panel",
++        card_input_desc: "Set the numbers of your activity.",
++        card_chart_title: "Charts",
++        card_chart_desc: "Visualize growth over time.",
++        network_title: "Build your Network",
++        network_desc: "The heart of the system. You don't have to do everything alone: the strength lies in duplication.",
++        network_p1: "<strong>Direct Partner Sharing (FU):</strong> The people you involve personally. The higher this number, the more solid the base.",
++        network_p2: "<strong>Duplication:</strong> The magic of network. How many people does each of your partners involve in turn? If you bring 3, and they bring 3...",
++        network_p3: "<strong>Depth:</strong> Up to what level are you paid? The simulator calculates earnings on all active levels.",
++        bonus_title: "Not just Income",
++        bonus_desc: "In addition to the monthly recurring, you have access to immediate bonuses and exclusive advantages.",
++        bonus_p1: "Enter your monthly spending and the percentage you get back. This money is <strong>immediate liquidity</strong> that lowers your expenses.",
++        bonus_p2: "Have customers who don't want to network? Enter them here. They give you a <strong>One-Time Token</strong> immediately and increase your monthly income.",
++        vision_title: "Project your Lifestyle",
++        vision_desc: "Click on 'Discover how your life changes' to unlock the WOW cards:",
++        vision_zero: "<strong>Zero Expenses Goal:</strong> When your income exceeds your bills.",
++        vision_freedom: "<strong>Financial Freedom:</strong> When income exceeds your current salary.",
++        vision_dreams: "<strong>Dreams:</strong> When can you buy the car or house you want?",
++        vision_pension: "<strong>Pension:</strong> How Union fills the INPS pension gap.",
++        admin_title: "Are you an Administrator?",
++        admin_desc: "We have created a section dedicated to condo professionals.",
++        admin_p1: "Switch to <strong>Condo Admin</strong> mode at the top right.",
++        admin_p2: "Enter the units managed (Green and Light) and the expected annual growth.",
++        admin_p3: "<strong>Union Clients:</strong> Calculate how many condos also become Union clients and exponentially increase your income."
+       }
+     },
+-
+-    tooltips: {
+-      personal_production: "Contracts you enter personally each month.",
+-      direct_collaborators: "People you directly involve in the project.",
+-      network_depth: "Number of generation levels (Max 5).",
+-      average_bill: "Average value of the bills.",
+-      contracts_per_collaborator: "Average production of your team."
++    input: {
++      month: "month",
++      year: "year",
++      network_params: "Network Development Parameters",
++      personal_clients: "Clients, Units and Park",
++      tab_residential: "Private",
++      tab_business: "Business / VAT",
++      tab_my_units: "My Units",
++      cashback_title: "Earnings from Cashback",
++      cashback_spending: "Monthly spending (Ôé¼)",
++      cashback_percent: "Cashback Percentage (%)",
++      cashback_result: "Your Monthly Return",
++      bonus_label: "Bonus",
++      directs: "Direct Partner Sharing (FU)",
++      contracts_per_user: "Contracts per Partner Sharing (FU)",
++      indirects: "Indirect Partner Sharing (FU)",
++      direct_recruits: "Direct Users",
++      indirect_recruits: "Indirect Users",
++      depth: "Network Depth (levels)",
++      time: "Realization Time (months)",
++      admin_params: "Admin Parameters",
++      green_section: "Green Contract",
++      light_section: "Light Contract",
++      green_units_init: "Initial Green Units (1st Year)",
++      green_units_new: "New Green Units per year",
++      light_units_init: "Initial Light Units (1st Year)",
++      light_units_new: "New Light Units per year",
++      families_per_condo: "Families per Condo (Average)",
++      network_conversion: "Unit conversions",
++      network_directs_title: "Extra Network Clients",
++      network_directs_desc: "Set how many condos also become clients/promoters",
++      network_assumption_note: "Note: Calculation assumes 2 contracts per client (1 Green + 1 Light).",
++      condo_note: "Note: Calculation simulates automatic progression based on contract seniority.",
++      network_potential_families: "Potential Families",
++      network_total_families: "Total Families",
++      network_est_result: "ESTIMATED RESULT",
++      network_new_clients: "New Clients",
++      condos_parens: "(Condos)",
++      families_parens: "(Families)",
++      include_main_net: "Include External Network Development",
++      include_main_net_desc: "Add main simulation earnings"
+     },
+     results: {
+       total_users: "Total Users",
+@@ -1915,247 +2175,10 @@ export const translations = {
+       cashback_park: "Cashback & Park",
+       bonus_3x3: "Bonus 3x3 (In 60 days)",
+       annual_suffix: "year:",
+-      monthly_recurring: "Monthly Recurring",
+-      total_first_year: "Total 1st Year",
+-      career_rank: "Career Rank",
+-      next_rank: "Next Rank",
+-      contracts_to_next: "Contracts to Next Level",
+       customize_btn: "Customize",
+       exit_fullscreen: "EXIT",
+       enter_fullscreen: "NETWORK FOCUS"
+     },
+-    ranks: {
+-      smart: "Smart",
+-      fast: "Fast",
+-      prime: "Prime",
+-      top: "Top",
+-      elite: "Elite",
+-      master: "Master"
+-    },
+-    ai_scanner: {
+-      title: "AI Bill Scanner",
+-      subtitle: "Upload a bill to analyze potential savings",
+-      upload_btn: "Upload Bill (PDF/Image)",
+-      analyzing: "AI Analysis in progress...",
+-      results_title: "Analysis Results",
+-      savings_est: "Estimated Annual Savings",
+-      switch_btn: "Switch to Union",
+-      try_again: "Scan Another"
+-    },
+-    pro_mode: {
+-      title: "Pro Mode",
+-      status_on: "ON",
+-      status_off: "OFF",
+-      desc: "Enable advanced features for expert networkers."
+-    },
+-    network_viz: {
+-      open_btn: "Open Network Visualizer",
+-      title: "Your Network Structure",
+-      legend: "Legend: Blue (Direct), Purple (Indirect)"
+-    },
+-    gamification: {
+-      level_up: "Level Up!",
+-      xp: "XP",
+-      achievements: "Achievements",
+-      leaderboard: "Leaderboard"
+-    },
+-    onboarding: {
+-      welcome: "Welcome to Simulator!",
+-      step1: "Set your personal production.",
+-      step2: "Define your team structure.",
+-      step3: "Visualize your earnings."
+-    },
+-    legal: {
+-      terms: "Terms of Service",
+-      privacy: "Privacy Policy",
+-      disclaimer: "This simulator creates estimates based on mathematical projections. Actual results may vary."
+-    },
+-    nav: {
+-      light: "Tutorial",
+-      pro: "Pro",
+-      network: "Network",
+-      scanner: "AI Scanner",
+-      focus: "Focus",
+-      admin: "Admin",
+-      partner: "Partner",
+-      client: "Client"
+-    },
+-
+-    header: {
+-      simulator: "Simulator",
+-      community: "Community",
+-      academy: "Academy",
+-      events: "Events"
+-    },
+-    hero: {
+-      badge: "SIMULATOR 2025",
+-      title: "Simulator",
+-      title_highlight: "Sharing",
+-      subtitle: "Determine your financial future. Calculates the Recurring Income generated by your electricity and gas sharing network.",
+-      cta_start: "Start Simulation",
+-      cta_video: "Tutorial Video"
+-    },
+-    analysis_btn: {
+-      premium: "Premium Tool",
+-      title: "Utility Analysis",
+-      subtitle: "Calculate real savings"
+-    },
+-    input: {
+-      tag_personal: "PERSONAL WORK",
+-      tag_team: "TEAM WORK",
+-      contracts_per_user: "Contracts / Collaborator",
+-      depth: "Network Depth",
+-      time: "Realization Time (months)",
+-      direct_recruits: "Direct Users",
+-      indirect_recruits: "Indirect Users",
+-      personal_production: "Personal Production",
+-      direct_collaborators: "Direct Collaborators",
+-      network_depth: "Network Depth",
+-      average_bill: "Average Bill",
+-      contracts_per_collaborator: "Contracts per Collab.",
+-      month: "Month",
+-      year: "Year",
+-      // Condo Admin
+-      admin_params: "Admin Parameters",
+-      include_main_net: "Include Main Network",
+-      include_main_net_desc: "Add your network earnings to this simulation",
+-      green_section: "Green Section",
+-      green_units_init: "Initial Green Units",
+-      green_units_new: "New Green Units / Year",
+-      light_section: "Light Section",
+-      light_units_init: "Initial Light Units",
+-      light_units_new: "New Light Units / Year",
+-      families_per_condo: "Families per Condo",
+-      condos_parens: "(Condos)",
+-      families_parens: "(Families)",
+-      network_total_families: "Total Families",
+-      network_conversion: "Network Conversion %",
+-      network_potential_families: "Potential Families",
+-      network_est_result: "Estimated Result",
+-      network_new_clients: "New Clients",
+-      network_assumption_note: "Note: Calculation assumes 2 contracts per client (1 Green + 1 Light).",
+-      condo_note: "Estimates are based on average market values."
+-
+-    },
+-    consumption: {
+-      label: "Average Consumption",
+-      tooltip: "Average monthly spending of customers (determines token value)."
+-    },
+-    stats: {
+-      time_months: "Months",
+-      total_people: "Total People",
+-      total_contracts: "Total Contracts"
+-    },
+-    breakdown: {
+-      monthly_income: "Monthly Income",
+-      one_time_bonus: "One-Time Bonus",
+-      total_year: "Total 1st Year",
+-      year: "Year",
+-      monthly_passive: "Monthly Passive"
+-    },
+-    fab: {
+-      label: "Ask Shary"
+-    },
+-    detail_modal: {
+-      title: "Detailed Analysis",
+-      subtitle: "Complete breakdown of your earnings",
+-      tab_overview: "Overview",
+-      tab_table: "Table",
+-      tab_charts: "Charts",
+-      monthly_evolution: "Monthly Evolution",
+-      income_composition: "Income Composition",
+-      structure_growth: "Structure Growth",
+-      close: "Close"
+-    },
+-    shary: {
+-      welcome: "Hi! I'm Shary, your AI assistant. How can I help you today?",
+-      hint_increase: "Try increasing your direct collaborators to boost your growth!",
+-      hint_balance: "A balanced structure (depth vs width) usually yields better long-term results.",
+-      typing: "Shary is typing..."
+-    },
+-    summary_cards: {
+-      monthly_income: {
+-        title: "Monthly Income",
+-        desc: "Recurring income from bills"
+-      },
+-      annual_total: {
+-        title: "Total 1st Year",
+-        desc: "Bonus + Recurring Income accumulated"
+-      },
+-      bonus_cash: {
+-        title: "Cash Bonus",
+-        desc: "Immediate One-Time Earnings"
+-      },
+-      active_structure: "Active Structure",
+-      people: "People"
+-    },
+-    tabs: {
+-      results: "Results",
+-      structure: "Structure",
+-      plan: "Action Plan"
+-    },
+-    maintenance: {
+-      title: "Simulator Maintenance",
+-      message: "We are updating the calculation parameters. Back soon!"
+-    },
+-    error_boundary: {
+-      title: "Oops!",
+-      message: "Something went wrong. Please refresh the page."
+-    },
+-    comparison: {
+-      traditional_job: "Traditional Job",
+-      sharing_economy: "Sharing Economy",
+-      hours_day: "Hours/Day",
+-      income_limit: "Income Limit",
+-      growth: "Growth"
+-    },
+-    export: {
+-      download_pdf: "Download PDF",
+-      download_csv: "Download CSV",
+-      generating: "Generating..."
+-    },
+-    tips: {
+-      tip1: "Focus on 5 strong direct lines initially.",
+-      tip2: "Teach your team to duplicate your system.",
+-      tip3: "Use the AI scanner to demonstrate savings quickly."
+-    },
+-    settings: {
+-      title: "Settings",
+-      language: "Language",
+-      theme: "Theme",
+-      dark: "Dark",
+-      light: "Light",
+-      system: "System"
+-    },
+-    share: {
+-      title: "Share Results",
+-      copy_link: "Copy Link",
+-      whatsapp: "WhatsApp",
+-      telegram: "Telegram",
+-      email: "Email"
+-    },
+-    card_backs: {
+-      monthly_rendita: "Monthly Recurring",
+-      bonus_cash: "Cash Bonus",
+-      card_member: "Elite Member",
+-      copy_btn: "Copy WhatsApp Pitch",
+-      copied: "Copied!",
+-      metrics: {
+-        hourly_val: "Your Hourly Value",
+-        vs_job: "vs 10-15Ôé¼ trad. job",
+-        equiv: "Equivalent to",
+-        apartments: "Apartments",
+-        rent_desc: "rented at 150kÔé¼",
+-        time: "Realization Time",
+-        part_time: "part-time commitment"
+-      },
+-      pitch_text_1: "Hi! ­ƒÜÇ\n\nI'm working on a project to build a Digital Asset (time-independent) in about",
+-      pitch_text_2: "months.\n\nThe numbers are crazy:\n­ƒÆÄ Generated Asset Value:",
+-      pitch_text_3: "­ƒöÑ Monthly Rent:",
+-      pitch_text_4: "­ƒÆ░ Immediate Bonus:",
+-      pitch_text_5: "It's like owning",
+-      pitch_text_6: "rental apartments, but without capital investment. ­ƒæç\nLet me know if you want to take a look!"
+-    },
+     condo_results: {
+       total_business_plan: "Total Business Plan Value (3 Years)",
+       total_desc: "Sum of all One-Time tokens and monthly recurring income accumulated in the first 36 months.",
+@@ -2175,6 +2198,36 @@ export const translations = {
+       calc_note: "Calculation Note",
+       calc_note_text: "The system automatically calculates the recurring income increase for contracts signed in previous years. New contracts always start at the base rate."
+     },
++    pension: {
++      tag: "Pension",
++      title: "The Pension Gap",
++      desc: "Without Union, when you stop working your income will drop by about 30% (red zone). Recurring income fills that void.",
++      current_salary: "Your Current Salary",
++      union_rent: "Union Rent (3rd Year)",
++      gap_label: "GAP",
++      loss_label: "Monthly Loss",
++      salary_label: "Salary",
++      only_inps: "State Only",
++      with_union: "With Union",
++      extra: "Extra",
++      recover: "Recover",
++      msg_covered: "Your Union rent fully covers the gap and gives you a superior lifestyle."
++    },
++    asset_card: {
++      tag: "Wealth Mindset",
++      title: "The Value of your Asset",
++      desc: "To generate passive income with traditional investments, you would need to own assets worth:",
++      real_estate: "Real Estate",
++      re_desc: "Net Yield ~4%",
++      re_equiv: "Equivalent to owning rental apartments.",
++      bonds: "Gov. Bonds",
++      bonds_desc: "Bonds ~3%",
++      bonds_note: "Capital tied up for interest.",
++      bank: "Bank",
++      bank_desc: "Savings Acc. ~1.5%",
++      bank_note: "Necessary liquidity in bank.",
++      footer: "With Union you build this value at Zero cost."
++    },
+     zero_cost: {
+       tag: "Zero Cost Goal",
+       title: "Zero Your Bills",
+@@ -2266,22 +2319,6 @@ export const translations = {
+       pitch_text_5: "It's like owning",
+       pitch_text_6: "rental apartments, but without capital investment. ­ƒæç\nLet me know if you want to take a look!"
+     },
+-    pension: {
+-      tag: "Pension",
+-      title: "The Pension Gap",
+-      desc: "Without Union, when you stop working your income will drop by about 30% (red zone). Recurring income fills that void.",
+-      current_salary: "Your Current Salary",
+-      union_rent: "Union Rent (3rd Year)",
+-      gap_label: "GAP",
+-      loss_label: "Monthly Loss",
+-      salary_label: "Salary",
+-      only_inps: "State Only",
+-      with_union: "With Union",
+-      extra: "Extra",
+-      recover: "Recover",
+-      msg_covered: "Your Union rent fully covers the gap and gives you a superior lifestyle.",
+-      msg_partial: "The rent helps, but doesn't cover the full gap yet. Increase Directs or Duplication.",
+-    },
+     freedom: {
+       title: "Freedom Day Calculator",
+       subtitle: "When can you say \"Goodbye Boss\"?",
+@@ -2292,21 +2329,6 @@ export const translations = {
+       chart_salary: "Fixed Salary",
+       chart_income: "Union Rent"
+     },
+-    asset_card: {
+-      tag: "Wealth Mindset",
+-      title: "The Value of your Asset",
+-      desc: "To generate passive income with traditional investments, you would need to own assets worth:",
+-      real_estate: "Real Estate",
+-      re_desc: "Net Yield ~4%",
+-      re_equiv: "Equivalent to owning rental apartments.",
+-      bonds: "Gov. Bonds",
+-      bonds_desc: "Bonds ~3%",
+-      bonds_note: "Capital tied up for interest.",
+-      bank: "Bank",
+-      bank_desc: "Savings Acc. ~1.5%",
+-      bank_note: "Necessary liquidity in bank.",
+-      footer: "With Union you build this value at Zero cost."
+-    },
+     time: {
+       tag: "Time Leverage",
+       title: "The Time Machine",
+@@ -2343,7 +2365,8 @@ export const translations = {
+       card_unlocked: "Congrats! Bonus unlocked.",
+       role_pro: "Pro Manager",
+       role_reg: "Regional Manager",
+-      role_nat: "National Manager"
++      role_nat: "National Manager",
++      role_active: "Bonus active"
+     },
+     chart: {
+       evolution: "Income Evolution",
+@@ -2408,43 +2431,6 @@ export const translations = {
+       become_promoter: "Become Partner Sharing (FU)",
+       recommended: "Recommended"
+     },
+-    cashback_detailed: {
+-      title: "Cashback Calculator PRO",
+-      subtitle: "Personalize your monthly spending by category",
+-      total_spend: "Total Spend",
+-      monthly_return: "Monthly Return",
+-      select_brand: "SELECT BRAND",
+-      other: "OTHER...",
+-      return: "return",
+-      reset: "RESET",
+-      confirm: "CONFIRM",
+-      add_category: "Add Category",
+-      categories: "categories",
+-      estimated_bill: "ESTIMATED BILL",
+-      pay_only: "Pay only",
+-      profit: "PROFIT",
+-      save: "Save",
+-      bill_zero: "BILL ZEROED!",
+-      covered_part: "You covered",
+-      extra: "extra!",
+-      dont_lose: "DON'T LOSE THEM!",
+-      focus_mode: "FOCUS MODE",
+-      edit_amount: "Edit amount",
+-      insert_here: "Insert here",
+-      cat: {
+-        alim: "Groceries",
+-        igiene: "Personal Care",
+-        carb: "Fuel",
+-        tech: "Hi-Tech",
+-        treni: "Transport",
+-        school: "School Supplies",
+-        abb: "Clothing",
+-        casa: "Home",
+-        regali: "Gifts & Leisure",
+-        md: "Discount",
+-        aff_int: "Example Internet Affiliates"
+-      }
+-    },
+     light_simulator: {
+       title: "Sharing Simulator light",
+       subtitle: "Accelerated version for your community",
+@@ -2488,8 +2474,121 @@ export const translations = {
+       rtz_missing: "You are missing Ôé¼{{n}} to completely zero the bill.",
+       rtz_note: "\"The calculation considers contracts currently entered in the simulator and your spending habits.\""
+     },
++    focus_mode: {
++      title: "Focus Mode",
++      config_title: "SESSION CONFIGURATION",
++      mode_instant: "Instant",
++      mode_pro: "Pro",
++      goal_label: "Your Goal",
++      goal_placeholder: "e.g. Close 3 contracts...",
++      target_label: "Target Contacts OK",
++      duration_label: "Duration",
++      minutes: "Minutes",
++      checklist_title: "Preparation Checklist",
++      check_silence: "Phone silent / Do not disturb",
++      check_water: "Water at hand",
++      check_focus: "Distractions eliminated",
++      start_btn: "Start Session",
++      complete_checklist: "(Complete checklist)",
++      session_goal: "Session Goal",
++      target: "Target:",
++      paused: "SESSION PAUSED",
++      active: "FOCUS ACTIVE",
++      contacts_ok: "Contacts OK",
++      attempts: "Attempts",
++      not_answered: "Not Answered",
++      answered: "Answered",
++      stop_btn: "End Session",
++      completed_title: "SESSION ENDED",
++      goal_reached_msg: "Fantastic! You reached your goal.",
++      goal_missed_msg: "Good work! Consistency is key to success.",
++      goal_reached_badge: "GOAL REACHED",
++      goal: "Goal",
++      generic: "Generic",
++      rhythm: "Rhythm",
++      time_up_title: "TIME'S UP",
++      instant_finished_msg: "Instant session ended.",
++      registered: "You registered",
++      contacts_useful: "useful contacts.",
++      new_session: "New Session",
++      exit: "Exit"
++    },
++    fuel_focus: {
++      title: "Fuel Focus",
++      step_price: "Pump Price",
++      step_shopping: "Smart Shopping",
++      input_spending: "Monthly Food/Other Spending",
++      expected_cashback: "EXPECTED CASHBACK",
++      reveal_btn: "REVEAL SAVINGS",
++      pump_price_label: "PUMP PRICE",
++      sharing_price_label: "Sharing Price",
++      monthly_saving: "Monthly Saving",
++      annual_saving: "Annual Saving",
++      swipe_close: "Swipe right to close",
++      cta_share: "Share Result",
++      tutorial_title: "Welcome to Focus Mode",
++      tutorial_desc: "An immersive experience to visualize your real savings."
++    },
++    fuel_pitch: {
++      title: "Fuel Saver",
++      subtitle: "Savings Simulator",
++      focus_mode_btn: "FOCUS MODE",
++      pump_price_label: "Pump Price",
++      sharing_price_label: "Sharing Price",
++      fuel_price_label: "Fuel Price",
++      tank_capacity_label: "Tank Capacity",
++      liters: "Liters",
++      other_spending_title: "Generate Credits from Other Spending",
++      monthly_spending_label: "Monthly Spending (Smart Shopping)",
++      cashback_obtained_label: "Cashback Obtained",
++      generated_credit_label: "Generated Credit",
++      cost_reduction_title: "Tank Cost Reduction",
++      tank_cost_label: "Tank Cost",
++      fuel_cashback_label: "Fuel Cashback (1.88%)",
++      other_credits_label: "Other Spending Credits",
++      new_tank_cost_label: "New Tank Cost",
++      savings_per_liter_label: "Savings per Liter",
++      total_savings_label: "Total Savings",
++      value_12_months_label: "12-Month Value"
++    },
++    target_focus: {
++      title: "Target Focus",
++      step1_title: "Your Dream",
++      step1_desc: "What do you want to achieve?",
++      step2_title: "Your Income",
++      step2_desc: "How much do you want monthly?",
++      step3_title: "Your Strategy",
++      step3_desc: "How much time do you want to invest?",
++      dream_home: "Dream Home",
++      dream_car: "New Car",
++      dream_travel: "Travel",
++      dream_freedom: "Freedom",
++      cta_reveal: "Reveal Path",
++      cta_share: "Share Goal",
++      result_title: "Your Path",
++      result_desc: "Here's what you need",
++      result_contracts: "Necessary Contracts",
++      result_months: "Estimated Months",
++      result_rank: "Target Qualification"
++    },
++    common: {
++      currency: "Ôé¼",
++      months: "Months",
++      year: "Year",
++      years: "Years",
++      loading: "Loading...",
++      error: "An error occurred",
++      success: "Success!",
++      save: "Save",
++      cancel: "Cancel",
++      close: "Close",
++      back: "Back",
++      next: "Next",
++      finish: "Finish",
++      done: "Done"
++    },
+     academy: {
+-      title: "Sharing Academy",
++      title: "Academy",
+       subtitle: "Training and Tools",
+       menu: {
+         tutorial: "Compensation Plan Tutorial",
+@@ -2515,8 +2614,93 @@ export const translations = {
+         submit_btn: "Submit Contract",
+         success_title: "Contract Simulated Successfully! ­ƒÄë",
+         success_desc: "You have completed the entry procedure. In reality, you would receive a confirmation email.",
+-        new_sim: "New Simulation"
++        new_sim: "New Simulation",
++        acceptance: {
++          title: "Acceptance and Contract Signing",
++          subtitle: "Please select the offer and save.",
++          offer_title: "Available Offers",
++          offer_green: "Azzeriamola Green Offer",
++          offer_details: "PUN + 0.020 Ôé¼/Kwh WITHOUT security deposit",
++          save_btn: "SAVE",
++          checkbox_warning: "Dear customer, before proceeding with the signature, please verify the attachments and the following data, check all the boxes and save. In case of attachments that are not very legible and with data not conforming to what is indicated in the contract, the file cannot be processed with consequent delays in entering the supply.",
++          check1: "The email address {email} and the mobile number {phone} are correct",
++          check2: "The attached bill is the most recent and contains all the supply data (address, tax code, vat number if business, pod if light, pdr/meter number if gas) and consumption",
++          check3: "The tax code present in the attached bill is the same as indicated in the contract {cf}",
++          check4: "The attached identity document shows both the front and the back and is legible",
++          check5: "The attached tax code shows both the front and the back and is legible",
++          check6: "The annual consumption indicated in the contract {kwh} kWh is identical to that present in the attached bill",
++          check7: "The residence address indicated in the contract {address} is correct.",
++          check8: "The supply address indicated in the contract {address} is correct.",
++          signature_title: "1. Contract and CTE Acceptance",
++          signature_warning: "Warning: if you have modified any data, before signing the Contract, click on SAVE to generate the updated contract and CTE.",
++          signature_steps: "To finalize the contract:",
++          signature_step_1: "1. Read the pre-filled PDF contract with your data entered and the Technical Economic Conditions (CTE) and accept them.",
++          signature_step_2: "2. Digitally sign the Contract and the Technical Economic Conditions (CTE) (via OTP verification code on mobile) OR Print, sign and upload the signed contract and the Technical Economic Conditions (CTE).",
++          cte_title: "Technical Economic Conditions Offer \"Azzeriamola Green domestic light individual WITHOUT DEPOSIT \" (AZ1LCZXDMGAC)",
++          digital_sign_title: "2. Digitally sign the Contract and the Technical Economic Conditions (CTE) (via OTP verification code on mobile) OR Print, sign and upload the signed contract and the Technical Economic Conditions (CTE)",
++          digital_sign_label: "Digital signature",
++          digital_sign_btn: "Digitally sign the contract",
++          otp_info: "The customer will receive an email at {email} containing a link to sign the Contract and the Technical Economic Conditions (CTE); during the signing process the signer will receive an OTP code on the indicated mobile number {phone}.",
++          print_sign_title: "Print, sign and upload the Contract and the Technical Economic Conditions (CTE) below",
++          download_contract: "Download pre-filled contract",
++          download_cte: "Download Technical Economic Conditions (CTE)",
++          add_signed_contract: "Add signed contract",
++          add_signed_cte: "Add CTE",
++          accept_all_checks: "I have read the contract and the CTE and accept all the contractual and technical-economic conditions"
++        }
++      },
++      label_email: "Email",
++      label_city: "City",
++      label_zip: "ZIP Code",
++      placeholder_address: "Street, Square...",
++      placeholder_pod: "EN...",
++      info_text: "In this simulator session, you can upload a bill to see how AI extracts technical data automatically.",
++      tutorial_tag: "Tutorial Session",
++      back_to_profiles: "Back to Customer/Member selection",
++      profile_selection: {
++        title: "Choose Profile",
++        client_title: "PREFERRED CUSTOMER",
++        member_title: "FAMILY UTILITY",
++        choose_light: "Choose Union Light",
++        choose_green: "Choose Azzeriamola Green",
++        fees_light: "Service fees Ôé¼11.50/month\nGreen Fee Ôé¼2.50/month (optional)",
++        fees_green: "Service fees Ôé¼11.50/month + Sharing Fees Ôé¼9.30/month\nGreen Fee Included",
++        features: {
++          backoffice: "Backoffice",
++          backoffice_partial: "Partial Backoffice",
++          backoffice_full: "Full Backoffice",
++          app: "MyUnion App",
++          app_pro: "Pro Version",
++          app_elite: "Elite Version",
++          cashback: "Super Cashback and loyalty programs",
++          prospect: "Prospect Referral",
++          sharing_project: "Union Sharing Project",
++          university: "Union University",
++          sales: "Sales Representative",
++          community: "Community Role",
++          academy: "Union Academy & Special Week",
++          we_share: "We.Share",
++          holiday: "Union Holiday"
++        }
++      },
++      docs: {
++        title: "Documents",
++        subtitle: "Multiple files can be attached for each document. Please ensure that attachments are completely LEGIBLE.",
++        id_card: "Identity document - ID card, driver's license or passport",
++        id_hint: "FRONT/BACK AND LEGIBLE",
++        fiscal_code: "Tax Code",
++        bill: "Previous provider's bill",
++        bill_hint: "The most recent one containing annual consumption, supply address, and complete supply data",
++        add_doc: "Add attachment"
++      },
++      status: {
++        title: "Contract Progress Status",
++        subtitle: "Attach all required documents, confirm your email, accept, sign the contract and save. Warning: Once all documents are uploaded, it will no longer be possible to modify them.",
++        incomplete: "Incomplete",
++        to_verify: "To verify",
++        verified: "Verified",
++        in_supply: "In supply"
+       }
+     }
+-  },
++  }
+ };

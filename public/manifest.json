@@ -1,0 +1,25 @@
+{
+  "short_name": "My Sharing Simulator",
+  "name": "My Sharing Simulator",
+  "id": "union-sim-offline-ready-v2",
+  "start_url": ".",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0077c8",
+  "background_color": "#ffffff",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/logo_new.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo_new.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

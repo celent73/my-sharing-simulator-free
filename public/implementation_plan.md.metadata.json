@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan for removing all Stripe and make.com payment/premium references and unlocking all features globally.",
+  "updatedAt":  "2026-02-28T15:25:25.279921Z"
+}
