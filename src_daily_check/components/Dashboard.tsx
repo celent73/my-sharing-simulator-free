@@ -68,33 +68,33 @@ const GoalStatusReminder: React.FC<{
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
   [ActivityType.CONTACTS]: {
     gradient: 'from-blue-500 to-blue-600',
-    shadow: 'shadow-blue-200 dark:shadow-blue-900/30 hover:shadow-blue-300 dark:hover:shadow-blue-900/50',
-    iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
-    border: 'border-blue-200 dark:border-blue-800'
+    shadow: 'shadow-[0_8px_30px_rgb(59,130,246,0.12)]',
+    iconBg: 'bg-blue-500',
+    border: 'border-transparent'
   },
   [ActivityType.VIDEOS_SENT]: {
     gradient: 'from-violet-500 to-purple-600',
-    shadow: 'shadow-violet-200 dark:shadow-violet-900/30 hover:shadow-violet-300 dark:hover:shadow-violet-900/50',
-    iconBg: 'bg-gradient-to-br from-violet-400 to-purple-600',
-    border: 'border-violet-200 dark:border-violet-800'
+    shadow: 'shadow-[0_8px_30px_rgb(139,92,246,0.12)]',
+    iconBg: 'bg-[#a855f7]',
+    border: 'border-transparent'
   },
   [ActivityType.APPOINTMENTS]: {
     gradient: 'from-emerald-400 to-teal-500',
-    shadow: 'shadow-emerald-200 dark:shadow-emerald-900/30 hover:shadow-emerald-300 dark:hover:shadow-emerald-900/50',
-    iconBg: 'bg-gradient-to-br from-emerald-400 to-teal-500',
-    border: 'border-emerald-200 dark:border-emerald-800'
+    shadow: 'shadow-[0_8px_30px_rgb(16,185,129,0.12)]',
+    iconBg: 'bg-[#10b981]',
+    border: 'border-transparent'
   },
   [ActivityType.NEW_CONTRACTS]: {
     gradient: 'from-orange-400 to-red-500',
-    shadow: 'shadow-orange-200 dark:shadow-orange-900/30 hover:shadow-orange-300 dark:hover:shadow-orange-900/50',
-    iconBg: 'bg-gradient-to-br from-orange-400 to-red-500',
-    border: 'border-orange-200 dark:border-orange-800'
+    shadow: 'shadow-[0_8px_30px_rgb(249,115,22,0.12)]',
+    iconBg: 'bg-[#f59e0b]',
+    border: 'border-transparent'
   },
   [ActivityType.NEW_FAMILY_UTILITY]: {
     gradient: 'from-cyan-400 to-blue-500',
-    shadow: 'shadow-cyan-200 dark:shadow-cyan-900/30 hover:shadow-cyan-300 dark:hover:shadow-cyan-900/50',
-    iconBg: 'bg-gradient-to-br from-cyan-400 to-blue-500',
-    border: 'border-cyan-200 dark:border-cyan-800'
+    shadow: 'shadow-[0_8px_30px_rgb(6,182,212,0.12)]',
+    iconBg: 'bg-[#0ea5e9]',
+    border: 'border-transparent'
   },
 };
 
@@ -329,18 +329,18 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className="bg-white/90 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl shadow-[0_20px_60px_rgba(8,_112,_184,_0.15)] dark:shadow-none border-2 border-blue-100 dark:border-slate-800 relative overflow-hidden">
+    <div className="bg-[#f2f2f7] dark:bg-slate-900/40 min-h-screen p-6 sm:p-10 rounded-[3.5rem] relative overflow-hidden font-sans">
 
       {/* Header e Selezione Vista */}
-      <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-3xl font-black text-slate-800 dark:text-white">Dashboard</h2>
-          <p className="text-md font-medium text-slate-500 dark:text-slate-400">Analisi per <span className="text-blue-600 font-bold">{userProfile.firstName}</span></p>
+      <div className="relative z-10 flex flex-col items-start mb-10">
+        <h2 className="text-5xl font-black text-[#1c1c1e] dark:text-white tracking-tighter mb-1">Dashboard</h2>
+        <p className="text-lg font-medium text-[#8e8e93] dark:text-slate-400 mb-8">Analisi per</p>
 
-          <div className="mt-2 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg w-fit border border-slate-200 dark:border-slate-700">
-            <span className="text-xs font-bold text-slate-400 uppercase">Qualifica:</span>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-6">
+          <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-[#e5e5ea] dark:border-slate-700">
+            <span className="text-[10px] font-black text-[#aeaeb2] uppercase tracking-[0.1em]">QUALIFICA:</span>
             <select
-              className="bg-transparent text-sm font-bold text-slate-700 dark:text-white outline-none cursor-pointer"
+              className="bg-transparent text-sm font-bold text-[#1c1c1e] dark:text-white outline-none cursor-pointer"
               value={userProfile.currentQualification || ''}
               onChange={(e) => onUpdateQualification(e.target.value as Qualification)}
             >
@@ -350,12 +350,12 @@ const Dashboard: React.FC<DashboardProps> = ({
               ))}
             </select>
           </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-1 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <ViewButton mode="daily" children="Giorno" />
-          <ViewButton mode="weekly" children="Settimana" />
-          <ViewButton mode="monthly" children="Mese" />
+          <div className="flex items-center gap-1 p-1 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner min-w-[300px]">
+            <button onClick={() => setViewMode('daily')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Giorno</button>
+            <button onClick={() => setViewMode('weekly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Settimana</button>
+            <button onClick={() => setViewMode('monthly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Mese</button>
+          </div>
         </div>
       </div>
 
@@ -393,8 +393,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 {periodLabel}
               </h3>
             )}
-            <div className={`grid grid-cols-1 sm:grid-cols-2 ${compactView ? 'md:grid-cols-5' : 'md:grid-cols-3'} lg:grid-cols-5 gap-4 lg:gap-6`}>
-              {Object.values(ActivityType).map((activity) => {
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${compactView ? 'md:grid-cols-5' : 'md:grid-cols-3'} lg:grid-cols-3 gap-6 lg:gap-8`}>
+              {Object.values(ActivityType).slice(0, 3).map((activity) => {
                 const current = totals[activity] || 0;
                 const goal = relevantGoals?.[activity] || 0;
                 const progress = goal > 0 ? (current / goal) * 100 : 0;
@@ -402,25 +402,25 @@ const Dashboard: React.FC<DashboardProps> = ({
                 const styles = CARD_STYLES[activity];
 
                 return (
-                  <div key={activity} className={`group relative bg-white dark:bg-slate-900 rounded-3xl ${compactView ? 'p-6 lg:p-7' : 'p-5 lg:p-8'} shadow-lg ${styles.shadow} border-2 ${styles.border} transition-all hover:scale-[1.05] hover:shadow-2xl`}>
-                    <div className={`flex justify-between items-start ${compactView ? 'mb-4' : 'mb-6'}`}>
-                      <div className={`h-12 w-12 ${compactView ? 'lg:h-14 lg:w-14' : 'lg:h-16 lg:w-16'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg`}>
-                        <div className={`scale-100 ${compactView ? 'lg:scale-110' : 'lg:scale-125'}`}>
+                  <div key={activity} className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_15px_45px_0_rgba(0,0,0,0.06)] border border-transparent transition-all hover:scale-[1.02] hover:shadow-[0_30px_70px_0_rgba(0,0,0,0.1)]">
+                    <div className="mb-8">
+                      <div className={`h-20 w-20 rounded-[1.75rem] ${styles.iconBg} flex items-center justify-center text-white shadow-lg`}>
+                        <div className="scale-[1.6]">
                           {activityIcons[activity]}
                         </div>
                       </div>
-                      {isGoalReached && <div className="animate-bounce scale-125"><StarIcon /></div>}
+                      {isGoalReached && <div className="absolute top-8 right-8 animate-bounce scale-150"><StarIcon /></div>}
                     </div>
                     <div>
-                      <p className="text-xs lg:text-sm font-bold text-slate-400 uppercase tracking-widest mb-2 truncate">{customLabels?.[activity] || ACTIVITY_LABELS[activity]}</p>
+                      <p className="text-[11px] font-black text-[#8e8e93] dark:text-slate-400 uppercase tracking-[0.2em] mb-3">{customLabels?.[activity] || ACTIVITY_LABELS[activity]}</p>
                       <div className="flex items-baseline gap-2">
-                        <p className={`${compactView ? 'text-3xl lg:text-4xl' : 'text-4xl lg:text-5xl'} font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text`}>{current}</p>
-                        {goal > 0 && <span className="text-xs lg:text-sm font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">/ {goal}</span>}
+                        <p className="text-7xl font-black text-[#1c1c1e] dark:text-white tracking-tighter">{current}</p>
+                        {goal > 0 && <span className="text-lg font-bold text-[#aeaeb2] dark:text-slate-500">/ {goal}</span>}
                       </div>
                     </div>
                     {!compactView && (
-                      <div className="mt-6">
-                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 lg:h-3 overflow-hidden">
+                      <div className="mt-10">
+                        <div className="w-full bg-[#f2f2f7] dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
                           <div className={`bg-gradient-to-r ${styles.gradient} h-full rounded-full transition-all duration-1000`} style={{ width: `${Math.min(progress, 100)}%` }}></div>
                         </div>
                       </div>
@@ -453,10 +453,30 @@ const Dashboard: React.FC<DashboardProps> = ({
               <StatCard icon={<TargetIcon />} title="Chiusura Globale" value={`${conversionRates.overallConversionRate.toFixed(1)}%`} description="Totale contratti su contatti" colorClass="text-violet-500" />
             </div>
           ) : (
-            <div className="p-10 text-center text-slate-500 bg-slate-50 rounded-3xl border-2 border-dashed">Nessun dato sufficiente per le statistiche.</div>
+            <div className="p-10 text-center text-slate-500 bg-[#e5e5ea] rounded-3xl border-2 border-dashed">Nessun dato sufficiente per le statistiche.</div>
           )}
         </div>
       )}
+
+      {/* Bottom Floating Navigation (Simulated from screenshot) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-[100] animate-in slide-in-from-bottom-10 duration-1000">
+        <div className="bg-[#1c1c1e]/90 backdrop-blur-2xl rounded-[2.5rem] p-3 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-white/10 flex items-center justify-around h-20">
+          <button onClick={() => setCurrentTab('overview')} className={`p-4 rounded-2xl transition-all ${currentTab === 'overview' ? 'bg-white/10 text-white shadow-xl' : 'text-[#8e8e93] hover:text-white'}`}>
+            <ChartBarIcon />
+          </button>
+          <button onClick={() => setCurrentTab('stats')} className={`p-4 rounded-2xl transition-all ${currentTab === 'stats' ? 'bg-white/10 text-white shadow-xl' : 'text-[#8e8e93] hover:text-white'}`}>
+            <ChartPieIcon />
+          </button>
+          <button onClick={onOpenAchievements} className="p-4 rounded-2xl text-[#8e8e93] hover:text-white transition-colors">
+            <TrophyIcon />
+          </button>
+          <button className="p-4 rounded-2xl text-[#8e8e93] hover:text-white transition-colors">
+            <div className="scale-110">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
