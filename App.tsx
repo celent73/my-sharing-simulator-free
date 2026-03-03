@@ -35,7 +35,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.2.57";
+const APP_VERSION = "v1.2.59";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -580,7 +580,7 @@ const AppContent = () => {
 
 
       <div className="fixed top-2 right-2 z-[9999] pointer-events-none opacity-50 text-[10px] font-mono bg-black/20 text-white px-2 py-0.5 rounded-full backdrop-blur-sm">
-        v1.2.57
+        v1.2.58
       </div>
 
 
@@ -608,7 +608,12 @@ const AppContent = () => {
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
                     <span className="text-white">My Sharing</span>
                     <span className="text-main-accent -ml-2">Simulator</span>
-                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2">v1.2.57</span>
+                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2">v1.2.59</span>
+                    <img
+                      src="/logo_v2_main.png"
+                      alt="Logo"
+                      className="w-10 h-10 sm:w-14 sm:h-14 object-contain ml-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-in fade-in zoom-in duration-700"
+                    />
                   </h1>
                   {isCreatorMode && <span className="hidden sm:inline-flex bg-white/20 backdrop-blur-md text-white border border-white/40 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wider">Creator Mode</span>}
                   {/* Logo removed as per user request */}

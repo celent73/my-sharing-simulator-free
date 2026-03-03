@@ -10,13 +10,13 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/logo_new.png",
+      "src": "/logo_v2_main.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/logo_new.png",
+      "src": "/logo_v2_main.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
