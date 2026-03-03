@@ -287,7 +287,7 @@ const TreeNodeComponent = ({
                 className={[
                     'relative rounded-[1.5rem] border z-20 transition-all duration-300 cursor-pointer',
                     nodeStyles[theme as keyof typeof nodeStyles],
-                    isMain ? 'p-5 min-w-[140px]' : isLevel3 ? 'p-2.5 min-w-[100px]' : 'p-4 min-w-[140px]',
+                    isMain ? 'p-5 min-w-[150px]' : isLevel3 ? 'p-2 min-w-[80px]' : node.level === 1 ? 'p-3 min-w-[110px]' : 'p-3 min-w-[120px]',
                     isProjection && !isMain ? 'opacity-50 grayscale scale-95 border-dashed' : '',
                     'flex flex-col items-center group hover:scale-105 hover:shadow-xl',
                 ].join(' ')}
