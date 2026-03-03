@@ -51,33 +51,33 @@ interface ActivityInputProps {
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
     [ActivityType.CONTACTS]: {
         gradient: 'from-blue-500 to-blue-600',
-        shadow: 'shadow-blue-200 dark:shadow-blue-900/30 hover:shadow-blue-300 dark:hover:shadow-blue-900/50',
+        shadow: 'shadow-blue-100 dark:shadow-blue-900/10 hover:shadow-blue-200 dark:hover:shadow-blue-900/20',
         iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
-        border: 'border-blue-200 dark:border-blue-800'
+        border: 'border-blue-100 dark:border-blue-900'
     },
     [ActivityType.VIDEOS_SENT]: {
         gradient: 'from-violet-500 to-purple-600',
-        shadow: 'shadow-violet-200 dark:shadow-violet-900/30 hover:shadow-violet-300 dark:hover:shadow-violet-900/50',
+        shadow: 'shadow-violet-100 dark:shadow-violet-900/10 hover:shadow-violet-200 dark:hover:shadow-violet-900/20',
         iconBg: 'bg-gradient-to-br from-violet-400 to-purple-600',
-        border: 'border-violet-200 dark:border-violet-800'
+        border: 'border-violet-100 dark:border-violet-900'
     },
     [ActivityType.APPOINTMENTS]: {
         gradient: 'from-emerald-400 to-teal-500',
-        shadow: 'shadow-emerald-200 dark:shadow-emerald-900/30 hover:shadow-emerald-300 dark:hover:shadow-emerald-900/50',
+        shadow: 'shadow-emerald-100 dark:shadow-emerald-900/10 hover:shadow-emerald-200 dark:hover:shadow-emerald-900/20',
         iconBg: 'bg-gradient-to-br from-emerald-400 to-teal-500',
-        border: 'border-emerald-200 dark:border-emerald-800'
+        border: 'border-emerald-100 dark:border-emerald-900'
     },
     [ActivityType.NEW_CONTRACTS]: {
         gradient: 'from-orange-400 to-red-500',
-        shadow: 'shadow-orange-200 dark:shadow-orange-900/30 hover:shadow-orange-300 dark:hover:shadow-orange-900/50',
+        shadow: 'shadow-orange-100 dark:shadow-orange-900/10 hover:shadow-orange-200 dark:hover:shadow-orange-900/20',
         iconBg: 'bg-gradient-to-br from-orange-400 to-red-500',
-        border: 'border-orange-200 dark:border-orange-800'
+        border: 'border-orange-100 dark:border-orange-900'
     },
     [ActivityType.NEW_FAMILY_UTILITY]: {
         gradient: 'from-cyan-400 to-blue-500',
-        shadow: 'shadow-cyan-200 dark:shadow-cyan-900/30 hover:shadow-cyan-300 dark:hover:shadow-cyan-900/50',
+        shadow: 'shadow-cyan-100 dark:shadow-cyan-900/10 hover:shadow-cyan-200 dark:hover:shadow-cyan-900/20',
         iconBg: 'bg-gradient-to-br from-cyan-400 to-blue-500',
-        border: 'border-cyan-200 dark:border-cyan-800'
+        border: 'border-cyan-100 dark:border-cyan-900'
     },
 };
 
@@ -292,7 +292,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         const styles = CARD_STYLES[activity];
 
                         return (
-                            <div key={activity} className={`group relative bg-white dark:bg-slate-900 border-2 ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-xl ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-2xl`}>
+                            <div key={activity} className={`group relative bg-white dark:bg-slate-900 border ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-md ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-lg`}>
                                 <div className="flex flex-col h-full justify-between gap-6">
                                     <div className="flex justify-between items-start">
                                         <div className={`h-12 w-12 ${isHubMode ? 'lg:h-16 lg:w-16' : 'lg:h-14 lg:w-14'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>

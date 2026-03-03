@@ -334,7 +334,14 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Header e Selezione Vista */}
       <div className="relative z-10 flex flex-col items-start mb-10">
         <h2 className="text-5xl font-black text-[#1c1c1e] dark:text-white tracking-tighter mb-1">Dashboard</h2>
-        <p className="text-lg font-medium text-[#8e8e93] dark:text-slate-400 mb-8">Analisi per</p>
+        <p className="text-lg font-medium text-[#8e8e93] dark:text-slate-400 mb-8">
+          Analisi per{' '}
+          {(userProfile.firstName || userProfile.lastName) && (
+            <span className="font-black text-[#1c1c1e] dark:text-white">
+              {[userProfile.firstName, userProfile.lastName].filter(Boolean).join(' ')}
+            </span>
+          )}
+        </p>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-6">
           <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-[#e5e5ea] dark:border-slate-700">
