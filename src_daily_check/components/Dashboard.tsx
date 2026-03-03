@@ -394,7 +394,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               </h3>
             )}
             <div className={`grid grid-cols-1 sm:grid-cols-2 ${compactView ? 'md:grid-cols-5' : 'md:grid-cols-3'} lg:grid-cols-3 gap-6 lg:gap-8`}>
-              {Object.values(ActivityType).slice(0, 3).map((activity) => {
+              {Object.values(ActivityType).map((activity) => {
                 const current = totals[activity] || 0;
                 const goal = relevantGoals?.[activity] || 0;
                 const progress = goal > 0 ? (current / goal) * 100 : 0;
