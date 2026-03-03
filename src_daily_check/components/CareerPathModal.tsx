@@ -48,6 +48,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({ isOpen, onClose, isEm
         }
         setDates(updated);
         localStorage.setItem('dailyCheck_careerPathDates', JSON.stringify(updated));
+        window.dispatchEvent(new Event('careerDatesUpdated'));
     };
 
     if (!isOpen && !isEmbedded) return null;

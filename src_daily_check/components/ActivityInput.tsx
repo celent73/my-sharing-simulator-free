@@ -105,14 +105,20 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     const [targetDates, setTargetDates] = useState<Record<string, string>>({});
 
     React.useEffect(() => {
-        if (isHubMode) {
+        if (!isHubMode) return;
+
+        const loadDates = () => {
             const saved = localStorage.getItem('dailyCheck_careerPathDates');
             if (saved) {
                 try {
                     setTargetDates(JSON.parse(saved));
                 } catch (e) { }
             }
-        }
+        };
+
+        loadDates();
+        window.addEventListener('careerDatesUpdated', loadDates);
+        return () => window.removeEventListener('careerDatesUpdated', loadDates);
     }, [isHubMode]);
 
     const upcomingDeadlineMessage = React.useMemo(() => {
