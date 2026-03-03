@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, GraduationCap, FileText, PlayCircle } from 'lucide-react';
+import { X, ChevronLeft, GraduationCap, FileText, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EarningsSimulator from './light/EarningsSimulator';
 
@@ -13,14 +13,15 @@ interface SharingAcademyProps {
     onClose: () => void;
 }
 
+// ─── Nav items ────────────────────────────────────────────────────────────────
+// mainTab: 'tutorial' | 'contract' | 'video'
+// tutorialTab (sub): 'simulator' | 'community'  (only visible when mainTab === 'tutorial')
+
 const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
     const { t } = useLanguage();
     const { openModal } = useModalDispatch();
 
-    // Main Navigation State
     const [mainTab, setMainTab] = useState<'tutorial' | 'contract' | 'video'>('tutorial');
-
-    // Tutorial Internal State (Old LightSimulator tabs)
     const [tutorialTab, setTutorialTab] = useState('simulator');
     const [personalUnits, setPersonalUnits] = useState(5);
     const [expansionMode, setExpansionMode] = useState<'manual' | 'auto'>('auto');
@@ -31,7 +32,6 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
 
     useEffect(() => {
         if (isOpen) {
-            // Reset to default on open
             setMainTab('tutorial');
             handleReset();
         }
@@ -74,59 +74,50 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
         if (mode === 'auto') handleFactorChange(duplicationFactor);
     };
 
-    const renderTutorialContent = () => (
-        <div className="h-full flex flex-col">
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pb-32">
-                <AnimatePresence mode="wait">
-                    {tutorialTab === 'simulator' && (
-                        <EarningsSimulator
-                            key="sim"
-                            networkSize={networkSize}
-                            onLevelChange={handleLevelChange}
-                            personalUnits={personalUnits}
-                            setPersonalUnits={setPersonalUnits}
-                            expansionMode={expansionMode}
-                            setExpansionMode={handleModeToggle}
-                            duplicationFactor={duplicationFactor}
-                            onFactorChange={handleFactorChange}
-                            monthRange={monthRange}
-                            setMonthRange={setMonthRange}
-                            utilityType={utilityType}
-                            setUtilityType={setUtilityType}
-                            onReset={handleReset}
-                        />
-                    )}
-                    {tutorialTab === 'community' && <Community key="comm" personalUnits={personalUnits} />}
+    // ─── All nav items in one flat list ───────────────────────────────────────
+    // We flatten tutorial sub-tabs into the bottom dock directly.
+    //   'simulator'  → sets mainTab='tutorial', tutorialTab='simulator'
+    //   'community'  → sets mainTab='tutorial', tutorialTab='community'
+    //   'contract'   → sets mainTab='contract'
+    //   'video'      → sets mainTab='video'
 
-                </AnimatePresence>
-            </div>
+    type DockItem = {
+        id: string;
+        icon: React.ElementType;
+        label: string;
+        disabled?: boolean;
+        action: () => void;
+        isActive: () => boolean;
+    };
 
-            {/* Bottom Tab Navigation for Tutorial */}
-            <div className="absolute bottom-6 left-0 right-0 px-6 flex justify-center pointer-events-none">
-                <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-1.5 rounded-full shadow-2xl pointer-events-auto flex gap-1 transform transition-all hover:scale-105">
-                    {[
-                        { id: 'simulator', label: t('light_simulator.tab_simulator') },
-                        { id: 'community', label: t('light_simulator.tab_community') }
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setTutorialTab(tab.id)}
-                            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${tutorialTab === tab.id
-                                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg'
-                                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
-                                }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+    const dockItems: DockItem[] = [
+        {
+            id: 'simulator',
+            icon: GraduationCap,
+            label: t('light_simulator.tab_simulator') || 'Simulatore',
+            action: () => { setMainTab('tutorial'); setTutorialTab('simulator'); },
+            isActive: () => mainTab === 'tutorial' && tutorialTab === 'simulator',
+        },
+        {
+            id: 'community',
+            icon: Users,
+            label: t('light_simulator.tab_community') || 'Community',
+            action: () => { setMainTab('tutorial'); setTutorialTab('community'); },
+            isActive: () => mainTab === 'tutorial' && tutorialTab === 'community',
+        },
+        {
+            id: 'contract',
+            icon: FileText,
+            label: t('academy.menu.contract') || 'Contratti',
+            action: () => setMainTab('contract'),
+            isActive: () => mainTab === 'contract',
+        },
+    ];
 
     return (
         <div className="fixed inset-0 z-[120] bg-slate-50 dark:bg-black/95 backdrop-blur-xl flex flex-col animate-in fade-in duration-300">
-            {/* Top Navigation Bar */}
+
+            {/* ── Top Header ── */}
             <div className="shrink-0 h-20 bg-[#166534] px-6 flex items-center justify-between z-50 shadow-md">
                 <div className="flex items-center gap-4">
                     <button
@@ -145,31 +136,6 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
                     </div>
                 </div>
 
-                {/* Deskop/Tablet Menu */}
-                <div className="hidden md:flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl">
-                    {[
-                        { id: 'tutorial', icon: GraduationCap, label: t('academy.menu.tutorial') },
-                        { id: 'contract', icon: FileText, label: t('academy.menu.contract') },
-                    ].map(item => {
-                        const Icon = item.icon;
-                        const isActive = mainTab === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => setMainTab(item.id as any)}
-                                disabled={item.id === 'video'}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${isActive
-                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                                    } ${item.id === 'video' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                <Icon size={16} />
-                                {item.label}
-                            </button>
-                        );
-                    })}
-                </div>
-
                 <button
                     onClick={onClose}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white transition-colors font-bold text-sm"
@@ -179,67 +145,85 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
                 </button>
             </div>
 
-            {/* Mobile Menu (below header) */}
-            <div className="md:hidden border-b border-green-900 overflow-x-auto no-scrollbar bg-[#14532d]">
-                <div className="flex p-2 gap-2 min-w-max">
-                    {[
-                        { id: 'tutorial', icon: GraduationCap, label: t('academy.menu.tutorial') },
-                        { id: 'contract', icon: FileText, label: t('academy.menu.contract') },
-                        { id: 'video', icon: PlayCircle, label: t('academy.menu.video') }
-                    ].map(item => {
-                        const Icon = item.icon;
-                        const isActive = mainTab === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => setMainTab(item.id as any)}
-                                disabled={item.id === 'video'}
-                                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${isActive
-                                    ? 'bg-white/20 text-white shadow-sm'
-                                    : 'text-green-200 hover:text-white'
-                                    } ${item.id === 'video' ? 'opacity-50' : ''}`}
-                            >
-                                <Icon size={16} />
-                                {item.label}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Main Content Area */}
+            {/* ── Main Content Area ── */}
             <div className="flex-1 overflow-hidden relative bg-slate-50 dark:bg-black/50">
-                {mainTab === 'tutorial' && renderTutorialContent()}
 
+                {/* Tutorial: Simulator */}
+                {mainTab === 'tutorial' && tutorialTab === 'simulator' && (
+                    <div className="h-full overflow-y-auto custom-scrollbar p-6 pb-32 animate-in fade-in duration-200">
+                        <EarningsSimulator
+                            networkSize={networkSize}
+                            onLevelChange={handleLevelChange}
+                            personalUnits={personalUnits}
+                            setPersonalUnits={setPersonalUnits}
+                            expansionMode={expansionMode}
+                            setExpansionMode={handleModeToggle}
+                            duplicationFactor={duplicationFactor}
+                            onFactorChange={handleFactorChange}
+                            monthRange={monthRange}
+                            setMonthRange={setMonthRange}
+                            utilityType={utilityType}
+                            setUtilityType={setUtilityType}
+                            onReset={handleReset}
+                        />
+                    </div>
+                )}
+
+                {/* Tutorial: Community */}
+                {mainTab === 'tutorial' && tutorialTab === 'community' && (
+                    <div className="h-full overflow-y-auto custom-scrollbar p-6 pb-32 animate-in fade-in duration-200">
+                        <Community personalUnits={personalUnits} />
+                    </div>
+                )}
+
+                {/* Contract Simulator */}
                 {mainTab === 'contract' && (
                     <div className="h-full overflow-y-auto p-4 md:p-8 animate-in slide-in-from-right duration-300">
                         <ContractSimulator />
                     </div>
                 )}
 
-                {mainTab === 'video' && (
-                    <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                        <PlayCircle size={64} className="mb-4 opacity-50" />
-                        <h3 className="text-xl font-bold">Coming Soon</h3>
-                        <p>La Video Academy sarà disponibile a breve.</p>
-                    </div>
-                )}
+
+            </div>
+
+            {/* ── Unified Bottom Dock (pill) ── */}
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 28 }}
+                    className="flex items-center gap-1 p-2 bg-[#1c1c1e]/90 backdrop-blur-2xl rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10 pointer-events-auto"
+                >
+                    {dockItems.map(item => {
+                        const Icon = item.icon;
+                        const active = item.isActive();
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={item.action}
+                                disabled={item.disabled}
+                                className={[
+                                    'flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap',
+                                    active
+                                        ? 'bg-[#166534] text-white shadow-md'
+                                        : item.disabled
+                                            ? 'text-white/30 cursor-not-allowed'
+                                            : 'text-white/70 hover:text-white hover:bg-white/10',
+                                ].join(' ')}
+                                title={item.disabled ? 'Coming soon' : undefined}
+                            >
+                                <Icon size={16} />
+                                <span className="hidden sm:inline">{item.label}</span>
+                            </button>
+                        );
+                    })}
+                </motion.div>
             </div>
 
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background-color: rgba(156, 163, 175, 0.3);
-                    border-radius: 20px;
-                }
-                .no-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.3); border-radius: 20px; }
             `}</style>
         </div>
     );
