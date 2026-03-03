@@ -280,77 +280,79 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    </div>
                 )}
 
-                            {/* ACTIVITY GRID */}
-                            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
-                                {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
-                                    const count = todayCounts[activity] || 0;
-                                    const label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
-                                    const styles = CARD_STYLES[activity];
+                {/* ACTIVITY GRID */}
+                <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
+                    {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
+                        const count = todayCounts[activity] || 0;
+                        const label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
+                        const styles = CARD_STYLES[activity];
 
-                                    return (
-                                        <div key={activity} className={`group relative bg-white dark:bg-slate-900 border-2 ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-xl ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-2xl`}>
-                                            <div className="flex flex-col h-full justify-between gap-6">
-                                                <div className="flex justify-between items-start">
-                                                    <div className={`h-12 w-12 ${isHubMode ? 'lg:h-16 lg:w-16' : 'lg:h-14 lg:w-14'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
-                                                        <div className={isHubMode ? "scale-110 lg:scale-125" : "scale-100 lg:scale-110"}>
-                                                            {activityIcons[activity]}
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={(e) => handlePlusClick(e, activity)}
-                                                        className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-lg hover:shadow-xl transition-all active:scale-95 group-hover:scale-110`}
-                                                    >
-                                                        <Plus className="w-6 h-6 lg:w-8 lg:h-8 drop-shadow-md" strokeWidth={3} />
-                                                    </button>
-                                                </div>
-
-                                                <div>
-                                                    <h3 className="text-[10px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
-                                                    <div className="flex items-baseline gap-2">
-                                                        <span className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}>
-                                                            {count}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-3">
-                                                    <button
-                                                        onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
-                                                        className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
-                                                        disabled={count === 0}
-                                                    >
-                                                        <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
-                                                    </button>
-                                                    <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                        <div
-                                                            className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
-                                                            style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
+                        return (
+                            <div key={activity} className={`group relative bg-white dark:bg-slate-900 border-2 ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-xl ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-2xl`}>
+                                <div className="flex flex-col h-full justify-between gap-6">
+                                    <div className="flex justify-between items-start">
+                                        <div className={`h-12 w-12 ${isHubMode ? 'lg:h-16 lg:w-16' : 'lg:h-14 lg:w-14'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
+                                            <div className={isHubMode ? "scale-110 lg:scale-125" : "scale-100 lg:scale-110"}>
+                                                {activityIcons[activity]}
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                        <button
+                                            onClick={(e) => handlePlusClick(e, activity)}
+                                            className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-lg hover:shadow-xl transition-all active:scale-95 group-hover:scale-110`}
+                                        >
+                                            <Plus className="w-6 h-6 lg:w-8 lg:h-8 drop-shadow-md" strokeWidth={3} />
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-[10px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}>
+                                                {count}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
+                                            className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
+                                            disabled={count === 0}
+                                        >
+                                            <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
+                                        </button>
+                                        <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
+                                                style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        );
+                    })}
+                </div>
+            </div>
 
-                        {/* Quick Actions Footer - Removed */}
-                        <div className={`mt-12 flex flex-wrap items-center justify-center gap-4 ${isHubMode ? 'opacity-80' : ''}`}>
-                            {/* Buttons removed as requested */}
-                        </div>
+            {/* Quick Actions Footer - Removed */}
+            <div className={`mt-12 flex flex-wrap items-center justify-center gap-4 ${isHubMode ? 'opacity-80' : ''}`}>
+                {/* Buttons removed as requested */}
+            </div>
 
-                        <HistoryListModal
-                            isOpen={!!selectedActivityForDetails}
-                            onClose={() => setSelectedActivityForDetails(null)}
-                            activityType={selectedActivityForDetails}
-                            activityLog={currentLog}
-                            customLabel={selectedActivityForDetails ? (customLabels?.[selectedActivityForDetails] || ACTIVITY_LABELS[selectedActivityForDetails]) : ''}
-                        />
-                    </div>
-                );
+            <HistoryListModal
+                isOpen={!!selectedActivityForDetails}
+                onClose={() => setSelectedActivityForDetails(null)}
+                activityType={selectedActivityForDetails}
+                activityLog={currentLog}
+                customLabel={selectedActivityForDetails ? (customLabels?.[selectedActivityForDetails] || ACTIVITY_LABELS[selectedActivityForDetails]) : ''}
+            />
+        </div>
+    );
 };
 
-                export default ActivityInput;
+export default ActivityInput;

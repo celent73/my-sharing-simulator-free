@@ -14,9 +14,16 @@ interface PremiumModalProps {
   forceLock?: boolean; // Se true, non mostra la X per chiudere (blocco totale)
 }
 
-export const PremiumModal: React.FC<PremiumModalProps> = () => {
-  return null;
-};
+export const PremiumModal: React.FC<PremiumModalProps> = ({
+  isOpen,
+  onClose,
+  onUnlock,
+  licenseCode: propsLicenseCode,
+  setLicenseCode,
+  loading: propsLoading,
+  error: propsError,
+  forceLock,
+}) => {
   // STATO INTERNO - Sincronizzato con props se presenti, altrimenti locale per indipendenza
   const [localLicenseCode, setLocalLicenseCode] = useState(propsLicenseCode || '');
   const [localLoading, setLocalLoading] = useState(false);
