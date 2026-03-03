@@ -1,50 +1,108 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Users, ChevronDown, ZoomIn, ZoomOut, Trash2, Plus, X, Filter, Euro } from 'lucide-react';
+import { Plus, X, Filter, Euro, ChevronDown, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface NodeData {
     id: string;
     label: string;
     role: string;
     level: number;
-    contracts?: number;   // estimated contracts per month
+    contracts?: number;
     children?: NodeData[];
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Role Config ──────────────────────────────────────────────────────────────
 
-const ROLE_CONFIG: Record<string, { color: string; dot: string; earn: number }> = {
-    'Family Pro': { color: 'bg-blue-500 text-white', dot: 'bg-blue-500', earn: 65 },
-    Family: { color: 'bg-green-500 text-white', dot: 'bg-green-500', earn: 40 },
-    'Family Utility': { color: 'bg-teal-500 text-white', dot: 'bg-teal-500', earn: 35 },
-    Member: { color: 'bg-gray-400 text-white', dot: 'bg-gray-400', earn: 20 },
-    Potential: { color: 'bg-dashed border-2 border-gray-300 text-gray-300', dot: 'bg-gray-300', earn: 0 },
+const ROLE_CONFIG: Record<string, {
+    glow: string;        // shadow glow color
+    ring: string;        // border ring color
+    bg: string;          // node background
+    badge: string;       // badge pill bg+text
+    earn: number;
+}> = {
+    'Family Pro': {
+        glow: 'shadow-[0_0_24px_rgba(251,191,36,0.7)]',
+        ring: 'border-yellow-400',
+        bg: 'bg-gradient-to-br from-orange-500 to-amber-600',
+        badge: 'bg-yellow-400 text-yellow-900',
+        earn: 65,
+    },
+    'Family': {
+        glow: 'shadow-[0_0_20px_rgba(249,115,22,0.65)]',
+        ring: 'border-orange-400',
+        bg: 'bg-gradient-to-br from-orange-400 to-orange-600',
+        badge: 'bg-orange-400 text-white',
+        earn: 40,
+    },
+    'Family Utility': {
+        glow: 'shadow-[0_0_18px_rgba(52,211,153,0.6)]',
+        ring: 'border-emerald-400',
+        bg: 'bg-gradient-to-br from-emerald-400 to-teal-600',
+        badge: 'bg-emerald-400 text-white',
+        earn: 35,
+    },
+    'Member': {
+        glow: 'shadow-[0_0_14px_rgba(167,139,250,0.55)]',
+        ring: 'border-violet-400',
+        bg: 'bg-gradient-to-br from-violet-500 to-purple-700',
+        badge: 'bg-violet-400 text-white',
+        earn: 20,
+    },
+    'Potential': {
+        glow: '',
+        ring: 'border-white/10',
+        bg: 'bg-white/5',
+        badge: 'bg-white/10 text-white/30',
+        earn: 0,
+    },
 };
 
 const AVAILABLE_ROLES = ['Member', 'Family', 'Family Utility', 'Family Pro'];
 
-const INITIAL_TREE_DATA: NodeData = {
-    id: 'me',
-    label: 'Tu',
-    role: 'Family Pro',
-    level: -1,  // root is special, not a real network level
-    contracts: 3,
+// Level color for the L-badge
+const LEVEL_BADGE: Record<number, string> = {
+    [-1]: 'bg-yellow-400 text-black',     // root "Tu"
+    0: 'bg-orange-500 text-white',
+    1: 'bg-violet-500 text-white',
+    2: 'bg-purple-700 text-white',
+    3: 'bg-indigo-700 text-white',
+    4: 'bg-blue-800 text-white',
+};
+const levelBadge = (level: number) => LEVEL_BADGE[level] ?? 'bg-gray-800 text-white';
+
+// ─── Node sizes ────────────────────────────────────────────────────────────────
+//  root → 80px circle
+//  L0   → 56px
+//  L1   → 48px
+//  L2+  → 38px
+
+const nodeSize = (level: number, isRoot: boolean) =>
+    isRoot ? 80 : level === 0 ? 56 : level === 1 ? 48 : 38;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const countNodes = (n: NodeData): number =>
+    1 + (n.children?.reduce((s, c) => s + countNodes(c), 0) ?? 0);
+
+const calcEarnings = (n: NodeData): number => {
+    const cfg = ROLE_CONFIG[n.role] ?? ROLE_CONFIG['Member'];
+    return (n.contracts ?? 0) * cfg.earn +
+        (n.children?.reduce((s, c) => s + calcEarnings(c), 0) ?? 0);
+};
+
+let _uid = 2000;
+const uid = () => `n-${++_uid}`;
+
+const INITIAL_TREE: NodeData = {
+    id: 'me', label: 'Tu', role: 'Family Pro', level: -1, contracts: 3,
     children: [
         {
-            id: 'marco',
-            label: 'Marco G.',
-            role: 'Family',
-            level: 0,
-            contracts: 2,
+            id: 'marco', label: 'Marco G.', role: 'Family', level: 0, contracts: 2,
             children: [
                 {
-                    id: 'anna',
-                    label: 'Anna L.',
-                    role: 'Member',
-                    level: 1,
-                    contracts: 1,
+                    id: 'anna', label: 'Anna L.', role: 'Member', level: 1, contracts: 1,
                     children: [
                         { id: 'filippo', label: 'Filippo', role: 'Member', level: 2, contracts: 1 },
                         { id: 'elisa', label: 'Elisa', role: 'Member', level: 2, contracts: 0 },
@@ -54,18 +112,10 @@ const INITIAL_TREE_DATA: NodeData = {
             ]
         },
         {
-            id: 'elena',
-            label: 'Elena R.',
-            role: 'Family',
-            level: 0,
-            contracts: 2,
+            id: 'elena', label: 'Elena R.', role: 'Family', level: 0, contracts: 2,
             children: [
                 {
-                    id: 'sara',
-                    label: 'Sara M.',
-                    role: 'Member',
-                    level: 1,
-                    contracts: 1,
+                    id: 'sara', label: 'Sara M.', role: 'Member', level: 1, contracts: 1,
                     children: [
                         { id: 'matteo', label: 'Matteo', role: 'Member', level: 2, contracts: 1 },
                     ]
@@ -73,19 +123,11 @@ const INITIAL_TREE_DATA: NodeData = {
             ]
         },
         {
-            id: 'pietro',
-            label: 'Pietro V.',
-            role: 'Family Pro',
-            level: 0,
-            contracts: 3,
+            id: 'pietro', label: 'Pietro V.', role: 'Family Pro', level: 0, contracts: 3,
             children: [
                 { id: 'giulia', label: 'Giulia S.', role: 'Member', level: 1, contracts: 1 },
                 {
-                    id: 'davide',
-                    label: 'Davide N.',
-                    role: 'Member',
-                    level: 1,
-                    contracts: 1,
+                    id: 'davide', label: 'Davide N.', role: 'Member', level: 1, contracts: 1,
                     children: [
                         { id: 'chiara', label: 'Chiara', role: 'Member', level: 2, contracts: 0 },
                         { id: 'fabio', label: 'Fabio', role: 'Member', level: 2, contracts: 1 },
@@ -96,74 +138,59 @@ const INITIAL_TREE_DATA: NodeData = {
     ]
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-const countNodes = (node: NodeData): number =>
-    1 + (node.children?.reduce((s, c) => s + countNodes(c), 0) ?? 0);
-
-const calcEarnings = (node: NodeData): number => {
-    const cfg = ROLE_CONFIG[node.role] ?? ROLE_CONFIG['Member'];
-    const own = (node.contracts ?? 0) * cfg.earn;
-    const sub = node.children?.reduce((s, c) => s + calcEarnings(c), 0) ?? 0;
-    return own + sub;
-};
-
-let _uidCounter = 1000;
-const uid = () => `node-${++_uidCounter}`;
-
 // ─── Add Member Modal ─────────────────────────────────────────────────────────
 
-const AddMemberModal = ({ parentLabel, onAdd, onClose }: { parentLabel: string; onAdd: (label: string, role: string, contracts: number) => void; onClose: () => void; }) => {
+const AddMemberModal = ({ parentLabel, onAdd, onClose }: {
+    parentLabel: string;
+    onAdd: (label: string, role: string, contracts: number) => void;
+    onClose: () => void;
+}) => {
     const [label, setLabel] = useState('');
     const [role, setRole] = useState('Member');
     const [contracts, setContracts] = useState(1);
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             <motion.div
                 initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }}
-                className="relative bg-white rounded-[2rem] p-7 w-full max-w-sm shadow-2xl z-10"
+                className="relative bg-zinc-900 border border-white/10 rounded-[2rem] p-7 w-full max-w-sm shadow-2xl z-10"
             >
-                <button onClick={onClose} className="absolute top-5 right-5 p-2 rounded-full bg-gray-100 text-gray-400 hover:text-gray-700">
+                <button onClick={onClose} className="absolute top-5 right-5 p-2 rounded-full bg-white/10 text-white/50 hover:text-white">
                     <X size={18} />
                 </button>
-                <h3 className="text-xl font-black text-slate-900 mb-1">Aggiungi Membro</h3>
-                <p className="text-xs text-gray-400 mb-6">Sotto: <span className="font-bold text-gray-600">{parentLabel}</span></p>
-
+                <h3 className="text-xl font-black text-white mb-1">Aggiungi Membro</h3>
+                <p className="text-xs text-white/40 mb-6">Sotto: <span className="text-white/70 font-bold">{parentLabel}</span></p>
                 <div className="space-y-4">
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1 block">Nome</label>
-                        <input
-                            autoFocus value={label} onChange={e => setLabel(e.target.value)}
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1 block">Nome</label>
+                        <input autoFocus value={label} onChange={e => setLabel(e.target.value)}
                             placeholder="Es: Mario R."
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-green-400"
-                        />
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-white/20" />
                     </div>
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1 block">Qualifica</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1 block">Qualifica</label>
                         <select value={role} onChange={e => setRole(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-green-400 cursor-pointer">
-                            {AVAILABLE_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                            {AVAILABLE_ROLES.map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1 block">Contratti / mese stimati</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1 block">Contratti / mese</label>
                         <div className="flex items-center gap-3">
                             <button onClick={() => setContracts(c => Math.max(0, c - 1))}
-                                className="w-10 h-10 rounded-full bg-gray-100 font-bold text-gray-600 hover:bg-gray-200 transition-colors">−</button>
-                            <span className="flex-1 text-center text-2xl font-black text-green-600">{contracts}</span>
+                                className="w-10 h-10 rounded-full bg-white/10 font-bold text-white hover:bg-white/20 transition-colors">−</button>
+                            <span className="flex-1 text-center text-2xl font-black text-emerald-400">{contracts}</span>
                             <button onClick={() => setContracts(c => Math.min(20, c + 1))}
-                                className="w-10 h-10 rounded-full bg-green-100 font-bold text-green-700 hover:bg-green-200 transition-colors">+</button>
+                                className="w-10 h-10 rounded-full bg-emerald-500/20 font-bold text-emerald-400 hover:bg-emerald-500/40 transition-colors">+</button>
                         </div>
                     </div>
                 </div>
-
                 <button
                     onClick={() => { if (label.trim()) onAdd(label.trim(), role, contracts); }}
                     disabled={!label.trim()}
-                    className="mt-7 w-full py-3.5 bg-green-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl font-black text-sm uppercase tracking-widest transition-all hover:bg-green-700 active:scale-95"
+                    className="mt-7 w-full py-3.5 bg-emerald-600 disabled:bg-white/10 disabled:text-white/20 text-white rounded-xl font-black text-sm uppercase tracking-widest transition-all hover:bg-emerald-500 active:scale-95"
                 >
                     Aggiungi alla Rete
                 </button>
@@ -174,53 +201,46 @@ const AddMemberModal = ({ parentLabel, onAdd, onClose }: { parentLabel: string; 
 
 // ─── Member Detail Modal ──────────────────────────────────────────────────────
 
-const MemberDetailModal = ({ node, onClose, onDelete }: { node: NodeData; onClose: () => void; onDelete: (id: string) => void; }) => {
+const MemberDetailModal = ({ node, onClose, onDelete }: {
+    node: NodeData; onClose: () => void; onDelete: (id: string) => void;
+}) => {
     const cfg = ROLE_CONFIG[node.role] ?? ROLE_CONFIG['Member'];
     const networkSize = countNodes(node) - 1;
     const networkEarnings = calcEarnings(node);
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             <motion.div
                 initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }}
-                className="relative bg-white rounded-[2rem] p-7 w-full max-w-sm shadow-2xl z-10"
+                className="relative bg-zinc-900 border border-white/10 rounded-[2rem] p-7 w-full max-w-sm shadow-2xl z-10"
             >
-                <button onClick={onClose} className="absolute top-5 right-5 p-2 rounded-full bg-gray-100 text-gray-400 hover:text-gray-700"><X size={18} /></button>
-
-                {/* Avatar */}
+                <button onClick={onClose} className="absolute top-5 right-5 p-2 rounded-full bg-white/10 text-white/50 hover:text-white"><X size={18} /></button>
                 <div className="flex flex-col items-center mb-6">
-                    <motion.div
-                        initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260 }}
-                        className="w-20 h-20 rounded-[1.5rem] bg-green-100 flex items-center justify-center mb-3 shadow-inner"
-                    >
-                        <User size={38} className="text-green-600" />
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260 }}
+                        className={`w-20 h-20 rounded-full flex items-center justify-center mb-3 border-2 ${cfg.ring} ${cfg.bg} ${cfg.glow}`}>
+                        <span className="text-2xl font-black text-white">{node.label.charAt(0)}</span>
                     </motion.div>
-                    <h3 className="text-2xl font-black text-slate-900">{node.label}</h3>
-                    <span className={`mt-2 text-xs font-black px-3 py-1 rounded-full ${cfg.color}`}>{node.role}</span>
+                    <h3 className="text-2xl font-black text-white">{node.label}</h3>
+                    <span className={`mt-2 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${cfg.badge}`}>{node.role}</span>
                 </div>
-
-                {/* Stats grid */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                     {[
-                        { label: 'Livello Rete', value: node.level },
+                        { label: 'Livello', value: node.level === -1 ? 'Root' : `L${node.level}` },
                         { label: 'Contratti/mese', value: node.contracts ?? 0 },
                         { label: 'Team sotto', value: networkSize },
                         { label: 'Guadagno stimato', value: `€${networkEarnings}` },
                     ].map(({ label, value }) => (
-                        <div key={label} className="bg-gray-50 rounded-2xl p-4 text-center border border-gray-100">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">{label}</p>
-                            <p className="text-xl font-black text-green-700">{value}</p>
+                        <div key={label} className="bg-white/5 rounded-2xl p-4 text-center border border-white/5">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">{label}</p>
+                            <p className="text-xl font-black text-emerald-400">{value}</p>
                         </div>
                     ))}
                 </div>
-
                 {node.id !== 'me' && (
-                    <button
-                        onClick={() => { onDelete(node.id); onClose(); }}
-                        className="w-full mt-2 py-3 bg-red-50 text-red-500 rounded-xl font-bold text-sm hover:bg-red-100 transition-colors"
-                    >
+                    <button onClick={() => { onDelete(node.id); onClose(); }}
+                        className="w-full mt-2 py-3 bg-red-500/10 text-red-400 rounded-xl font-bold text-sm hover:bg-red-500/20 transition-colors">
                         Rimuovi dalla Rete
                     </button>
                 )}
@@ -229,262 +249,209 @@ const MemberDetailModal = ({ node, onClose, onDelete }: { node: NodeData; onClos
     );
 };
 
-// ─── Tree Node ───────────────────────────────────────────────────────────────
+// ─── Single Tree Node (circular glow style) ────────────────────────────────────
 
-const TreeNodeComponent = ({
-    node, onUpdate, onAdd, onDelete, theme, isProjection, filterRole
+const TreeNode = ({
+    node, onAdd, onDelete, isProjection, filterRole
 }: {
     node: NodeData;
-    onUpdate: (id: string, newLabel: string) => void;
     onAdd: (parentId: string, label: string, role: string, contracts: number) => void;
     onDelete: (id: string) => void;
-    theme: string;
     isProjection?: boolean;
     filterRole: string;
 }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
-    const [showAddModal, setShowAddModal] = useState(false);
+    const [expanded, setExpanded] = useState(true);
+    const [showAdd, setShowAdd] = useState(false);
     const [showDetail, setShowDetail] = useState(false);
 
-    const hasChildren = node.children && node.children.length > 0;
-    const isMain = node.id === 'me';         // only the root 'Tu' node
-    const isLevel3 = node.level >= 2;        // level 2+ = compact style
+    const isRoot = node.id === 'me';
     const isGhost = node.id.includes('ghost');
-    const isHidden = filterRole !== 'all' && node.role !== filterRole && !isMain;
-
     const cfg = ROLE_CONFIG[node.role] ?? ROLE_CONFIG['Member'];
+    const size = nodeSize(node.level, isRoot);
+    const hasChildren = (node.children?.length ?? 0) > 0;
+    const isCompact = node.level >= 2;
 
-    // Animate in with staggered delay based on level
-    const animDelay = node.level * 0.08;
+    const isHidden = filterRole !== 'all' && node.role !== filterRole && !isRoot;
+    if (isHidden) return null;
 
-    const nodeStyles = {
-        glass: isMain
-            ? 'bg-gradient-to-br from-green-500 to-green-700 text-white shadow-[0_10px_30px_rgba(34,197,94,0.35)] border-white/20'
-            : isLevel3
-                ? 'bg-white/80 text-slate-800 border-white/60 shadow-sm backdrop-blur-md'
-                : 'bg-white/95 text-slate-900 border-white/60 shadow-[0_8px_20px_rgba(0,0,0,0.06)] backdrop-blur-xl',
-        dark: isMain
-            ? 'bg-gradient-to-br from-yellow-600 to-amber-700 text-white border-yellow-400/30'
-            : isLevel3
-                ? 'bg-zinc-900/80 text-zinc-100 border-white/5 backdrop-blur-md'
-                : 'bg-zinc-900/90 text-white border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.2)] backdrop-blur-xl',
-        minimal: isMain ? 'bg-black text-white border-black' : 'bg-white text-black border-gray-200 shadow-sm'
-    };
+    const animDelay = Math.max(0, node.level) * 0.06;
 
-    const connectorColor = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+    const connectorColor = 'rgba(255,255,255,0.08)';
 
-    if (isHidden && !isMain) return null;
+    const levelStr = node.level === -1 ? 'Tu' : `L${node.level}`;
 
     return (
-        <div className="flex flex-col items-center relative">
-            {/* ── Node Card ── */}
-            <motion.div
-                layout
-                initial={{ scale: 0.7, opacity: 0, y: -10 }}
-                animate={{ scale: isGhost ? 0.9 : 1, opacity: isGhost ? 0.45 : 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 22, delay: animDelay }}
-                onClick={() => !isGhost && !isProjection && setShowDetail(true)}
-                className={[
-                    'relative rounded-[1.5rem] border z-20 transition-all duration-300 cursor-pointer',
-                    nodeStyles[theme as keyof typeof nodeStyles],
-                    isMain ? 'p-5 min-w-[150px]' : isLevel3 ? 'p-2 min-w-[80px]' : node.level === 0 ? 'p-3 min-w-[110px]' : 'p-3 min-w-[120px]',
-                    isProjection && !isMain ? 'opacity-50 grayscale scale-95 border-dashed' : '',
-                    'flex flex-col items-center group hover:scale-105 hover:shadow-xl',
-                ].join(' ')}
-            >
-                {/* User icon */}
-                <div className={[
-                    'p-2.5 rounded-full mb-2 shadow-inner transition-transform group-hover:scale-110',
-                    isMain ? 'bg-white/20 text-white' : theme === 'dark' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-green-500/10 text-green-600',
-                    isLevel3 ? 'scale-75 mb-0' : '',
-                ].join(' ')}>
-                    {isMain ? <User size={22} /> : <Users size={isLevel3 ? 14 : 20} />}
-                </div>
+        <div className="flex flex-col items-center relative select-none">
+            {/* Node */}
+            <div className="relative group">
+                <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: isGhost ? 0.7 : 1, opacity: isGhost ? 0.3 : 1 }}
+                    transition={{ type: 'spring', stiffness: 280, damping: 22, delay: animDelay }}
+                    onClick={() => !isGhost && setShowDetail(true)}
+                    style={{ width: size, height: size }}
+                    className={[
+                        'rounded-full border-2 flex items-center justify-center cursor-pointer',
+                        'transition-all duration-300 relative',
+                        cfg.bg, cfg.ring, !isGhost ? cfg.glow : '',
+                        'hover:scale-110 hover:brightness-110',
+                    ].join(' ')}
+                >
+                    {/* Crown for root */}
+                    {isRoot && <span className="text-2xl">👑</span>}
+                    {/* Initial for others */}
+                    {!isRoot && (
+                        <span className={`font-black text-white ${isCompact ? 'text-xs' : 'text-sm'}`}>
+                            {node.label.charAt(0)}
+                        </span>
+                    )}
 
-                {/* Name + role badge */}
-                <span className={`font-black ${isLevel3 ? 'text-[11px]' : 'text-sm'} tracking-tight leading-tight mb-0.5 text-center`}>
+                    {/* Level badge top-right */}
+                    <span className={`absolute -top-1.5 -right-1.5 text-[8px] font-black px-1.5 py-0.5 rounded-full ${levelBadge(node.level)} shadow-lg`}>
+                        {levelStr}
+                    </span>
+                </motion.div>
+
+                {/* + Add button (hover) */}
+                {!isGhost && !isProjection && !isCompact && (
+                    <button
+                        onClick={e => { e.stopPropagation(); setShowAdd(true); }}
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-125 z-30 text-[10px] font-black"
+                    >+</button>
+                )}
+            </div>
+
+            {/* Label + earnings under node */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isGhost ? 0.3 : 1 }}
+                transition={{ delay: animDelay + 0.1 }}
+                className="flex flex-col items-center mt-2 gap-0.5"
+                style={{ maxWidth: size + 20 }}
+            >
+                <span className={`font-black text-white text-center leading-tight truncate w-full ${isCompact ? 'text-[9px]' : 'text-[11px]'}`}>
                     {node.label}
                 </span>
-
-                {/* Colored qualification badge */}
-                {!isLevel3 && !isMain && (
-                    <span className={`text-[8px] uppercase font-black px-2 py-0.5 rounded-full mt-1 ${cfg.color}`}>
-                        {node.role}
-                    </span>
+                {!isCompact && !isGhost && (
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${cfg.badge}`}>{node.role}</span>
                 )}
-                {isMain && (
-                    <span className="text-[10px] uppercase font-bold opacity-70 tracking-widest mt-0.5">{node.role}</span>
-                )}
-
-                {/* Earnings per node (small badge) */}
-                {!isGhost && !isMain && !isLevel3 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: animDelay + 0.2 }}
-                        className="flex items-center gap-0.5 mt-1.5 bg-green-50 text-green-700 rounded-full px-2 py-0.5 text-[9px] font-black"
-                    >
-                        <Euro size={9} />
+                {!isGhost && (
+                    <span className="text-[8px] text-emerald-400 font-bold flex items-center gap-0.5">
+                        <Euro size={7} />
                         {calcEarnings(node)}/m
-                    </motion.div>
-                )}
-
-                {/* Expand/collapse toggle */}
-                {hasChildren && (
-                    <div
-                        onClick={e => { e.stopPropagation(); setIsExpanded(v => !v); }}
-                        className={`absolute -bottom-3 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm border border-white/50 backdrop-blur-sm z-30 ${isExpanded ? 'bg-white text-slate-800 rotate-180' : 'bg-slate-800 text-white'}`}
-                    >
-                        <ChevronDown size={12} strokeWidth={3} />
-                    </div>
-                )}
-
-                {/* + Add member button (on hover, non-ghost) */}
-                {!isGhost && !isProjection && !isLevel3 && (
-                    <button
-                        onClick={e => { e.stopPropagation(); setShowAddModal(true); }}
-                        className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-green-600 hover:scale-110 z-30"
-                        title="Aggiungi membro"
-                    >
-                        <Plus size={14} strokeWidth={3} />
-                    </button>
+                    </span>
                 )}
             </motion.div>
 
-            {/* ── Children ── */}
+            {/* Expand toggle */}
+            {hasChildren && (
+                <button
+                    onClick={e => { e.stopPropagation(); setExpanded(v => !v); }}
+                    className={`mt-1 w-5 h-5 rounded-full flex items-center justify-center transition-all ${expanded ? 'bg-white/10 rotate-180' : 'bg-white/5'} text-white/50 hover:text-white`}
+                >
+                    <ChevronDown size={10} strokeWidth={3} />
+                </button>
+            )}
+
+            {/* Children */}
             <AnimatePresence mode="wait">
-                {hasChildren && isExpanded && (
+                {hasChildren && expanded && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                        exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                        transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                        className={`flex gap-6 sm:gap-16 relative justify-center px-4 ${isLevel3 ? 'mt-8' : 'mt-16'}`}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
+                        className="flex gap-4 sm:gap-10 relative justify-center px-2 mt-8"
                     >
-                        <svg className={`absolute left-0 w-full pointer-events-none overflow-visible z-10 no-export ${isLevel3 ? 'top-[-32px] h-8' : 'top-[-64px] h-16'}`}>
+                        {/* SVG connectors */}
+                        <svg className="absolute left-0 w-full pointer-events-none overflow-visible z-10 top-[-32px] h-8">
                             {node.children!.map((_, idx) => {
                                 const total = node.children!.length;
                                 const step = 100 / total;
-                                const targetX = idx * step + step / 2;
-                                const h = isLevel3 ? 32 : 64;
+                                const tx = idx * step + step / 2;
                                 return (
-                                    <path
-                                        key={idx}
-                                        d={`M 50% 0 C 50% ${h / 2}, ${targetX}% ${h / 2}, ${targetX}% ${h}`}
-                                        stroke={connectorColor}
-                                        strokeWidth="1.5"
-                                        fill="none"
-                                        strokeLinecap="round"
-                                        className="opacity-60"
-                                    />
+                                    <path key={idx}
+                                        d={`M 50% 0 C 50% 16, ${tx}% 16, ${tx}% 32`}
+                                        stroke={connectorColor} strokeWidth="1" fill="none" strokeLinecap="round" />
                                 );
                             })}
                         </svg>
+
                         {node.children!.map(child => (
-                            <TreeNodeComponent
-                                key={child.id}
-                                node={child}
-                                onUpdate={onUpdate}
-                                onAdd={onAdd}
-                                onDelete={onDelete}
-                                theme={theme}
-                                isProjection={child.id.includes('ghost')}
-                                filterRole={filterRole}
-                            />
+                            <TreeNode key={child.id} node={child} onAdd={onAdd} onDelete={onDelete}
+                                isProjection={child.id.includes('ghost')} filterRole={filterRole} />
                         ))}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* ── Modals ── */}
+            {/* Modals */}
             <AnimatePresence>
-                {showAddModal && (
-                    <AddMemberModal
-                        parentLabel={node.label}
-                        onClose={() => setShowAddModal(false)}
-                        onAdd={(label, role, contracts) => {
-                            onAdd(node.id, label, role, contracts);
-                            setShowAddModal(false);
-                            setIsExpanded(true);
-                        }}
-                    />
+                {showAdd && (
+                    <AddMemberModal parentLabel={node.label} onClose={() => setShowAdd(false)}
+                        onAdd={(label, role, contracts) => { onAdd(node.id, label, role, contracts); setShowAdd(false); setExpanded(true); }} />
                 )}
             </AnimatePresence>
             <AnimatePresence>
-                {showDetail && !isGhost && (
-                    <MemberDetailModal
-                        node={node}
-                        onClose={() => setShowDetail(false)}
-                        onDelete={id => { onDelete(id); }}
-                    />
+                {showDetail && (
+                    <MemberDetailModal node={node} onClose={() => setShowDetail(false)} onDelete={onDelete} />
                 )}
             </AnimatePresence>
         </div>
     );
 };
 
-// ─── Main CommunityTree ───────────────────────────────────────────────────────
+// ─── Main CommunityTree ────────────────────────────────────────────────────────
 
 interface TreeProps {
     theme?: 'glass' | 'dark' | 'minimal';
     isProjectionMode?: boolean;
 }
 
-const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps) => {
-    const [treeData, setTreeData] = useState<NodeData>(INITIAL_TREE_DATA);
+const CommunityTree = ({ isProjectionMode = false }: TreeProps) => {
+    const [treeData, setTreeData] = useState<NodeData>(INITIAL_TREE);
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
     const [manualZoom, setManualZoom] = useState(false);
     const [filterRole, setFilterRole] = useState('all');
-    const [showFilterMenu, setShowFilterMenu] = useState(false);
+    const [showFilter, setShowFilter] = useState(false);
 
-    // Stats
-    const totalMembers = countNodes(treeData) - 1; // exclude "me"
+    const totalMembers = countNodes(treeData) - 1;
     const totalEarnings = calcEarnings(treeData);
 
-    // Projection mode: inject ghost nodes
+    // Projection ghosts
     const displayData = React.useMemo(() => {
         if (!isProjectionMode) return treeData;
-        const injectGhosts = (node: NodeData): NodeData => {
-            const children = node.children ? node.children.map(injectGhosts) : [];
-            if (node.level < 3) {
-                const targetCount = node.level === 0 ? 4 : 2;
-                for (let i = children.length; i < targetCount; i++) {
-                    children.push({ id: `ghost-${node.id}-${i}`, label: 'Nuovo Partner', role: 'Potential', level: node.level + 1 });
-                }
+        const inject = (n: NodeData): NodeData => {
+            const children = n.children ? n.children.map(inject) : [];
+            if (n.level < 2) {
+                const target = n.level === -1 ? 4 : 2;
+                for (let i = children.length; i < target; i++)
+                    children.push({ id: `ghost-${n.id}-${i}`, label: 'Nuovo', role: 'Potential', level: n.level + 1 });
             }
-            return { ...node, children };
+            return { ...n, children };
         };
-        return injectGhosts(treeData);
+        return inject(treeData);
     }, [treeData, isProjectionMode]);
 
-    // Auto-resize
-    const handleAutoResize = useCallback(() => {
+    const autoResize = useCallback(() => {
         if (containerRef.current && !manualZoom) {
-            const vw = window.innerWidth - 64;
+            const vw = window.innerWidth - 80;
             const cw = containerRef.current.scrollWidth;
-            setScale(cw > vw ? Math.max(0.3, vw / cw) : 1);
+            setScale(cw > vw ? Math.max(0.25, vw / cw) : 1);
         }
     }, [manualZoom]);
 
     useEffect(() => {
-        handleAutoResize();
-        window.addEventListener('resize', handleAutoResize);
-        return () => window.removeEventListener('resize', handleAutoResize);
-    }, [displayData, handleAutoResize]);
-
-    // CRUD helpers
-    const updateNodeLabel = (id: string, newLabel: string) => {
-        const rec = (n: NodeData): NodeData =>
-            n.id === id ? { ...n, label: newLabel } : { ...n, children: n.children?.map(rec) };
-        setTreeData(rec);
-    };
+        autoResize();
+        window.addEventListener('resize', autoResize);
+        return () => window.removeEventListener('resize', autoResize);
+    }, [displayData, autoResize]);
 
     const addMember = (parentId: string, label: string, role: string, contracts: number) => {
         const newNode: NodeData = { id: uid(), label, role, level: 0, contracts, children: [] };
         const rec = (n: NodeData): NodeData => {
             if (n.id === parentId) {
-                // 'me' is level -1, so its direct children are level 0
                 const level = Math.max(0, n.level + 1);
                 return { ...n, children: [...(n.children ?? []), { ...newNode, level }] };
             }
@@ -495,81 +462,60 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
 
     const deleteMember = (id: string) => {
         const rec = (n: NodeData): NodeData => ({
-            ...n,
-            children: n.children?.filter(c => c.id !== id).map(rec)
+            ...n, children: n.children?.filter(c => c.id !== id).map(rec)
         });
         setTreeData(rec);
     };
 
-    const handleZoomIn = () => { setManualZoom(true); setScale(p => Math.min(p + 0.1, 2)); };
-    const handleZoomOut = () => { setManualZoom(true); setScale(p => Math.max(p - 0.1, 0.2)); };
-    const handleResetZoom = () => { setManualZoom(false); setTimeout(handleAutoResize, 10); };
-
     return (
-        <div
-            className={`pt-0 pb-16 overflow-hidden no-scrollbar rounded-[2rem] min-h-[600px] transition-colors duration-500 relative ${theme === 'dark' ? 'bg-zinc-950/20' : 'bg-transparent'}`}
-            id="export-card-tree"
-        >
-            {/* ── Stats Header Bar ── */}
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between mx-6 mb-6 gap-3 flex-wrap"
-            >
-                {/* Total members counter */}
-                <motion.div
-                    key={totalMembers}
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
-                >
-                    <Users size={16} className="text-green-600" />
+        <div className="relative rounded-[2rem] overflow-hidden bg-zinc-950 min-h-[600px] pb-20 pt-4" id="export-card-tree">
+
+            {/* Animated background blobs */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-10 left-1/4 w-64 h-64 bg-orange-500/5 rounded-full blur-[80px]" />
+                <div className="absolute bottom-20 right-1/4 w-56 h-56 bg-violet-500/5 rounded-full blur-[80px]" />
+            </div>
+
+            {/* ── Stats header ── */}
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between mx-6 mb-6 gap-3 flex-wrap relative z-10">
+
+                {/* Members */}
+                <motion.div key={totalMembers} initial={{ scale: 0.8 }} animate={{ scale: 1 }}
+                    className="flex items-center gap-3 bg-white/5 backdrop-blur border border-white/10 rounded-2xl px-5 py-3">
                     <div>
-                        <p className="text-[8px] uppercase font-black text-gray-400 tracking-widest leading-none">Membri Totali</p>
-                        <p className="text-2xl font-black text-green-700 leading-none mt-0.5">{totalMembers}</p>
+                        <p className="text-[8px] uppercase font-black text-white/30 tracking-widest leading-none">Membri Totali</p>
+                        <p className="text-2xl font-black text-orange-400 leading-none mt-0.5">{totalMembers}</p>
                     </div>
                 </motion.div>
 
-                {/* Estimated network earnings */}
-                <motion.div
-                    key={totalEarnings}
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
-                >
-                    <Euro size={16} className="text-emerald-600" />
+                {/* Earnings */}
+                <motion.div key={totalEarnings} initial={{ scale: 0.8 }} animate={{ scale: 1 }}
+                    className="flex items-center gap-2 bg-white/5 backdrop-blur border border-white/10 rounded-2xl px-5 py-3">
+                    <Euro size={14} className="text-emerald-400" />
                     <div>
-                        <p className="text-[8px] uppercase font-black text-gray-400 tracking-widest leading-none">Guadagno Stimato</p>
-                        <p className="text-2xl font-black text-emerald-700 leading-none mt-0.5">€{totalEarnings}</p>
+                        <p className="text-[8px] uppercase font-black text-white/30 tracking-widest leading-none">Guadagno Stimato</p>
+                        <p className="text-2xl font-black text-emerald-400 leading-none mt-0.5">€{totalEarnings}</p>
                     </div>
                 </motion.div>
 
-                {/* Filter dropdown */}
+                {/* Filter */}
                 <div className="relative">
-                    <button
-                        onClick={() => setShowFilterMenu(v => !v)}
-                        className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-4 py-3 shadow-sm text-xs font-black text-gray-600 hover:bg-white transition-all"
-                    >
-                        <Filter size={14} className="text-green-600" />
+                    <button onClick={() => setShowFilter(v => !v)}
+                        className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-xs font-black text-white/60 hover:bg-white/10 transition-all">
+                        <Filter size={13} className="text-emerald-400" />
                         {filterRole === 'all' ? 'Tutti' : filterRole}
                     </button>
                     <AnimatePresence>
-                        {showFilterMenu && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 6, scale: 0.95 }}
-                                className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 min-w-[160px]"
-                            >
+                        {showFilter && (
+                            <motion.div initial={{ opacity: 0, y: 6, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                                className="absolute right-0 top-full mt-2 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 min-w-[180px]">
                                 {['all', ...AVAILABLE_ROLES].map(r => {
-                                    const cfg = r === 'all' ? null : ROLE_CONFIG[r];
+                                    const c = r === 'all' ? null : ROLE_CONFIG[r];
                                     return (
-                                        <button
-                                            key={r}
-                                            onClick={() => { setFilterRole(r); setShowFilterMenu(false); }}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-left hover:bg-gray-50 transition-colors ${filterRole === r ? 'bg-green-50 text-green-700' : 'text-gray-700'}`}
-                                        >
-                                            {cfg && <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />}
+                                        <button key={r} onClick={() => { setFilterRole(r); setShowFilter(false); }}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-left hover:bg-white/5 transition-colors ${filterRole === r ? 'text-emerald-400' : 'text-white/60'}`}>
+                                            {c && <span className={`w-2 h-2 rounded-full ${c.badge.split(' ')[0]}`} />}
                                             {r === 'all' ? '🌐 Tutti i Ruoli' : r}
                                         </button>
                                     );
@@ -581,45 +527,35 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
             </motion.div>
 
             {/* ── Legend ── */}
-            <div className="flex flex-wrap gap-2 justify-center mb-4 px-6 no-export">
-                {Object.entries(ROLE_CONFIG).filter(([k]) => k !== 'Potential').map(([role, cfg]) => (
-                    <span key={role} className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 ${cfg.color}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/60 inline-block" />
-                        {role} · €{cfg.earn}/contratto
+            <div className="flex flex-wrap gap-2 justify-center mb-6 px-4 relative z-10">
+                {Object.entries(ROLE_CONFIG).filter(([k]) => k !== 'Potential').map(([role, c]) => (
+                    <span key={role} className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 ${c.badge}`}>
+                        {role} · €{c.earn}/ctr
                     </span>
                 ))}
             </div>
 
-            {/* ── Zoom Controls ── */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-white/50 dark:border-white/10 z-50 no-export transition-all hover:scale-105">
-                <button onClick={handleZoomOut} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 transition-colors"><ZoomOut size={18} /></button>
-                <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1" />
-                <button onClick={handleResetZoom} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition-colors font-bold text-xs">{Math.round(scale * 100)}%</button>
-                <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1" />
-                <button onClick={handleZoomIn} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 transition-colors"><ZoomIn size={18} /></button>
-                <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-2" />
-                <button
-                    onClick={() => { if (confirm('Resetta l\'albero? Rimarrai solo tu!')) setTreeData({ id: 'me', label: 'Tu', role: 'Family Pro', level: 0, contracts: 3, children: [] }); }}
-                    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-red-50 hover:text-red-500 text-gray-400 transition-colors"
-                    title="Resetta Albero"
-                ><Trash2 size={16} /></button>
+            {/* ── Tree ── */}
+            <div className="transition-transform duration-500 origin-top flex justify-center pb-20 relative z-10"
+                style={{ transform: `scale(${scale})` }}>
+                <div ref={containerRef} className="px-10">
+                    <TreeNode node={displayData} onAdd={addMember} onDelete={deleteMember} filterRole={filterRole} />
+                </div>
             </div>
 
-            {/* ── Tree ── */}
-            <div
-                className="transition-transform duration-500 origin-top flex justify-center pt-0 pb-20"
-                style={{ transform: `scale(${scale})` }}
-            >
-                <div ref={containerRef} className="px-10 pb-20">
-                    <TreeNodeComponent
-                        node={displayData}
-                        onUpdate={updateNodeLabel}
-                        onAdd={addMember}
-                        onDelete={deleteMember}
-                        theme={theme}
-                        filterRole={filterRole}
-                    />
-                </div>
+            {/* ── Zoom controls ── */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-zinc-900/90 backdrop-blur border border-white/10 rounded-full shadow-xl z-50">
+                <button onClick={() => { setManualZoom(true); setScale(p => Math.max(p - 0.1, 0.2)); }}
+                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"><ZoomOut size={16} /></button>
+                <button onClick={() => { setManualZoom(false); setTimeout(autoResize, 10); }}
+                    className="w-9 h-9 text-[10px] font-bold text-white/50 hover:text-white transition-colors">{Math.round(scale * 100)}%</button>
+                <button onClick={() => { setManualZoom(true); setScale(p => Math.min(p + 0.1, 2)); }}
+                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"><ZoomIn size={16} /></button>
+                <div className="w-px h-4 bg-white/10 mx-1" />
+                <button onClick={() => { if (confirm('Reset albero?')) setTreeData({ id: 'me', label: 'Tu', role: 'Family Pro', level: -1, contracts: 3, children: [] }); }}
+                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-red-500/20 hover:text-red-400 text-white/30 transition-colors">
+                    <Trash2 size={14} />
+                </button>
             </div>
         </div>
     );
