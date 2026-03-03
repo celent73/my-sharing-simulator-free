@@ -16,7 +16,7 @@ const LegalFooter: React.FC<LegalFooterProps> = ({ onOpenLegal }) => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Copyright e Versione */}
           <div className="text-left">
-            <p className="font-semibold text-gray-900 dark:text-white">
+            <p className="font-semibold text-white">
               Tutti i diritti riservati © {new Date().getFullYear()} - My Sharing Simulator v1.2.59
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
