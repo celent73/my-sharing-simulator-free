@@ -65,7 +65,7 @@ export const SharingParkFocusMode: React.FC<SharingParkFocusModeProps> = ({ isOp
 
     const texts = {
         it: {
-            title: 'Sharing Park Focus',
+            title: 'Union Park Focus',
             investment: 'Il Tuo Investimento',
             investmentDesc: 'Quanto vuoi investire nei pannelli fotovoltaici?',
             budget: 'Budget Disponibile',
@@ -105,7 +105,7 @@ export const SharingParkFocusMode: React.FC<SharingParkFocusModeProps> = ({ isOp
             next: 'Avanti'
         },
         de: {
-            title: 'Sharing Park Focus',
+            title: 'Union Park Focus',
             investment: 'Ihre Investition',
             investmentDesc: 'Wie viel möchten Sie in Solarpaneele investieren?',
             budget: 'Verfügbares Budget',
@@ -145,7 +145,7 @@ export const SharingParkFocusMode: React.FC<SharingParkFocusModeProps> = ({ isOp
             next: 'Weiter'
         },
         en: {
-            title: 'Sharing Park Focus',
+            title: 'Union Park Focus',
             investment: 'Your Investment',
             investmentDesc: 'How much do you want to invest in solar panels?',
             budget: 'Available Budget',

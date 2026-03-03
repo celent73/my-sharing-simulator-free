@@ -61,7 +61,7 @@ const uiTexts = {
     cashbackPercent: "Percentuale Cashback (%)",
     confirm: "Conferma",
     yourWork: "Il Tuo Lavoro",
-    personalTitle: "Clienti, Utenze e Sharing Park",
+    personalTitle: "Clienti, Utenze e Union Park",
     estimatedBonus: "Bonus Stimato",
     clientMode: "Modalità Cliente",
     clientModeDesc: "I guadagni diretti e le rendite sono al 50% rispetto alla modalità Family Utility.",
@@ -147,7 +147,7 @@ const uiTexts = {
     cashbackPercent: "Cashback Percentage (%)",
     confirm: "Confirm",
     yourWork: "Your Work",
-    personalTitle: "Clients, Utilities and Sharing Park",
+    personalTitle: "Clients, Utilities and Union Park",
     estimatedBonus: "Estimated Bonus",
     clientMode: "Client Mode",
     clientModeDesc: "Direct earnings and annuities are 50% compared to Sharing Partner (FU) mode.",
@@ -351,7 +351,7 @@ const PersonalClientsModal = ({ isOpen, onClose, inputs, onInputChange, onReset,
                   </div>
                 </div>
 
-                {/* SHARING PARK PREMIUM CARD */}
+                {/* Union Park PREMIUM CARD */}
                 <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden group/park">
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/glass-pass.png')] opacity-10"></div>
                   <div className="absolute -right-8 -top-8 text-white opacity-5 rotate-12 group-hover/park:scale-125 transition-transform duration-1000">
@@ -364,7 +364,7 @@ const PersonalClientsModal = ({ isOpen, onClose, inputs, onInputChange, onReset,
                         <Sun size={32} strokeWidth={2.5} className="animate-spin-slow" />
                       </div>
                       <div>
-                        <h4 className="text-2xl font-black text-white leading-none tracking-tighter">Sharing Park</h4>
+                        <h4 className="text-2xl font-black text-white leading-none tracking-tighter">Union Park</h4>
                         <p className="text-[11px] font-black text-emerald-100/60 uppercase mt-1 tracking-widest">{txt.parkToken}: +€50 / {txt.panelsLabel.slice(0, -1).toUpperCase()}</p>
                       </div>
                     </div>

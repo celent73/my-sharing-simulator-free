@@ -80,11 +80,11 @@ export const UnionParkModal: React.FC<UnionParkModalProps> = ({
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-none tracking-tighter">Sharing Park</h2>
+                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-none tracking-tighter">Union Park</h2>
                                 <SharyTrigger
-                                    message="Benvenuto nello Sharing Park! Seleziona quanti pannelli vuoi (da 1 a 20). Ogni pannello ti garantisce un rendimento mensile passivo basato sul PUN. Usa il bottone 'Obiettivo Azzera Bolletta' per calcolare quanti te ne servono per coprire le tue spese!"
-                                    messageDe="Willkommen im Sharing Park! Wähle, wie viele Paneele du möchtest (von 1 bis 20). Jedes Paneel garantiert dir ein passives monatliches Einkommen basierend auf dem PUN. Nutze den Button 'Ziel: Rechnung Null', um zu berechnen, wie viele du brauchst, um deine Ausgaben zu decken!"
-                                    messageEn="Welcome to Sharing Park! Select how many panels you want (from 1 to 20). Each panel guarantees you a passive monthly income based on the PUN. Use the 'Zero Bill Goal' button to calculate how many you need to cover your expenses!"
+                                    message="Benvenuto nello Union Park! Seleziona quanti pannelli vuoi (da 1 a 20). Ogni pannello ti garantisce un rendimento mensile passivo basato sul PUN. Usa il bottone 'Obiettivo Azzera Bolletta' per calcolare quanti te ne servono per coprire le tue spese!"
+                                    messageDe="Willkommen im Union Park! Wähle, wie viele Paneele du möchtest (von 1 bis 20). Jedes Paneel garantiert dir ein passives monatliches Einkommen basierend auf dem PUN. Nutze den Button 'Ziel: Rechnung Null', um zu berechnen, wie viele du brauchst, um deine Ausgaben zu decken!"
+                                    messageEn="Welcome to Union Park! Select how many panels you want (from 1 to 20). Each panel guarantees you a passive monthly income based on the PUN. Use the 'Zero Bill Goal' button to calculate how many you need to cover your expenses!"
                                 />
                             </div>
                             <div className="mt-1 flex items-center gap-3">
