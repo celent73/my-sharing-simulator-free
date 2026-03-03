@@ -197,8 +197,8 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
     return (
         <div className={`transition-all duration-500 ${isHubMode ? 'scale-100' : ''}`}>
-            {/* Date Navigator Pill */}
-            {!isHubMode && (
+            {/* Date Navigator Pill — always visible */}
+            {(
                 <div className="mb-8 flex flex-col items-center">
                     <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2rem] shadow-md border border-slate-100 dark:border-slate-800 px-4 py-4">
                         {/* Row: < Date OGGI > */}
