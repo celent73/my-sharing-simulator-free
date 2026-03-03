@@ -16,6 +16,7 @@ export enum CommissionStatus {
 }
 
 export enum Qualification {
+  FAMILY_UTILITY = 'Family Utility',
   FAMILY_PRO = 'Family Pro',
   FAMILY_3S = 'Family 3S',
   FAMILY_5S = 'Family 5S',

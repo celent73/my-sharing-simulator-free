@@ -420,12 +420,15 @@ const Dashboard: React.FC<DashboardProps> = ({
 
                       {goal > 0 && (
                         <div className="flex flex-col gap-1">
-                          <p className={`text-[13px] font-extrabold ${isGoalReached ? 'text-[#34c759]' : 'text-[#ff9f0a]'}`}>
-                            {isGoalReached
-                              ? `🎉 Target ${periodLabel.toLowerCase()} raggiunto!`
-                              : `Mancano ${goal - current} azioni per il target`
-                            }
-                          </p>
+                          {isGoalReached ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#34c759]/15 text-[#34c759] rounded-full text-[11px] font-black uppercase tracking-wider w-fit">
+                              🏆 Target {periodLabel.toLowerCase()} completato
+                            </span>
+                          ) : (
+                            <span className="text-[13px] font-extrabold text-[#ff9f0a]">
+                              Mancano {goal - current} azioni per il target
+                            </span>
+                          )}
                           {viewMode === 'commercial_monthly' && timeProgress > 80 && progress < 50 && !isGoalReached && (
                             <p className="text-[11px] font-bold text-red-500 animate-pulse bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg mt-1 w-fit border border-red-200 dark:border-red-800">
                               ⚠️ Mese in chiusura, accelera!

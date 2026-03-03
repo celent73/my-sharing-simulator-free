@@ -243,109 +243,114 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                     <Calculator className="w-5 h-5 text-blue-500" />
                                 </button>
                                 <div className="mt-3 flex flex-col items-center gap-2">
-                                    <span className="text-[10px] font-bold text-orange-400/80 uppercase tracking-widest bg-orange-400/10 py-1 px-3 rounded-full border border-orange-400/20">
-                                        {daysRemaining} gg alla fine del mese
-                                    </span>
-                                    {upcomingDeadlineMessage && (
-                                        <span className="text-[10px] md:text-[11px] font-bold text-red-500 bg-red-500/10 py-1 px-3 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse max-w-[200px] md:max-w-xs leading-tight">
+                                    <svg className="absolute inset-[-1.2rem] w-[calc(100%+2.4rem)] h-[calc(100%+2.4rem)] -rotate-90">
+                                        <circle
+                                            cx="50%"
+                                            cy="50%"
+                                            r="48%"
+                                            fill="transparent"
+                                            stroke="url(#hubGradient)"
+                                            strokeWidth="1.2rem"
+                                            strokeDasharray={`${Math.min(dailyEarnings / 10, 100) * 3} 1000`}
+                                            strokeLinecap="round"
+                                            className="drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-1000"
+                                        />
+                                        <defs>
+                                            <linearGradient id="hubGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stopColor="#a3e635" />
+                                                <stop offset="100%" stopColor="#10b981" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                                {/* WARNING MESSAGE PLACED OUTSIDE THE CIRCLE */}
+                                {upcomingDeadlineMessage && (
+                                    <div className="absolute top-[105%] left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-10 hidden sm:block">
+                                        <span className="text-[11px] sm:text-xs font-black text-red-500 bg-red-500/10 py-2 px-5 rounded-full border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.25)] animate-pulse inline-flex items-center gap-2 backdrop-blur-md">
                                             {upcomingDeadlineMessage}
                                         </span>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                                {/* Mobile centered warning, adjusting absolute position logic */}
+                                {upcomingDeadlineMessage && (
+                                    <div className="mt-8 flex justify-center w-full sm:hidden relative z-10 text-center px-4">
+                                        <span className="text-[11px] font-black text-red-500 bg-red-500/10 py-2 px-5 rounded-full border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.25)] animate-pulse inline-flex items-center gap-2 backdrop-blur-md">
+                                            {upcomingDeadlineMessage}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-
-                            <svg className="absolute inset-[-1.2rem] w-[calc(100%+2.4rem)] h-[calc(100%+2.4rem)] -rotate-90">
-                                <circle
-                                    cx="50%"
-                                    cy="50%"
-                                    r="48%"
-                                    fill="transparent"
-                                    stroke="url(#hubGradient)"
-                                    strokeWidth="1.2rem"
-                                    strokeDasharray={`${Math.min(dailyEarnings / 10, 100) * 3} 1000`}
-                                    strokeLinecap="round"
-                                    className="drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-1000"
-                                />
-                                <defs>
-                                    <linearGradient id="hubGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#a3e635" />
-                                        <stop offset="100%" stopColor="#10b981" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                        </div>
-                    </div>
                 )}
 
-                {/* ACTIVITY GRID */}
-                <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
-                    {Object.values(ActivityType).map((activity) => {
-                        const count = todayCounts[activity] || 0;
-                        const label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
-                        const styles = CARD_STYLES[activity];
+                            {/* ACTIVITY GRID */}
+                            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
+                                {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
+                                    const count = todayCounts[activity] || 0;
+                                    const label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
+                                    const styles = CARD_STYLES[activity];
 
-                        return (
-                            <div key={activity} className={`group relative bg-white dark:bg-slate-900 border-2 ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-xl ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-2xl`}>
-                                <div className="flex flex-col h-full justify-between gap-6">
-                                    <div className="flex justify-between items-start">
-                                        <div className={`h-12 w-12 ${isHubMode ? 'lg:h-16 lg:w-16' : 'lg:h-14 lg:w-14'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
-                                            <div className={isHubMode ? "scale-110 lg:scale-125" : "scale-100 lg:scale-110"}>
-                                                {activityIcons[activity]}
+                                    return (
+                                        <div key={activity} className={`group relative bg-white dark:bg-slate-900 border-2 ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-xl ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-2xl`}>
+                                            <div className="flex flex-col h-full justify-between gap-6">
+                                                <div className="flex justify-between items-start">
+                                                    <div className={`h-12 w-12 ${isHubMode ? 'lg:h-16 lg:w-16' : 'lg:h-14 lg:w-14'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
+                                                        <div className={isHubMode ? "scale-110 lg:scale-125" : "scale-100 lg:scale-110"}>
+                                                            {activityIcons[activity]}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => handlePlusClick(e, activity)}
+                                                        className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-lg hover:shadow-xl transition-all active:scale-95 group-hover:scale-110`}
+                                                    >
+                                                        <Plus className="w-6 h-6 lg:w-8 lg:h-8 drop-shadow-md" strokeWidth={3} />
+                                                    </button>
+                                                </div>
+
+                                                <div>
+                                                    <h3 className="text-[10px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}>
+                                                            {count}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
+                                                        className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
+                                                        disabled={count === 0}
+                                                    >
+                                                        <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
+                                                    </button>
+                                                    <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
+                                                            style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={(e) => handlePlusClick(e, activity)}
-                                            className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-lg hover:shadow-xl transition-all active:scale-95 group-hover:scale-110`}
-                                        >
-                                            <Plus className="w-6 h-6 lg:w-8 lg:h-8 drop-shadow-md" strokeWidth={3} />
-                                        </button>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="text-[10px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}>
-                                                {count}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
-                                            className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
-                                            disabled={count === 0}
-                                        >
-                                            <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
-                                        </button>
-                                        <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                            <div
-                                                className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
-                                                style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                                    );
+                                })}
                             </div>
-                        );
-                    })}
-                </div>
-            </div>
+                        </div>
 
-            {/* Quick Actions Footer - Removed */}
-            <div className={`mt-12 flex flex-wrap items-center justify-center gap-4 ${isHubMode ? 'opacity-80' : ''}`}>
-                {/* Buttons removed as requested */}
-            </div>
+                        {/* Quick Actions Footer - Removed */}
+                        <div className={`mt-12 flex flex-wrap items-center justify-center gap-4 ${isHubMode ? 'opacity-80' : ''}`}>
+                            {/* Buttons removed as requested */}
+                        </div>
 
-            <HistoryListModal
-                isOpen={!!selectedActivityForDetails}
-                onClose={() => setSelectedActivityForDetails(null)}
-                activityType={selectedActivityForDetails}
-                activityLog={currentLog}
-                customLabel={selectedActivityForDetails ? (customLabels?.[selectedActivityForDetails] || ACTIVITY_LABELS[selectedActivityForDetails]) : ''}
-            />
-        </div>
-    );
+                        <HistoryListModal
+                            isOpen={!!selectedActivityForDetails}
+                            onClose={() => setSelectedActivityForDetails(null)}
+                            activityType={selectedActivityForDetails}
+                            activityLog={currentLog}
+                            customLabel={selectedActivityForDetails ? (customLabels?.[selectedActivityForDetails] || ACTIVITY_LABELS[selectedActivityForDetails]) : ''}
+                        />
+                    </div>
+                );
 };
 
-export default ActivityInput;
+                export default ActivityInput;
