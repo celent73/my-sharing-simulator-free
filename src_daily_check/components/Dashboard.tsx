@@ -67,34 +67,34 @@ const GoalStatusReminder: React.FC<{
 
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
   [ActivityType.CONTACTS]: {
-    gradient: 'from-[#3b82f6] to-[#2563eb]',
-    shadow: 'shadow-blue-500/10 dark:shadow-blue-600/5 hover:shadow-blue-500/20',
-    iconBg: 'bg-white/10 backdrop-blur-md border border-white/20',
-    border: 'border-white/10 dark:border-white/5'
+    gradient: 'from-blue-500 to-blue-600',
+    shadow: 'shadow-blue-200 dark:shadow-blue-900/30 hover:shadow-blue-300 dark:hover:shadow-blue-900/50',
+    iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
+    border: 'border-blue-200 dark:border-blue-800'
   },
   [ActivityType.VIDEOS_SENT]: {
-    gradient: 'from-[#8b5cf6] to-[#7c3aed]',
-    shadow: 'shadow-purple-500/10 dark:shadow-purple-600/5 hover:shadow-purple-500/20',
-    iconBg: 'bg-white/10 backdrop-blur-md border border-white/20',
-    border: 'border-white/10 dark:border-white/5'
+    gradient: 'from-violet-500 to-purple-600',
+    shadow: 'shadow-violet-200 dark:shadow-violet-900/30 hover:shadow-violet-300 dark:hover:shadow-violet-900/50',
+    iconBg: 'bg-gradient-to-br from-violet-400 to-purple-600',
+    border: 'border-violet-200 dark:border-violet-800'
   },
   [ActivityType.APPOINTMENTS]: {
-    gradient: 'from-[#10b981] to-[#059669]',
-    shadow: 'shadow-emerald-500/10 dark:shadow-emerald-600/5 hover:shadow-emerald-500/20',
-    iconBg: 'bg-white/10 backdrop-blur-md border border-white/20',
-    border: 'border-white/10 dark:border-white/5'
+    gradient: 'from-emerald-400 to-teal-500',
+    shadow: 'shadow-emerald-200 dark:shadow-emerald-900/30 hover:shadow-emerald-300 dark:hover:shadow-emerald-900/50',
+    iconBg: 'bg-gradient-to-br from-emerald-400 to-teal-500',
+    border: 'border-emerald-200 dark:border-emerald-800'
   },
   [ActivityType.NEW_CONTRACTS]: {
-    gradient: 'from-[#f97316] to-[#ea580c]',
-    shadow: 'shadow-orange-500/10 dark:shadow-orange-600/5 hover:shadow-orange-500/20',
-    iconBg: 'bg-white/10 backdrop-blur-md border border-white/20',
-    border: 'border-white/10 dark:border-white/5'
+    gradient: 'from-orange-400 to-red-500',
+    shadow: 'shadow-orange-200 dark:shadow-orange-900/30 hover:shadow-orange-300 dark:hover:shadow-orange-900/50',
+    iconBg: 'bg-gradient-to-br from-orange-400 to-red-500',
+    border: 'border-orange-200 dark:border-orange-800'
   },
   [ActivityType.NEW_FAMILY_UTILITY]: {
-    gradient: 'from-[#14b8a6] to-[#0d9488]',
-    shadow: 'shadow-teal-500/10 dark:shadow-teal-600/5 hover:shadow-teal-500/20',
-    iconBg: 'bg-white/10 backdrop-blur-md border border-white/20',
-    border: 'border-white/10 dark:border-white/5'
+    gradient: 'from-cyan-400 to-blue-500',
+    shadow: 'shadow-cyan-200 dark:shadow-cyan-900/30 hover:shadow-cyan-300 dark:hover:shadow-cyan-900/50',
+    iconBg: 'bg-gradient-to-br from-cyan-400 to-blue-500',
+    border: 'border-cyan-200 dark:border-cyan-800'
   },
 };
 
@@ -314,8 +314,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   const ViewButton = ({ mode, children }: ViewButtonProps) => {
     const isActive = viewMode === mode;
     return (
-      <button onClick={() => setViewMode(mode)} className={`relative px-5 py-2.5 text-xs uppercase tracking-widest font-black rounded-xl transition-all duration-500 z-10 ${isActive ? 'text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'}`}>
-        {isActive && <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-xl -z-10" />}
+      <button onClick={() => setViewMode(mode)} className={`relative px-4 py-2 text-sm font-bold rounded-xl transition-all duration-300 z-10 ${isActive ? 'text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}`}>
+        {isActive && <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl -z-10"></div>}
         {children}
       </button>
     );
@@ -323,43 +323,39 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   interface TabButtonProps { tab: DashboardTab; children: React.ReactNode; icon: React.ReactNode; }
   const TabButton = ({ tab, children, icon }: TabButtonProps) => (
-    <button onClick={() => setCurrentTab(tab)} className={`flex-1 w-full flex items-center justify-center gap-2 px-6 py-4 text-xs uppercase tracking-widest font-black rounded-xl transition-all duration-500 border-2 ${currentTab === tab ? 'bg-white/10 text-white shadow-xl border-white/20 backdrop-blur-md' : 'text-slate-500 border-transparent hover:text-slate-300 hover:bg-white/5'}`}>
+    <button onClick={() => setCurrentTab(tab)} className={`flex-1 w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 border ${currentTab === tab ? 'bg-white text-blue-600 shadow-md border-blue-100' : 'text-slate-500 border-transparent'}`}>
       {icon}{children}
     </button>
   );
 
   return (
-    <div className="bg-slate-50/40 dark:bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.1)] dark:shadow-none border border-white/20 dark:border-white/5 relative overflow-hidden transition-all duration-700">
-
-      {/* Dynamic Background Elements */}
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="bg-white/90 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl shadow-[0_20px_60px_rgba(8,_112,_184,_0.15)] dark:shadow-none border-2 border-blue-100 dark:border-slate-800 relative overflow-hidden">
 
       {/* Header e Selezione Vista */}
-      <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
+      <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">Dashboard</h2>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 tracking-tight">Analisi per <span className="text-blue-500 font-extrabold uppercase tracking-widest text-xs px-2 py-1 bg-blue-500/10 rounded-md ml-1">{userProfile.firstName}</span></p>
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white">Dashboard</h2>
+          <p className="text-md font-medium text-slate-500 dark:text-slate-400">Analisi per <span className="text-blue-600 font-bold">{userProfile.firstName}</span></p>
 
-          <div className="mt-4 flex items-center gap-3 bg-white/5 dark:bg-white/5 backdrop-blur-md p-2 pl-4 rounded-2xl w-fit border border-white/10 group transition-all hover:border-white/20 shadow-sm">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Qualifica</span>
+          <div className="mt-2 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg w-fit border border-slate-200 dark:border-slate-700">
+            <span className="text-xs font-bold text-slate-400 uppercase">Qualifica:</span>
             <select
-              className="bg-transparent text-sm font-black text-slate-800 dark:text-white outline-none cursor-pointer pr-4"
+              className="bg-transparent text-sm font-bold text-slate-700 dark:text-white outline-none cursor-pointer"
               value={userProfile.currentQualification || ''}
               onChange={(e) => onUpdateQualification(e.target.value as Qualification)}
             >
-              <option value="" disabled className="bg-slate-900">Seleziona...</option>
+              <option value="" disabled>Seleziona...</option>
               {Object.values(Qualification).map(q => (
-                <option key={q} value={q} className="bg-slate-900">{q}</option>
+                <option key={q} value={q}>{q}</option>
               ))}
             </select>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-200/50 dark:bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-inner">
-          <ViewButton mode="daily" children="Oggi" />
+        <div className="flex flex-wrap items-center gap-1 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <ViewButton mode="daily" children="Giorno" />
           <ViewButton mode="weekly" children="Settimana" />
-          <ViewButton mode="commercial_monthly" children="Mese Comm." />
+          <ViewButton mode="monthly" children="Mese" />
         </div>
       </div>
 
@@ -374,11 +370,11 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Controlli Tabs - Nascosti in compactView */}
       {!compactView && (
-        <div className="mb-10 relative z-10">
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center gap-2 bg-slate-200/30 dark:bg-white/5 p-2 rounded-2xl border border-white/10 backdrop-blur-md">
+        <div className="mb-8 relative z-10">
+          <div className="inline-flex w-full sm:w-auto items-center space-x-1 bg-slate-100/80 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
             <TabButton tab="overview" icon={<ChartBarIcon />} children="Riepilogo" />
             <TabButton tab="stats" icon={<ChartPieIcon />} children="Statistiche" />
-            <button onClick={onOpenAchievements} className="flex-1 w-full flex items-center justify-center gap-2 px-6 py-4 text-xs uppercase tracking-[0.2em] font-black rounded-xl text-slate-500 hover:text-amber-500 transition-all duration-300 hover:bg-white/5">
+            <button onClick={onOpenAchievements} className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl text-slate-500 hover:text-amber-500 transition-colors">
               <TrophyIcon /> Traguardi
             </button>
           </div>
@@ -397,7 +393,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 {periodLabel}
               </h3>
             )}
-            <div className={`grid grid-cols-1 sm:grid-cols-2 ${compactView ? 'md:grid-cols-5' : 'md:grid-cols-3'} lg:grid-cols-5 gap-6 lg:gap-8`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${compactView ? 'md:grid-cols-5' : 'md:grid-cols-3'} lg:grid-cols-5 gap-4 lg:gap-6`}>
               {Object.values(ActivityType).map((activity) => {
                 const current = totals[activity] || 0;
                 const goal = relevantGoals?.[activity] || 0;
@@ -406,30 +402,26 @@ const Dashboard: React.FC<DashboardProps> = ({
                 const styles = CARD_STYLES[activity];
 
                 return (
-                  <div key={activity} className={`group relative bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/[0.08] rounded-[2rem] ${compactView ? 'p-6 lg:p-8' : 'p-7 lg:p-10'} shadow-2xl ${styles.shadow} border border-white/10 dark:border-white/5 transition-all duration-500 hover:translate-y-[-8px] backdrop-blur-md overflow-hidden`}>
-
-                    {/* Glow effect on hover */}
-                    <div className={`absolute -top-12 -left-12 w-24 h-24 bg-gradient-to-br ${styles.gradient} opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-500`} />
-
-                    <div className={`flex justify-between items-start ${compactView ? 'mb-6' : 'mb-8'}`}>
-                      <div className={`h-14 w-14 ${compactView ? 'lg:h-16 lg:w-16' : 'lg:h-20 lg:w-20'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform duration-500`}>
-                        <div className={`scale-110 ${compactView ? 'lg:scale-125' : 'lg:scale-150'}`}>
+                  <div key={activity} className={`group relative bg-white dark:bg-slate-900 rounded-3xl ${compactView ? 'p-6 lg:p-7' : 'p-5 lg:p-8'} shadow-lg ${styles.shadow} border-2 ${styles.border} transition-all hover:scale-[1.05] hover:shadow-2xl`}>
+                    <div className={`flex justify-between items-start ${compactView ? 'mb-4' : 'mb-6'}`}>
+                      <div className={`h-12 w-12 ${compactView ? 'lg:h-14 lg:w-14' : 'lg:h-16 lg:w-16'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg`}>
+                        <div className={`scale-100 ${compactView ? 'lg:scale-110' : 'lg:scale-125'}`}>
                           {activityIcons[activity]}
                         </div>
                       </div>
-                      {isGoalReached && <div className="animate-pulse scale-150 drop-shadow-[0_0_15px_rgba(252,211,77,0.5)]"><StarIcon /></div>}
+                      {isGoalReached && <div className="animate-bounce scale-125"><StarIcon /></div>}
                     </div>
                     <div>
-                      <p className="text-[10px] lg:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-3 truncate">{customLabels?.[activity] || ACTIVITY_LABELS[activity]}</p>
+                      <p className="text-xs lg:text-sm font-bold text-slate-400 uppercase tracking-widest mb-2 truncate">{customLabels?.[activity] || ACTIVITY_LABELS[activity]}</p>
                       <div className="flex items-baseline gap-2">
-                        <p className={`${compactView ? 'text-4xl lg:text-5xl' : 'text-5xl lg:text-6xl'} font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text tracking-tighter`}>{current}</p>
-                        {goal > 0 && <span className="text-xs lg:text-sm font-black text-slate-400 bg-white/5 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/5">/ {goal}</span>}
+                        <p className={`${compactView ? 'text-3xl lg:text-4xl' : 'text-4xl lg:text-5xl'} font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text`}>{current}</p>
+                        {goal > 0 && <span className="text-xs lg:text-sm font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">/ {goal}</span>}
                       </div>
                     </div>
                     {!compactView && (
-                      <div className="mt-8">
-                        <div className="w-full bg-slate-200/50 dark:bg-white/5 rounded-full h-3 lg:h-3.5 overflow-hidden p-0.5 border border-white/5 shadow-inner">
-                          <div className={`bg-gradient-to-r ${styles.gradient} h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(0,0,0,0.2)]`} style={{ width: `${Math.min(progress, 100)}%` }} />
+                      <div className="mt-6">
+                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 lg:h-3 overflow-hidden">
+                          <div className={`bg-gradient-to-r ${styles.gradient} h-full rounded-full transition-all duration-1000`} style={{ width: `${Math.min(progress, 100)}%` }}></div>
                         </div>
                       </div>
                     )}

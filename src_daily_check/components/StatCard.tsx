@@ -11,13 +11,13 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ icon, title, value, description, colorClass }) => {
   return (
-    <div className="bg-white/5 dark:bg-white/5 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 shadow-2xl transition-all duration-500 flex flex-col items-center text-center group hover:translate-y-[-8px] hover:bg-white/10 dark:hover:bg-white/[0.08]">
-      <div className={`mb-6 p-5 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl group-hover:scale-110 group-hover:shadow-2xl transition-all duration-500 ${colorClass}`}>
+    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-6 rounded-3xl border border-white/20 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center group">
+      <div className={`mb-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 shadow-inner group-hover:scale-110 transition-transform duration-300 ${colorClass}`}>
         {icon}
       </div>
-      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mb-3">{title}</h4>
-      <p className="text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter bg-gradient-to-br from-white to-white/60 bg-clip-text">{value}</p>
-      <div className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5 uppercase tracking-widest">{description}</div>
+      <h4 className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">{title}</h4>
+      <p className="text-5xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">{value}</p>
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-3 py-1 rounded-full">{description}</p>
     </div>
   );
 };
