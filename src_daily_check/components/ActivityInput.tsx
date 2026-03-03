@@ -197,30 +197,61 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
     return (
         <div className={`transition-all duration-500 ${isHubMode ? 'scale-100' : ''}`}>
-            {/* Header section - Hidden in Hub Mode */}
+            {/* Date Navigator Pill */}
             {!isHubMode && (
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-xl">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                            <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">{selectedDateFormatted}</h2>
-                            {isToday && <div className="bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-500/20 uppercase">Oggi</div>}
+                <div className="mb-8 flex flex-col items-center">
+                    <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2rem] shadow-md border border-slate-100 dark:border-slate-800 px-4 py-4">
+                        {/* Row: < Date OGGI > */}
+                        <div className="flex items-center justify-between gap-2">
+                            <button
+                                onClick={() => changeDate(-1)}
+                                className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
+                            >
+                                <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
+                            </button>
+
+                            <div className="flex items-center gap-2 flex-1 justify-center">
+                                <span className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                                    {selectedDateFormatted}
+                                </span>
+                                {isToday ? (
+                                    <span className="text-[10px] font-black uppercase tracking-widest bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full">
+                                        OGGI
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={() => onDateChange(new Date())}
+                                        className="text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-blue-100 hover:text-blue-600 px-2.5 py-1 rounded-full transition-all"
+                                    >
+                                        OGGI
+                                    </button>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => changeDate(1)}
+                                className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
+                            >
+                                <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
+                            </button>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400 font-medium">
-                            <span className="text-sm px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg">{commercialMonthStr}</span>
-                            <span className="text-sm font-bold text-orange-400">{daysRemaining} gg alla fine</span>
+
+                        {/* Row: CAMBIA DATA */}
+                        <div className="mt-3 flex justify-center">
+                            <button
+                                onClick={onOpenCalendar}
+                                className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-500 transition-colors"
+                            >
+                                <Calendar className="w-3.5 h-3.5" />
+                                CAMBIA DATA
+                            </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => changeDate(-1)} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors shadow-sm active:scale-95">
-                            <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button onClick={onOpenCalendar} className="px-6 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2 font-bold text-slate-600 dark:text-slate-200 active:scale-95">
-                            <Calendar className="w-5 h-5 text-blue-500" />
-                            <span>Calendario</span>
-                        </button>
-                        <button onClick={() => changeDate(1)} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors shadow-sm active:scale-95">
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
+
+                    {/* Commercial month info below pill */}
+                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 font-medium">
+                        <span className="px-2 py-0.5 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-100 dark:border-slate-700">{commercialMonthStr}</span>
+                        <span className="font-bold text-orange-400">{daysRemaining} gg alla fine mese</span>
                     </div>
                 </div>
             )}
