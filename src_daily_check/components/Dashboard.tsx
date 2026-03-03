@@ -323,7 +323,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   interface TabButtonProps { tab: DashboardTab; children: React.ReactNode; icon: React.ReactNode; }
   const TabButton = ({ tab, children, icon }: TabButtonProps) => (
-    <button onClick={() => setCurrentTab(tab)} className={`flex-1 flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-extrabold rounded-2xl transition-all duration-300 ${currentTab === tab ? 'bg-white text-[#007aff] shadow-md shadow-black/5' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>
+    <button onClick={() => setCurrentTab(tab)} className={`flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-extrabold rounded-2xl transition-all duration-300 ${currentTab === tab ? 'bg-white text-[#007aff] shadow-md shadow-black/5' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>
       {icon}{children}
     </button>
   );
@@ -371,10 +371,10 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Controlli Tabs - Nascosti in compactView */}
       {!compactView && (
         <div className="mb-10 relative z-10 flex justify-center w-full">
-          <div className="inline-flex items-center p-1.5 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner min-w-[340px]">
+          <div className="inline-flex items-center p-1.5 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner w-full sm:w-auto">
             <TabButton tab="overview" icon={<ChartBarIcon />} children="Riepilogo" />
             <TabButton tab="stats" icon={<ChartPieIcon />} children="Statistiche" />
-            <button onClick={onOpenAchievements} className="flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-extrabold rounded-2xl text-[#8e8e93] hover:text-[#1c1c1e] transition-colors ml-1" title="Traguardi">
+            <button onClick={onOpenAchievements} className="flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-extrabold rounded-2xl text-[#8e8e93] hover:text-[#1c1c1e] transition-colors" title="Traguardi">
               <TrophyIcon />
             </button>
           </div>
