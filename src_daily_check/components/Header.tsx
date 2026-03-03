@@ -25,11 +25,9 @@ interface HeaderProps {
 }
 
 const StreakBadge = ({ count }: { count: number }) => {
-    if (count === 0) return null;
     return (
-        <div className="flex items-center gap-1 bg-gradient-to-tr from-orange-500 to-red-600 text-white pl-2 pr-3 py-1 rounded-full text-xs font-bold shadow-lg shadow-orange-500/20 border border-orange-400/20 animate-fade-in">
-            <span className="text-sm animate-pulse">🔥</span>
-            <span>{count} {count === 1 ? 'giorno' : 'giorni'}</span>
+        <div className="flex items-center gap-1 bg-green-500/10 text-green-400 pl-3 pr-3 py-1.5 rounded-full text-[13px] font-black tracking-widest uppercase border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+            DAILY CHECK
         </div>
     );
 };
