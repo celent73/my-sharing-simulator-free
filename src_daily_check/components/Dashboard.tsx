@@ -323,7 +323,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   interface TabButtonProps { tab: DashboardTab; children: React.ReactNode; icon: React.ReactNode; }
   const TabButton = ({ tab, children, icon }: TabButtonProps) => (
-    <button onClick={() => setCurrentTab(tab)} className={`flex-1 w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 border ${currentTab === tab ? 'bg-white text-blue-600 shadow-md border-blue-100' : 'text-slate-500 border-transparent'}`}>
+    <button onClick={() => setCurrentTab(tab)} className={`flex-1 flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-extrabold rounded-2xl transition-all duration-300 ${currentTab === tab ? 'bg-white text-[#007aff] shadow-md shadow-black/5' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>
       {icon}{children}
     </button>
   );
@@ -370,12 +370,12 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Controlli Tabs - Nascosti in compactView */}
       {!compactView && (
-        <div className="mb-8 relative z-10">
-          <div className="inline-flex w-full sm:w-auto items-center space-x-1 bg-slate-100/80 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div className="mb-10 relative z-10 flex justify-center w-full">
+          <div className="inline-flex items-center p-1.5 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner min-w-[340px]">
             <TabButton tab="overview" icon={<ChartBarIcon />} children="Riepilogo" />
             <TabButton tab="stats" icon={<ChartPieIcon />} children="Statistiche" />
-            <button onClick={onOpenAchievements} className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl text-slate-500 hover:text-amber-500 transition-colors">
-              <TrophyIcon /> Traguardi
+            <button onClick={onOpenAchievements} className="flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-extrabold rounded-2xl text-[#8e8e93] hover:text-[#1c1c1e] transition-colors ml-1" title="Traguardi">
+              <TrophyIcon />
             </button>
           </div>
         </div>
