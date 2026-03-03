@@ -127,19 +127,19 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
     return (
         <div className="fixed inset-0 z-[120] bg-slate-50 dark:bg-black/95 backdrop-blur-xl flex flex-col animate-in fade-in duration-300">
             {/* Top Navigation Bar */}
-            <div className="shrink-0 h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 px-6 flex items-center justify-between z-50">
+            <div className="shrink-0 h-20 bg-[#166534] px-6 flex items-center justify-between z-50 shadow-md">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 transition-colors"
+                        className="p-2 rounded-full hover:bg-white/20 text-white transition-colors"
                     >
                         <ChevronLeft size={24} />
                     </button>
                     <div>
-                        <h1 className="text-xl font-black text-gray-900 dark:text-white leading-none">
+                        <h1 className="text-xl font-black text-white leading-none">
                             {t('academy.title')}
                         </h1>
-                        <p className="text-xs text-gray-500 font-medium mt-1">
+                        <p className="text-xs text-green-200 font-medium mt-1">
                             {t('academy.subtitle')}
                         </p>
                     </div>
@@ -172,7 +172,7 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
 
                 <button
                     onClick={onClose}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-colors font-bold text-sm"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white transition-colors font-bold text-sm"
                 >
                     <span className="hidden sm:inline">{t('common.close') || 'Chiudi'}</span>
                     <X size={18} />
@@ -180,7 +180,7 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Mobile Menu (below header) */}
-            <div className="md:hidden border-b border-gray-200 dark:border-white/5 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900">
+            <div className="md:hidden border-b border-green-900 overflow-x-auto no-scrollbar bg-[#14532d]">
                 <div className="flex p-2 gap-2 min-w-max">
                     {[
                         { id: 'tutorial', icon: GraduationCap, label: t('academy.menu.tutorial') },
@@ -195,8 +195,8 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
                                 onClick={() => setMainTab(item.id as any)}
                                 disabled={item.id === 'video'}
                                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${isActive
-                                    ? 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white'
-                                    : 'text-gray-500'
+                                    ? 'bg-white/20 text-white shadow-sm'
+                                    : 'text-green-200 hover:text-white'
                                     } ${item.id === 'video' ? 'opacity-50' : ''}`}
                             >
                                 <Icon size={16} />
