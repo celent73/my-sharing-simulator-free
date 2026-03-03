@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Users, Building2, GraduationCap, Sparkles, Lock } from 'lucide-react';
+import { User, Users, Building2, GraduationCap, CalendarCheck, Sparkles, Lock } from 'lucide-react';
 import { ClientModeIcon, FamilyModeIcon, CondoModeIcon } from './icons/ModeIcons';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -7,6 +7,7 @@ interface BottomDockProps {
     viewMode: string;
     handleModeChange: (mode: string) => void;
     onOpenLightSimulator: () => void;
+    onOpenDailyCheck: () => void;
     isPremium: boolean;
 }
 
@@ -14,6 +15,7 @@ const BottomDock: React.FC<BottomDockProps> = ({
     viewMode,
     handleModeChange,
     onOpenLightSimulator,
+    onOpenDailyCheck,
     isPremium
 }) => {
     const { t } = useLanguage();
@@ -68,7 +70,17 @@ const BottomDock: React.FC<BottomDockProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
 
-                {/* 1. SHARING SIMULATOR LIGHT - Leftmost */}
+                {/* 1a. DAILY CHECK - Agenda Verde */}
+                <button
+                    onClick={onOpenDailyCheck}
+                    className={getButtonClass(false)}
+                >
+                    <div className="group-hover:scale-110 transition-transform">
+                        <CalendarCheck className="w-8 h-8 md:w-10 md:h-10 text-union-green-400 [.theme-union-colors_&]:!text-white" />
+                    </div>
+                </button>
+
+                {/* 1b. SHARING SIMULATOR LIGHT - Leftmost */}
                 <button
                     onClick={onOpenLightSimulator}
                     className={getButtonClass(false)}

@@ -31,6 +31,8 @@ export type ModalKey =
     | 'SIMULATOR_FOCUS'
     | 'TARGET_FOCUS'
     | 'SHARING_PARK_FOCUS'
+    | 'DAILY_CHECK'
+    | 'AUTH_MODAL'
     | null;
 
 interface ModalState {

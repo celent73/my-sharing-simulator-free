@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Sparkles, Lock } from 'lucide-react';
+import { GraduationCap, CalendarCheck, Sparkles, Lock } from 'lucide-react';
 import { ClientModeIcon, FamilyModeIcon, CondoModeIcon } from './icons/ModeIcons';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -7,6 +7,7 @@ interface DesktopHeaderNavProps {
     viewMode: string;
     handleModeChange: (mode: string) => void;
     onOpenLightSimulator: () => void;
+    onOpenDailyCheck: () => void;
     isPremium: boolean;
 }
 
@@ -14,6 +15,7 @@ export const DesktopHeaderNav: React.FC<DesktopHeaderNavProps> = ({
     viewMode,
     handleModeChange,
     onOpenLightSimulator,
+    onOpenDailyCheck,
     isPremium
 }) => {
     const { t } = useLanguage();
@@ -29,6 +31,21 @@ export const DesktopHeaderNav: React.FC<DesktopHeaderNavProps> = ({
         <div className="hidden md:flex items-center justify-center p-1 rounded-[2rem] bg-slate-900/50 border border-slate-700/50 shadow-inner relative overflow-hidden mx-4">
             {/* Glow effect */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50" />
+
+            {/* 0. DAILY CHECK */}
+            <button
+                onClick={onOpenDailyCheck}
+                className={getButtonClass(false)}
+            >
+                <div className="mb-1 transition-transform group-hover:scale-110 text-union-green-400">
+                    <CalendarCheck className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-bold leading-none text-union-green-400 flex items-center gap-1">
+                    Daily Check
+                </span>
+            </button>
+
+            <div className="w-px h-8 bg-slate-700/50 mx-1" />
 
             {/* 1. SHARING SIMULATOR LIGHT */}
             <button

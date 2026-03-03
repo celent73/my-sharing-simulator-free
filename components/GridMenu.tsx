@@ -7,6 +7,7 @@ import {
     Bot,
     Target,
     Ticket,
+    CalendarCheck,
     BookOpen,
     ExternalLink,
     Download,
@@ -25,6 +26,7 @@ interface GridMenuProps {
     toggleShary: () => void;
     isSharyActive: boolean;
     onOpenTarget: () => void;
+    onOpenDailyCheck: () => void;
     onOpenGuide: () => void;
     onOpenInstall: () => void;
     isPremium: boolean;
@@ -108,6 +110,7 @@ const GridMenu: React.FC<GridMenuProps> = ({
     toggleShary,
     isSharyActive,
     onOpenTarget,
+    onOpenDailyCheck,
     onOpenGuide,
     onOpenInstall,
     isPremium,
@@ -166,7 +169,7 @@ const GridMenu: React.FC<GridMenuProps> = ({
                         </div>
 
                         {/* ROW 3: Extra */}
-                        <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-6">
+                        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:gap-6 justify-center max-w-lg mx-auto mt-4 sm:mt-8">
                             <MenuItem icon={BookOpen} label={t('menu.guide')} colorClass="bg-blue-600" onClick={onOpenGuide} />
                             <MenuItem icon={ExternalLink} label={t('menu.store')} colorClass="bg-slate-800" onClick={() => window.open('https://share.unionenergia.it/login?red=/il-mio-store/37633&nochecksession=true', '_blank')} />
                         </div>

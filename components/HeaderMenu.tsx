@@ -11,6 +11,7 @@ interface HeaderMenuProps {
     toggleShary: () => void;
     isSharyActive: boolean;
     onOpenTarget: () => void;
+    onOpenDailyCheck: () => void;
     onOpenGuide: () => void;
     onOpenInstall: () => void;
     isPremium: boolean;

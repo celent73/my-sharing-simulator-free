@@ -7,6 +7,8 @@ import { PremiumModal } from './PremiumModal';
 import { BroadcastModal } from './BroadcastModal';
 import { InstallModal } from './InstallModal'; // Is this PromptModal? Yes
 import PaymentSuccessModal from './PaymentSuccessModal';
+import { AuthModal } from './AuthModal';
+import { DailyCheckModal } from './DailyCheckModal';
 
 
 // Eager load frequently used modals for better performance
@@ -69,6 +71,8 @@ const ModalManager: React.FC = () => {
             {activeModal === 'SHARING_PARK_FOCUS' && <SharingParkFocusMode isOpen={true} onClose={closeModal} {...modalProps} />}
             {activeModal === 'SIMULATOR_FOCUS' && <SimulatorFocusMode isOpen={true} onClose={closeModal} {...modalProps} />}
             {activeModal === 'ANALISI_UTENZE' && <AnalisiUtenzeModal isOpen={true} onClose={closeModal} {...modalProps} />}
+            {activeModal === 'DAILY_CHECK' && <DailyCheckModal isOpen={true} onClose={closeModal} {...modalProps} />}
+            {activeModal === 'AUTH_MODAL' && <AuthModal isOpen={true} onClose={closeModal} {...modalProps} />}
         </Suspense>
     );
 };

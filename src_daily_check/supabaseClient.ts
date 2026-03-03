@@ -1,0 +1,1 @@
+export { supabase, supabaseStateless } from '../utils/supabaseClient';
