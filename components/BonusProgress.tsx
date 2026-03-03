@@ -155,7 +155,10 @@ const BonusProgress: React.FC<BonusProgressProps> = ({ totalContracts, onBonusCh
       <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-2xl px-3 py-8 sm:p-8 rounded-[3rem] shadow-xl border-2 border-slate-100 dark:border-white/10 relative">
         <div className="flex items-center gap-3 mb-8 px-2 sm:px-0">
           <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 rounded-2xl shadow-sm">🎯</div>
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{t('bonus.title')}</h2>
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{t('bonus.title')}</h2>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-0.5">2° fase di carriera</p>
+          </div>
           <SharyTrigger message="..." />
         </div>
 
