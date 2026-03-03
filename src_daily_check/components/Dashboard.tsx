@@ -329,7 +329,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className="bg-[#f2f2f7] dark:bg-slate-900/40 min-h-screen p-6 sm:p-10 rounded-[3.5rem] relative overflow-hidden font-sans">
+    <div className="bg-[#f2f2f7] dark:bg-slate-900/40 min-h-screen p-3 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans">
 
       {/* Header e Selezione Vista */}
       <div className="relative z-10 flex flex-col items-start mb-10">
