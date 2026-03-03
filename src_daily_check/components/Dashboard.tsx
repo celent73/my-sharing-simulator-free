@@ -413,13 +413,22 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                     <div>
                       <p className="text-[11px] font-black text-[#8e8e93] dark:text-slate-400 uppercase tracking-[0.2em] mb-3">{customLabels?.[activity] || ACTIVITY_LABELS[activity]}</p>
-                      <div className="flex items-baseline gap-2">
+                      <div className="flex items-baseline gap-2 mb-2">
                         <p className="text-7xl font-black text-[#1c1c1e] dark:text-white tracking-tighter">{current}</p>
                         {goal > 0 && <span className="text-lg font-bold text-[#aeaeb2] dark:text-slate-500">/ {goal}</span>}
                       </div>
+
+                      {goal > 0 && (
+                        <p className={`text-[13px] font-extrabold ${isGoalReached ? 'text-[#34c759]' : 'text-[#ff9f0a]'}`}>
+                          {isGoalReached
+                            ? `🎉 Target ${periodLabel.toLowerCase()} raggiunto!`
+                            : `Mancano ${goal - current} azioni per il target`
+                          }
+                        </p>
+                      )}
                     </div>
                     {!compactView && (
-                      <div className="mt-10">
+                      <div className="mt-6">
                         <div className="w-full bg-[#f2f2f7] dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
                           <div className={`bg-gradient-to-r ${styles.gradient} h-full rounded-full transition-all duration-1000`} style={{ width: `${Math.min(progress, 100)}%` }}></div>
                         </div>
