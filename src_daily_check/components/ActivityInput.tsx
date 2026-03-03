@@ -16,6 +16,8 @@ import {
     Calculator
 } from 'lucide-react';
 
+import { CareerStatusInfo } from '../utils/careerUtils';
+
 interface ActivityInputProps {
     todayCounts?: { [key in ActivityType]?: number };
     currentLog?: ActivityLog;
@@ -43,6 +45,7 @@ interface ActivityInputProps {
     onUpdateTarget?: (newAmount: number) => void;
     onOpenTeamChallenge?: () => void;
     isHubMode?: boolean;
+    careerStatus?: CareerStatusInfo;
 }
 
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
@@ -95,9 +98,70 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     onOpenVoiceMode,
     onOpenTargetCalculator,
     onOpenLeadCapture,
-    isHubMode = false
+    isHubMode = false,
+    careerStatus
 }) => {
     const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ActivityType | null>(null);
+    const [targetDates, setTargetDates] = useState<Record<string, string>>({});
+
+    React.useEffect(() => {
+        if (isHubMode) {
+            const saved = localStorage.getItem('dailyCheck_careerPathDates');
+            if (saved) {
+                try {
+                    setTargetDates(JSON.parse(saved));
+                } catch (e) { }
+            }
+        }
+    }, [isHubMode]);
+
+    const upcomingDeadlineMessage = React.useMemo(() => {
+        if (!careerStatus || !isHubMode) return null;
+
+        const qualificationsOrder = [
+            'Family pro', 'Family pro 3x3', 'Family 3s', 'Family 5s', 'Top family',
+            'Pro manager', 'Regional manager', 'National manager', 'Director',
+            'Director pro', 'Ambassador', 'President'
+        ].map(s => s.toLowerCase());
+
+        const currentLvlName = careerStatus.currentLevel.qualificationValue
+            ? careerStatus.currentLevel.qualificationValue.toLowerCase()
+            : careerStatus.currentLevel.name.toLowerCase();
+
+        let currentIndex = qualificationsOrder.indexOf(currentLvlName);
+        if (['family utility', 'consulente junior', 'consulente senior', 'team leader', 'manager', 'top manager'].includes(currentLvlName)) {
+            currentIndex = -1;
+        }
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        let foundMessage = null;
+        let minDiff = Infinity;
+
+        for (const [stageName, dateStr] of Object.entries(targetDates)) {
+            const stageIndex = qualificationsOrder.indexOf(stageName.toLowerCase());
+
+            // Only warn about future unreached targets, or correctly recognize missed targets
+            if (stageIndex > currentIndex || currentIndex === -1) {
+                const targetDate = new Date(dateStr);
+                const diffDays = Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
+
+                // Show warning if <= 30 days away, or up to 7 days overdue
+                if (diffDays <= 30 && diffDays >= -7 && diffDays < minDiff) {
+                    minDiff = diffDays;
+                    if (diffDays > 0) {
+                        foundMessage = `⚠️ Scadenza "${stageName}" tra ${diffDays} gg (${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })})`;
+                    } else if (diffDays === 0) {
+                        foundMessage = `🚨 Oggi scade il traguardo "${stageName}"! Dai il massimo!`;
+                    } else {
+                        foundMessage = `⚠️ Obiettivo "${stageName}" (scaduto il ${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}) non ancora raggiunto!`;
+                    }
+                }
+            }
+        }
+        return foundMessage;
+    }, [careerStatus, targetDates, isHubMode]);
 
     const selectedDateFormatted = formatItalianDate(selectedDate);
     const commercialMonthStr = getCommercialMonthString(selectedDate, commercialMonthStartDay);
@@ -172,10 +236,15 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                 >
                                     <Calculator className="w-5 h-5 text-blue-500" />
                                 </button>
-                                <div className="mt-3">
+                                <div className="mt-3 flex flex-col items-center gap-2">
                                     <span className="text-[10px] font-bold text-orange-400/80 uppercase tracking-widest bg-orange-400/10 py-1 px-3 rounded-full border border-orange-400/20">
-                                        {daysRemaining} gg alla fine
+                                        {daysRemaining} gg alla fine del mese
                                     </span>
+                                    {upcomingDeadlineMessage && (
+                                        <span className="text-[10px] md:text-[11px] font-bold text-red-500 bg-red-500/10 py-1 px-3 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse max-w-[200px] md:max-w-xs leading-tight">
+                                            {upcomingDeadlineMessage}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 

@@ -456,6 +456,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       onOpenLeadCapture={handleOpenLeadCapture} onOpenCalendar={() => setIsCalendarModalOpen(true)}
                       onOpenVoiceMode={() => setIsVoiceModeOpen(true)} onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
                       onOpenTeamChallenge={() => setIsTeamModalOpen(true)} isHubMode={true}
+                      careerStatus={careerStatus}
                     />
                   </motion.div>
                 )}
