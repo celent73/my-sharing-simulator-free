@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { ChevronUp } from 'lucide-react';
 import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification } from './types';
 import { loadLogs, saveLogs, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
@@ -400,6 +401,19 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification), [activityLogs, settings.userProfile.currentQualification]);
   const streak = useMemo(() => calculateCurrentStreak(activityLogs), [activityLogs]);
 
+  // ── Scroll to top ──────────────────────────────────────────────────────────
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById('main-scroll-container');
+    if (!el) return;
+    const onScroll = () => setShowScrollTop(el.scrollTop > 300);
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+  const scrollToTop = () => {
+    document.getElementById('main-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (isInitializing || authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">Caricamento...</div>;
 
   return (
@@ -519,6 +533,17 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
               </AnimatePresence>
             </div>
           </main>
+
+          {/* Scroll to top arrow */}
+          {showScrollTop && (
+            <button
+              onClick={scrollToTop}
+              className="fixed bottom-6 right-6 z-[200] w-12 h-12 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-2xl shadow-blue-500/40 transition-all hover:scale-110 active:scale-95 animate-in fade-in slide-in-from-bottom-2 duration-300"
+              aria-label="Torna su"
+            >
+              <ChevronUp size={22} strokeWidth={3} />
+            </button>
+          )}
         </div>
       </div>
 
