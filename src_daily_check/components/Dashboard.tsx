@@ -457,26 +457,6 @@ const Dashboard: React.FC<DashboardProps> = ({
           )}
         </div>
       )}
-
-      {/* Bottom Floating Navigation (Simulated from screenshot) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-[100] animate-in slide-in-from-bottom-10 duration-1000">
-        <div className="bg-[#1c1c1e]/90 backdrop-blur-2xl rounded-[2.5rem] p-3 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-white/10 flex items-center justify-around h-20">
-          <button onClick={() => setCurrentTab('overview')} className={`p-4 rounded-2xl transition-all ${currentTab === 'overview' ? 'bg-white/10 text-white shadow-xl' : 'text-[#8e8e93] hover:text-white'}`}>
-            <ChartBarIcon />
-          </button>
-          <button onClick={() => setCurrentTab('stats')} className={`p-4 rounded-2xl transition-all ${currentTab === 'stats' ? 'bg-white/10 text-white shadow-xl' : 'text-[#8e8e93] hover:text-white'}`}>
-            <ChartPieIcon />
-          </button>
-          <button onClick={onOpenAchievements} className="p-4 rounded-2xl text-[#8e8e93] hover:text-white transition-colors">
-            <TrophyIcon />
-          </button>
-          <button className="p-4 rounded-2xl text-[#8e8e93] hover:text-white transition-colors">
-            <div className="scale-110">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
-            </div>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
