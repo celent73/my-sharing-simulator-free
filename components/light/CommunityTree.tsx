@@ -29,45 +29,45 @@ const INITIAL_TREE_DATA: NodeData = {
     id: 'me',
     label: 'Tu',
     role: 'Family Pro',
-    level: 0,
+    level: -1,  // root is special, not a real network level
     contracts: 3,
     children: [
         {
             id: 'marco',
             label: 'Marco G.',
             role: 'Family',
-            level: 1,
+            level: 0,
             contracts: 2,
             children: [
                 {
                     id: 'anna',
                     label: 'Anna L.',
                     role: 'Member',
-                    level: 2,
+                    level: 1,
                     contracts: 1,
                     children: [
-                        { id: 'filippo', label: 'Filippo', role: 'Member', level: 3, contracts: 1 },
-                        { id: 'elisa', label: 'Elisa', role: 'Member', level: 3, contracts: 0 },
+                        { id: 'filippo', label: 'Filippo', role: 'Member', level: 2, contracts: 1 },
+                        { id: 'elisa', label: 'Elisa', role: 'Member', level: 2, contracts: 0 },
                     ]
                 },
-                { id: 'luca', label: 'Luca B.', role: 'Member', level: 2, contracts: 1 },
+                { id: 'luca', label: 'Luca B.', role: 'Member', level: 1, contracts: 1 },
             ]
         },
         {
             id: 'elena',
             label: 'Elena R.',
             role: 'Family',
-            level: 1,
+            level: 0,
             contracts: 2,
             children: [
                 {
                     id: 'sara',
                     label: 'Sara M.',
                     role: 'Member',
-                    level: 2,
+                    level: 1,
                     contracts: 1,
                     children: [
-                        { id: 'matteo', label: 'Matteo', role: 'Member', level: 3, contracts: 1 },
+                        { id: 'matteo', label: 'Matteo', role: 'Member', level: 2, contracts: 1 },
                     ]
                 },
             ]
@@ -76,19 +76,19 @@ const INITIAL_TREE_DATA: NodeData = {
             id: 'pietro',
             label: 'Pietro V.',
             role: 'Family Pro',
-            level: 1,
+            level: 0,
             contracts: 3,
             children: [
-                { id: 'giulia', label: 'Giulia S.', role: 'Member', level: 2, contracts: 1 },
+                { id: 'giulia', label: 'Giulia S.', role: 'Member', level: 1, contracts: 1 },
                 {
                     id: 'davide',
                     label: 'Davide N.',
                     role: 'Member',
-                    level: 2,
+                    level: 1,
                     contracts: 1,
                     children: [
-                        { id: 'chiara', label: 'Chiara', role: 'Member', level: 3, contracts: 0 },
-                        { id: 'fabio', label: 'Fabio', role: 'Member', level: 3, contracts: 1 },
+                        { id: 'chiara', label: 'Chiara', role: 'Member', level: 2, contracts: 0 },
+                        { id: 'fabio', label: 'Fabio', role: 'Member', level: 2, contracts: 1 },
                     ]
                 },
             ]
@@ -247,8 +247,8 @@ const TreeNodeComponent = ({
     const [showDetail, setShowDetail] = useState(false);
 
     const hasChildren = node.children && node.children.length > 0;
-    const isMain = node.level === 0;
-    const isLevel3 = node.level >= 3;
+    const isMain = node.id === 'me';         // only the root 'Tu' node
+    const isLevel3 = node.level >= 2;        // level 2+ = compact style
     const isGhost = node.id.includes('ghost');
     const isHidden = filterRole !== 'all' && node.role !== filterRole && !isMain;
 
@@ -287,7 +287,7 @@ const TreeNodeComponent = ({
                 className={[
                     'relative rounded-[1.5rem] border z-20 transition-all duration-300 cursor-pointer',
                     nodeStyles[theme as keyof typeof nodeStyles],
-                    isMain ? 'p-5 min-w-[150px]' : isLevel3 ? 'p-2 min-w-[80px]' : node.level === 1 ? 'p-3 min-w-[110px]' : 'p-3 min-w-[120px]',
+                    isMain ? 'p-5 min-w-[150px]' : isLevel3 ? 'p-2 min-w-[80px]' : node.level === 0 ? 'p-3 min-w-[110px]' : 'p-3 min-w-[120px]',
                     isProjection && !isMain ? 'opacity-50 grayscale scale-95 border-dashed' : '',
                     'flex flex-col items-center group hover:scale-105 hover:shadow-xl',
                 ].join(' ')}
@@ -484,7 +484,8 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
         const newNode: NodeData = { id: uid(), label, role, level: 0, contracts, children: [] };
         const rec = (n: NodeData): NodeData => {
             if (n.id === parentId) {
-                const level = n.level + 1;
+                // 'me' is level -1, so its direct children are level 0
+                const level = Math.max(0, n.level + 1);
                 return { ...n, children: [...(n.children ?? []), { ...newNode, level }] };
             }
             return { ...n, children: n.children?.map(rec) };
