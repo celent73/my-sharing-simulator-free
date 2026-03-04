@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification } from './types';
+import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification, Lead } from './types';
 import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
 import Header from './components/Header';
@@ -194,6 +194,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [isVoiceModeOpen, setIsVoiceModeOpen] = useState(false);
   const [isResetGoalsModalOpen, setResetGoalsModalOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [remainingTrialDays] = useState<number | null>(null);
 
   const effectiveCustomLabels = (settings.enableCustomLabels ?? true) ? (settings.customLabels || ACTIVITY_LABELS) : ACTIVITY_LABELS;
@@ -206,46 +207,72 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     setSettingsModalOpen(true);
   };
 
-  const handleOpenLeadCapture = (type: ActivityType) => {
+  const handleOpenLeadCapture = (type: ActivityType, lead?: Lead) => {
     setLeadCaptureType(type);
+    setEditingLead(lead || null);
     setIsLeadCaptureModalOpen(true);
   };
 
-  const handleSaveLead = (leadData: { name: string; phone: string; note: string }) => {
-    const dateStr = selectedInputDate.toISOString().split('T')[0];
+  const handleSaveLead = (leadData: { id?: string; name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string }) => {
     let updatedLog: ActivityLog | null = null;
     let updatedAllLogs: ActivityLog[] | null = null;
 
     setActivityLogs(prevLogs => {
       const newLogs = [...prevLogs];
-      const existingLogIndex = newLogs.findIndex(log => log.date === dateStr);
 
-      let dateLog: ActivityLog;
-      if (existingLogIndex >= 0) {
-        dateLog = {
-          ...newLogs[existingLogIndex],
-          counts: { ...newLogs[existingLogIndex].counts },
-          leads: [...(newLogs[existingLogIndex].leads || [])]
-        };
-        newLogs[existingLogIndex] = dateLog;
+      if (leadData.id) {
+        // EDIT MODE: Find the lead in any log
+        let found = false;
+        for (let i = 0; i < newLogs.length; i++) {
+          const log = newLogs[i];
+          if (log.leads) {
+            const leadIndex = log.leads.findIndex(l => l.id === leadData.id);
+            if (leadIndex !== -1) {
+              const updatedLeads = [...log.leads];
+              updatedLeads[leadIndex] = {
+                ...updatedLeads[leadIndex],
+                ...leadData as any
+              };
+              newLogs[i] = { ...log, leads: updatedLeads };
+              updatedLog = newLogs[i];
+              found = true;
+              break;
+            }
+          }
+        }
+        if (!found) return prevLogs;
       } else {
-        dateLog = { date: dateStr, counts: {}, leads: [] };
-        newLogs.push(dateLog);
+        // CREATE MODE
+        const dateStr = selectedInputDate.toISOString().split('T')[0];
+        const existingLogIndex = newLogs.findIndex(log => log.date === dateStr);
+
+        let dateLog: ActivityLog;
+        if (existingLogIndex >= 0) {
+          dateLog = {
+            ...newLogs[existingLogIndex],
+            counts: { ...newLogs[existingLogIndex].counts },
+            leads: [...(newLogs[existingLogIndex].leads || [])]
+          };
+          newLogs[existingLogIndex] = dateLog;
+        } else {
+          dateLog = { date: dateStr, counts: {}, leads: [] };
+          newLogs.push(dateLog);
+        }
+
+        dateLog.leads!.push({
+          id: Date.now().toString(),
+          type: leadCaptureType,
+          date: new Date().toISOString(),
+          status: 'pending' as const,
+          ...leadData as any
+        });
+
+        const currentCount = dateLog.counts[leadCaptureType] || 0;
+        dateLog.counts[leadCaptureType] = currentCount + 1;
+        updatedLog = dateLog;
       }
 
-      dateLog.leads!.push({
-        id: Date.now().toString(),
-        type: leadCaptureType,
-        date: new Date().toISOString(),
-        status: 'pending' as const,
-        ...leadData
-      });
-
-      const currentCount = dateLog.counts[leadCaptureType] || 0;
-      dateLog.counts[leadCaptureType] = currentCount + 1;
-
       const sortedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
-      updatedLog = dateLog;
       updatedAllLogs = sortedLogs;
       return sortedLogs;
     });
@@ -254,7 +281,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       saveLogForDate(userId, updatedLog, updatedAllLogs || undefined);
     }
     setIsLeadCaptureModalOpen(false);
-    addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} salvato!`, 'success');
+    setEditingLead(null);
+    addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} ${leadData.id ? 'aggiornato' : 'salvato'}! `, 'success');
   };
 
   const handleSaveSettings = (newSettings: AppSettings) => setSettings(newSettings);
@@ -545,6 +573,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       onOpenContractModal={() => setIsContractSelectorModalOpen(true)} onOpenAppointmentModal={() => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
                       onOpenSettings={handleOpenSettings} onUpdateTarget={handleUpdateTarget} onOpenVisionBoardSettings={() => setIsVisionBoardModalOpen(true)}
                       onOpenLeadCapture={handleOpenLeadCapture} onOpenCalendar={() => setIsCalendarModalOpen(true)}
+                      onEditLead={(lead) => handleOpenLeadCapture(lead.type, lead)}
                       onOpenVoiceMode={() => setIsVoiceModeOpen(true)} onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
                       onOpenTeamChallenge={() => setIsTeamModalOpen(true)} isHubMode={true}
                       careerStatus={careerStatus}
@@ -608,7 +637,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>My Sharing Simulator v2.1.0</p>
+                        <p>My Sharing Simulator v2.1.1</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>
@@ -658,7 +687,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       <ObjectionHandler isOpen={isObjectionHandlerOpen} onClose={() => setIsObjectionHandlerOpen(false)} />
       <VoiceSpeedMode isOpen={isVoiceModeOpen} onClose={() => setIsVoiceModeOpen(false)} onUpdateActivity={(activity, count) => handleUpdateActivity(activity, count)} />
       <SocialShareModal isOpen={isSocialShareModalOpen} onClose={() => setIsSocialShareModalOpen(false)} todayCounts={selectedDateLog?.counts || {}} userProfile={settings.userProfile} customLabels={effectiveCustomLabels} />
-      <LeadCaptureModal isOpen={isLeadCaptureModalOpen} onClose={() => setIsLeadCaptureModalOpen(false)} activityType={leadCaptureType} onSave={handleSaveLead} />
+      <LeadCaptureModal isOpen={isLeadCaptureModalOpen} onClose={() => { setIsLeadCaptureModalOpen(false); setEditingLead(null); }} activityType={leadCaptureType} onSave={handleSaveLead} initialData={editingLead} />
       <CalendarModal isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)} selectedDate={selectedInputDate} onSelectDate={setSelectedInputDate} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />
     </>

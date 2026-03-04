@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType } from '../types';
+import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType, Lead } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
 import { formatItalianDate, getCommercialMonthString, getDaysUntilCommercialMonthEnd, getCommercialMonthProgress } from '../utils/dateUtils';
 import LeadCaptureModal from './LeadCaptureModal';
@@ -49,6 +49,7 @@ interface ActivityInputProps {
     onOpenTargetCalculator?: () => void;
     onUpdateTarget?: (newAmount: number) => void;
     onOpenTeamChallenge?: () => void;
+    onEditLead?: (lead: Lead) => void;
     isHubMode?: boolean;
     careerStatus?: CareerStatusInfo;
 }
@@ -104,6 +105,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     onOpenVoiceMode,
     onOpenTargetCalculator,
     onOpenLeadCapture,
+    onEditLead,
     isHubMode = false,
     careerStatus
 }) => {
@@ -416,6 +418,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
             <AppointmentsOverviewModal
                 isOpen={isAppointmentsOverviewOpen}
                 onClose={() => setIsAppointmentsOverviewOpen(false)}
+                onEdit={(lead) => {
+                    setIsAppointmentsOverviewOpen(false);
+                    if (onEditLead) onEditLead(lead);
+                }}
                 activityLogs={activityLogs}
             />
         </div>

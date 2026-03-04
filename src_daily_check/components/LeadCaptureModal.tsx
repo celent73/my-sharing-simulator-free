@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ActivityType } from '../types';
+import { ActivityType, Lead } from '../types';
 
 interface LeadCaptureModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: { name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string }) => void;
+    onSave: (data: { id?: string; name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string }) => void;
     activityType: ActivityType;
+    initialData?: Lead | null;
 }
 
 const ONLINE_PLATFORMS = [
@@ -17,7 +18,7 @@ const ONLINE_PLATFORMS = [
     { id: 'skype', label: 'Skype', color: '#00AFF0', emoji: '🔵' },
 ];
 
-const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, onSave, activityType }) => {
+const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, onSave, activityType, initialData }) => {
     const isAppointment = activityType === ActivityType.APPOINTMENTS;
 
     // Common fields
@@ -33,13 +34,23 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
 
     useEffect(() => {
         if (isOpen) {
-            setName(''); setPhone(''); setNote('');
-            setAppointmentDate('');
-            setLocationType('online');
-            setAddress('');
-            setPlatform('zoom');
+            if (initialData) {
+                setName(initialData.name || '');
+                setPhone(initialData.phone || '');
+                setNote(initialData.note || '');
+                setAppointmentDate(initialData.appointmentDate || '');
+                setLocationType(initialData.locationType || 'online');
+                setAddress(initialData.address || '');
+                setPlatform(initialData.platform || 'zoom');
+            } else {
+                setName(''); setPhone(''); setNote('');
+                setAppointmentDate('');
+                setLocationType('online');
+                setAddress('');
+                setPlatform('zoom');
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, initialData]);
 
     if (!isOpen) return null;
 
@@ -47,6 +58,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
         e.preventDefault();
         if (!name.trim()) return;
         onSave({
+            id: initialData?.id,
             name, phone, note,
             ...(isAppointment && {
                 appointmentDate,
@@ -83,7 +95,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                     </div>
                     <div>
                         <h2 className="text-xl font-black text-slate-800 dark:text-white">
-                            {isAppointment ? 'Nuovo Appuntamento' : 'Nuovo Contatto'}
+                            {initialData ? (isAppointment ? 'Modifica Appuntamento' : 'Modifica Contatto') : (isAppointment ? 'Nuovo Appuntamento' : 'Nuovo Contatto')}
                         </h2>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Inserisci i dati</p>
                     </div>

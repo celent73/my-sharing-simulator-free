@@ -64,7 +64,7 @@ export const DailyCheckModal: React.FC<{ isOpen: boolean; onClose: () => void }>
                                     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                                     onClick={scrollToTop}
                                     aria-label="Torna su"
-                                    style={{ position: 'absolute', bottom: 24, right: 24, zIndex: 9999 }}
+                                    style={{ position: 'absolute', bottom: 110, right: 24, zIndex: 9999 }}
                                     className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 active:scale-90 text-white shadow-2xl shadow-blue-500/50 transition-colors"
                                 >
                                     <ChevronUp size={22} strokeWidth={3} />

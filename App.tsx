@@ -35,7 +35,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.2.59";
+const APP_VERSION = "v1.2.60";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -576,7 +576,7 @@ const AppContent = () => {
 
 
       <div className="fixed top-2 right-2 z-[9999] pointer-events-none opacity-50 text-[10px] font-mono bg-black/20 text-white px-2 py-0.5 rounded-full backdrop-blur-sm">
-        v1.2.58
+        v1.2.59
       </div>
 
 

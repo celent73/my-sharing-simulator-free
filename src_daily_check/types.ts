@@ -56,6 +56,10 @@ export interface Lead {
   type: ActivityType; // CONTACTS or APPOINTMENTS usually
   date: string;
   status: 'pending' | 'won' | 'lost';
+  appointmentDate?: string;
+  locationType?: 'physical' | 'online';
+  address?: string;
+  platform?: string;
 }
 
 export type GoalPeriod = {
