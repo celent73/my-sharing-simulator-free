@@ -23,6 +23,7 @@ import ContractSelectorModal from './components/ContractSelectorModal';
 import VisionBoardModal from './components/VisionBoardModal';
 import DreamTrackerWidget from './components/DreamTrackerWidget';
 import LoginScreen from './components/LoginScreen';
+import ResetPasswordScreen from './components/ResetPasswordScreen';
 import AddAppointmentModal from './components/AddAppointmentModal';
 import TargetCalculatorModal from './components/TargetCalculatorModal';
 import DetailedGuideModal from './components/DetailedGuideModal';
@@ -103,7 +104,7 @@ interface AppContentProps {
 }
 
 const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, signOut, loading: authLoading, isPasswordRecovery, setIsPasswordRecovery } = useAuth();
   const { theme: globalTheme, toggleTheme: globalToggleTheme } = useTheme();
 
   const userId = user?.id || null;
@@ -434,6 +435,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   );
 
   if (!user) return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+
+  if (isPasswordRecovery) return (
+    <ResetPasswordScreen onSuccess={() => { setIsPasswordRecovery(false); }} />
+  );
 
   return (
     <>
