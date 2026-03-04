@@ -354,7 +354,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                             {activity === ActivityType.APPOINTMENTS && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setIsAppointmentsOverviewOpen(true); }}
-                                                    className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-slate-500 hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 shadow-sm hover:shadow-md transition-all active:scale-95`}
+                                                    className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-slate-500 hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 shadow-sm hover:shadow-md transition-all active:scale-95`}
                                                     title="Vedi appuntamenti"
                                                 >
                                                     <ListChecks className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
@@ -362,9 +362,9 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                             )}
                                             <button
                                                 onClick={(e) => handlePlusClick(e, activity)}
-                                                className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-md hover:shadow-lg transition-all active:scale-95 group-hover:scale-110`}
+                                                className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-md hover:shadow-lg transition-all active:scale-95 group-hover:scale-110`}
                                             >
-                                                <Plus className="w-5 h-5 lg:w-6 lg:h-6 drop-shadow-md" strokeWidth={3} />
+                                                <Plus className="w-4 h-4 lg:w-5 lg:h-5 drop-shadow-md" strokeWidth={3} />
                                             </button>
                                         </div>
                                     </div>
