@@ -451,18 +451,22 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
         <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 lg:pl-20">
           <Header
-            userProfile={settings.userProfile} isLoggedIn={!!user}
+            userProfile={settings.userProfile}
             onOpenSettings={() => handleOpenSettings()}
-            onLogout={signOut} onLogin={() => setIsAuthModalOpen(true)}
             onOpenDeleteDataModal={() => setDeleteDataModalOpen(true)}
-            careerStatus={careerStatus} streak={streak} isPremium={true}
+            careerStatus={careerStatus}
+            isPremium={true}
             remainingTrialDays={remainingTrialDays}
             onOpenPaywall={() => setIsPaywallModalOpen(true)}
-            toggleTheme={globalToggleTheme} currentTheme={globalTheme as any}
+            toggleTheme={globalToggleTheme}
+            currentTheme={globalTheme as any}
             onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
-            onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
             onOpenGuide={() => setIsGuideModalOpen(true)}
+            streak={streak}
+            onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
             onOpenCareerPath={() => setActiveView('career')}
+            isLoggedIn={!!user}
+            onLogout={signOut}
             onCloseApp={activeView === 'settings' ? () => setActiveView('today') : onClose}
           />
 
