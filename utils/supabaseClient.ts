@@ -12,10 +12,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        // Disabilitiamo navigator.locks per prevenire hang infiniti durante il login/logout 
-        // in ambienti con restrizioni su IndexedDB o lock stale.
         storageKey: 'sb-auth-token-v2',
-        flowType: 'pkce'
+        flowType: 'implicit'  // 'pkce' richiedeva un ?code= redirect fisso -> rotto su localhost
     }
 });
 // Client stateless per operazioni che non devono essere influenzate dallo stato di auth (es. verifica licenze)
