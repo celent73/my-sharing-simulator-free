@@ -471,6 +471,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         visionBoardData={settings.visionBoard}
                         autoPersonalEarnings={monthlyEarnings}
                         onUpdateEarnings={handleUpdateDreamEarnings}
+                        onOpenVisionBoard={() => setIsVisionBoardModalOpen(true)}
                       />
                     )}
                     <ActivityInput todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}

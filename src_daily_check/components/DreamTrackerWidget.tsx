@@ -3,8 +3,9 @@ import { VisionBoardData } from '../types';
 
 interface DreamTrackerWidgetProps {
     visionBoardData: VisionBoardData;
-    autoPersonalEarnings: number;          // calcolati automaticamente dai contratti
+    autoPersonalEarnings: number;
     onUpdateEarnings: (network: number) => void;
+    onOpenVisionBoard: () => void;
 }
 
 const getCurrentMonth = () => {
@@ -29,6 +30,7 @@ const DreamTrackerWidget: React.FC<DreamTrackerWidgetProps> = ({
     visionBoardData,
     autoPersonalEarnings,
     onUpdateEarnings,
+    onOpenVisionBoard,
 }) => {
     const currentMonth = getCurrentMonth();
 
@@ -107,12 +109,23 @@ const DreamTrackerWidget: React.FC<DreamTrackerWidgetProps> = ({
                             {visionBoardData.title || 'Il mio obiettivo'}
                         </h3>
                     </div>
-                    {target > 0 && (
-                        <div className="bg-white/10 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/20 text-right">
-                            <p className="text-[10px] font-bold text-purple-200 uppercase">Obiettivo</p>
-                            <p className="text-lg font-black text-white">€{formatEur(target)}</p>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {target > 0 && (
+                            <div className="bg-white/10 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/20 text-right">
+                                <p className="text-[10px] font-bold text-purple-200 uppercase">Obiettivo</p>
+                                <p className="text-lg font-black text-white">€{formatEur(target)}</p>
+                            </div>
+                        )}
+                        <button
+                            onClick={onOpenVisionBoard}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/25 border border-white/20 hover:border-white/40 transition-all active:scale-90"
+                            title="Modifica Vision Board"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Earnings Cards */}
