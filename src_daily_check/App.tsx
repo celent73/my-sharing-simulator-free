@@ -434,10 +434,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     </div>
   );
 
-  if (!user) return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  if (!user) return <LoginScreen onLoginSuccess={handleLoginSuccess} onClose={onClose} />;
 
   if (isPasswordRecovery) return (
-    <ResetPasswordScreen onSuccess={() => { setIsPasswordRecovery(false); }} />
+    <ResetPasswordScreen onSuccess={() => { setIsPasswordRecovery(false); }} onClose={onClose} />
   );
 
   return (

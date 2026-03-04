@@ -3,9 +3,10 @@ import { supabase } from '../supabaseClient';
 
 interface ResetPasswordScreenProps {
     onSuccess: () => void;
+    onClose?: () => void;
 }
 
-const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ onSuccess }) => {
+const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ onSuccess, onClose }) => {
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
     const [loading, setLoading] = useState(false);
@@ -31,6 +32,13 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ onSuccess }) 
             <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/15 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
 
             <div className="relative z-10 w-full max-w-md">
+                {/* Close Button */}
+                {onClose && (
+                    <button onClick={onClose} className="absolute -top-4 -right-4 md:top-0 md:right-0 p-3 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-20 backdrop-blur-md border border-white/10">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                )}
+
                 {/* Logo */}
                 <div className="text-center mb-10">
                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_0_50px_rgba(99,102,241,0.4)] mb-5">
@@ -81,8 +89,8 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ onSuccess }) 
                                 <div className="flex gap-1">
                                     {[1, 2, 3, 4].map(i => (
                                         <div key={i} className={`h-1 flex-1 rounded-full transition-all ${password.length >= i * 3
-                                                ? i <= 1 ? 'bg-red-500' : i <= 2 ? 'bg-yellow-500' : i <= 3 ? 'bg-blue-500' : 'bg-emerald-500'
-                                                : 'bg-white/10'
+                                            ? i <= 1 ? 'bg-red-500' : i <= 2 ? 'bg-yellow-500' : i <= 3 ? 'bg-blue-500' : 'bg-emerald-500'
+                                            : 'bg-white/10'
                                             }`} />
                                     ))}
                                 </div>
