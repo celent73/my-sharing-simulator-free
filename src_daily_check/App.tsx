@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification } from './types';
-import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile } from './services/storageService';
+import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
 import Header from './components/Header';
 import ActivityInput from './components/ActivityInput';
@@ -111,6 +111,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [careerDates, setCareerDates] = useState<Record<string, string>>({});
   const [isInitializing, setIsInitializing] = useState(true);
   const [unlockedAchievements, setUnlockedAchievements] = useState<UnlockedAchievements>({});
   const [activeView, setActiveView] = useState<ActiveView>('today');
@@ -122,7 +123,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   }, []);
 
   const CAREER_STAGES = useMemo(() => [
-    { name: "Family pro", color: "#d21183" },
+    { name: "Family pro", color: "#ec4899" }, // Vibrant Pink (from-pink-500)
     { name: "Family pro 3x3", color: "#815545" },
     { name: "Family 3s", color: "#8000ff" },
     { name: "Family 5s", color: "#1147e6" },
@@ -138,10 +139,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (!authLoading && !isInitializing) {
-      const saved = localStorage.getItem('dailyCheck_careerPathDates');
-      if (saved) {
+      if (Object.keys(careerDates).length > 0) {
         try {
-          const dates = JSON.parse(saved);
+          const dates = careerDates;
           let currentLevelIndex = -1;
           for (let i = CAREER_STAGES.length - 1; i >= 0; i--) {
             if (dates[CAREER_STAGES[i].name]) {
@@ -171,7 +171,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         } catch (e) { console.error(e); }
       }
     }
-  }, [authLoading, isInitializing, CAREER_STAGES, addNotification]);
+  }, [authLoading, isInitializing, CAREER_STAGES, addNotification, careerDates]);
 
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'goals' | 'labels' | 'notifications'>('profile');
@@ -302,17 +302,19 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   };
 
   const loadLocalData = useCallback(async () => {
-    const [loadedLogs, loadedSettings, loadedAchievements, loadedProfile] = await Promise.all([
+    const [loadedLogs, loadedSettings, loadedAchievements, loadedProfile, loadedCareerDates] = await Promise.all([
       loadLogs(userId),
       loadSettings(userId),
       loadUnlockedAchievements(userId),
-      loadUserProfile(userId)
+      loadUserProfile(userId),
+      loadCareerDates(userId)
     ]);
     setActivityLogs(loadedLogs);
     let mergedSettings = { ...DEFAULT_SETTINGS, ...(loadedSettings || {}) };
     if (loadedProfile) mergedSettings.userProfile = { ...mergedSettings.userProfile, ...loadedProfile };
     setSettings(mergedSettings);
     setUnlockedAchievements(loadedAchievements);
+    setCareerDates(loadedCareerDates);
     setIsInitializing(false);
   }, [userId]);
 
@@ -569,7 +571,14 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                     className="h-full flex flex-col items-center justify-center p-4 lg:p-12"
                   >
                     <div className="w-full max-w-4xl h-[85vh]">
-                      <CareerPathModal isOpen={true} onClose={() => setActiveView('today')} isEmbedded={true} />
+                      <CareerPathModal
+                        isOpen={true}
+                        onClose={() => setActiveView('today')}
+                        isEmbedded={true}
+                        userId={userId}
+                        careerDates={careerDates}
+                        onUpdateDates={setCareerDates}
+                      />
                     </div>
                   </motion.div>
                 )}
@@ -599,7 +608,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>Daily Chek v2.1.0</p>
+                        <p>My Sharing Simulator v2.1.0</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>

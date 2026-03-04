@@ -602,8 +602,8 @@ const AppContent = () => {
                 <div className="flex items-center gap-3">
                   <h1 onClick={handleTitleClick} className="text-2xl sm:text-4xl font-extrabold text-white drop-shadow-sm select-none cursor-pointer active:scale-95 transition-transform flex items-center gap-3 flex-wrap justify-center md:justify-start">
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
-                    <span className="text-white">Daily</span>
-                    <span className="text-main-accent -ml-2">Chek</span>
+                    <span className="text-white">My Sharing</span>
+                    <span className="text-main-accent">Simulator</span>
                     <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2">v1.2.59</span>
                     <img
                       src="/logo_v2_main.png"

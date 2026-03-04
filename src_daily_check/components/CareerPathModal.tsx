@@ -5,10 +5,15 @@ interface CareerPathModalProps {
     isOpen: boolean;
     onClose: () => void;
     isEmbedded?: boolean;
+    userId?: string | null;
+    careerDates?: Record<string, string>;
+    onUpdateDates?: (dates: Record<string, string>) => void;
 }
 
+import { saveCareerDates } from '../services/storageService';
+
 const CAREER_STAGES = [
-    { name: "Family pro", color: "#d21183" }, // Pink
+    { name: "Family pro", color: "#ec4899" }, // Vibrant Pink
     { name: "Family pro 3x3", color: "#815545" }, // Brown
     { name: "Family 3s", color: "#8000ff" }, // Purple
     { name: "Family 5s", color: "#1147e6" }, // Blue
@@ -22,22 +27,22 @@ const CAREER_STAGES = [
     { name: "President", color: "#c8b335" }  // Gold
 ];
 
-const CareerPathModal: React.FC<CareerPathModalProps> = ({ isOpen, onClose, isEmbedded = false }) => {
-    const [dates, setDates] = useState<Record<string, string>>({});
+const CareerPathModal: React.FC<CareerPathModalProps> = ({
+    isOpen,
+    onClose,
+    isEmbedded = false,
+    userId,
+    careerDates,
+    onUpdateDates
+}) => {
+    const [dates, setDates] = useState<Record<string, string>>(careerDates || {});
     const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(null);
 
     useEffect(() => {
-        if (isOpen || isEmbedded) {
-            const saved = localStorage.getItem('dailyCheck_careerPathDates');
-            if (saved) {
-                try {
-                    setDates(JSON.parse(saved));
-                } catch (e) {
-                    console.error("Error loading career dates", e);
-                }
-            }
+        if (careerDates) {
+            setDates(careerDates);
         }
-    }, [isOpen, isEmbedded]);
+    }, [careerDates]);
 
     const handleDateChange = (stageName: string, newDate: string) => {
         const updated = { ...dates };
@@ -47,7 +52,8 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({ isOpen, onClose, isEm
             delete updated[stageName];
         }
         setDates(updated);
-        localStorage.setItem('dailyCheck_careerPathDates', JSON.stringify(updated));
+        saveCareerDates(userId || null, updated);
+        if (onUpdateDates) onUpdateDates(updated);
         window.dispatchEvent(new Event('careerDatesUpdated'));
     };
 

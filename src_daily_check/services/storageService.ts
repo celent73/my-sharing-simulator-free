@@ -10,6 +10,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 const ACTIVITY_KEY = 'daily-check-app-logs';
 const SETTINGS_KEY = 'daily-check-app-settings';
 const ACHIEVEMENTS_KEY = 'daily-check-app-achievements';
+const CAREER_DATES_KEY = 'dailyCheck_careerPathDates';
 
 // --- HELPERS ---
 const getLocalLogs = (): ActivityLog[] => {
@@ -252,6 +253,38 @@ export const saveUnlockedAchievements = async (userId: string | null, achievemen
 };
 
 // ---------------------------------------------------------------------------
+// GESTIONE DATE PERCORSO CARRIERA
+// ---------------------------------------------------------------------------
+
+export const loadCareerDates = async (userId: string | null): Promise<Record<string, string>> => {
+  if (userId) {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('career_path_dates')
+      .eq('user_id', userId)
+      .single();
+
+    return data?.career_path_dates || {};
+  } else {
+    const localData = localStorage.getItem(CAREER_DATES_KEY);
+    return localData ? JSON.parse(localData) : {};
+  }
+};
+
+export const saveCareerDates = async (userId: string | null, dates: Record<string, string>) => {
+  if (userId) {
+    const { error } = await supabase.from('user_settings').upsert({
+      user_id: userId,
+      career_path_dates: dates,
+      updated_at: new Date().toISOString()
+    });
+    if (error) console.error("Error saving career dates", error);
+  } else {
+    localStorage.setItem(CAREER_DATES_KEY, JSON.stringify(dates));
+  }
+};
+
+// ---------------------------------------------------------------------------
 // MIGRATION & SYNC (THE MAGIC BUTTON)
 // ---------------------------------------------------------------------------
 
@@ -284,6 +317,13 @@ export const syncLocalDataToCloud = async (userId: string) => {
 
   if (Object.keys(localAchievements).length > 0) {
     await saveUnlockedAchievements(userId, localAchievements);
+  }
+
+  const localCareerDates = localStorage.getItem(CAREER_DATES_KEY);
+  if (localCareerDates) {
+    try {
+      await saveCareerDates(userId, JSON.parse(localCareerDates));
+    } catch (e) { console.error("Error syncing career dates", e); }
   }
 
   console.log("Cloud Sync Completed!");
