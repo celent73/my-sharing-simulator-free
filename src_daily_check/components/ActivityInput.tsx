@@ -354,17 +354,17 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                             {activity === ActivityType.APPOINTMENTS && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setIsAppointmentsOverviewOpen(true); }}
-                                                    className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-slate-500 hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 shadow-sm hover:shadow-md transition-all active:scale-95`}
+                                                    className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-slate-500 hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 shadow-md hover:shadow-lg transition-all active:scale-90`}
                                                     title="Vedi appuntamenti"
                                                 >
-                                                    <ListChecks className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
+                                                    <ListChecks className="w-6 h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
                                                 </button>
                                             )}
                                             <button
                                                 onClick={(e) => handlePlusClick(e, activity)}
-                                                className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-md hover:shadow-lg transition-all active:scale-95 group-hover:scale-110`}
+                                                className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-xl hover:shadow-2xl transition-all active:scale-90 animate-pulse-slow ring-4 ring-white/30 group-hover:scale-110`}
                                             >
-                                                <Plus className="w-4 h-4 lg:w-5 lg:h-5 drop-shadow-md" strokeWidth={3} />
+                                                <Plus className="w-7 h-7 lg:w-10 lg:h-10 drop-shadow-md" strokeWidth={4} />
                                             </button>
                                         </div>
                                     </div>

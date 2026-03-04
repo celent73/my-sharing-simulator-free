@@ -70,17 +70,18 @@ const BottomDock: React.FC<BottomDockProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
 
-                {/* 1a. DAILY CHECK - Agenda Verde */}
+                {/* 1a. DAILY CHECK -> MY SHARING SIMULATOR */}
                 <button
                     onClick={onOpenDailyCheck}
                     className={getButtonClass(false)}
                 >
-                    <div className="group-hover:scale-110 transition-transform">
-                        <CalendarCheck className="w-8 h-8 md:w-10 md:h-10 text-union-green-400 [.theme-union-colors_&]:!text-white" />
+                    <div className="group-hover:scale-110 transition-transform flex flex-col items-center">
+                        <CalendarCheck className="w-7 h-7 text-union-green-400 [.theme-union-colors_&]:!text-white" />
+                        <span className="text-[7px] font-black uppercase tracking-tighter text-union-green-400 mt-0.5">My Sharing Simulator</span>
                     </div>
                 </button>
 
-                {/* 1b. SHARING SIMULATOR LIGHT - Leftmost */}
+                {/* 1b. SHARING SIMULATOR LIGHT */}
                 <button
                     onClick={onOpenLightSimulator}
                     className={getButtonClass(false)}

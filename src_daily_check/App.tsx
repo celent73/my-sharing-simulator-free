@@ -213,25 +213,46 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   const handleSaveLead = (leadData: { name: string; phone: string; note: string }) => {
     const dateStr = selectedInputDate.toISOString().split('T')[0];
-    let updatedLogs: ActivityLog[] = [];
+    let updatedLog: ActivityLog | null = null;
+    let updatedAllLogs: ActivityLog[] | null = null;
+
     setActivityLogs(prevLogs => {
       const newLogs = [...prevLogs];
-      let dateLog = newLogs.find(log => log.date === dateStr);
-      if (!dateLog) { dateLog = { date: dateStr, counts: {} }; newLogs.push(dateLog); }
-      if (!dateLog.leads) dateLog.leads = [];
-      dateLog.leads.push({
+      const existingLogIndex = newLogs.findIndex(log => log.date === dateStr);
+
+      let dateLog: ActivityLog;
+      if (existingLogIndex >= 0) {
+        dateLog = {
+          ...newLogs[existingLogIndex],
+          counts: { ...newLogs[existingLogIndex].counts },
+          leads: [...(newLogs[existingLogIndex].leads || [])]
+        };
+        newLogs[existingLogIndex] = dateLog;
+      } else {
+        dateLog = { date: dateStr, counts: {}, leads: [] };
+        newLogs.push(dateLog);
+      }
+
+      dateLog.leads!.push({
         id: Date.now().toString(),
         type: leadCaptureType,
         date: new Date().toISOString(),
         status: 'pending' as const,
         ...leadData
       });
+
       const currentCount = dateLog.counts[leadCaptureType] || 0;
       dateLog.counts[leadCaptureType] = currentCount + 1;
-      updatedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
-      return updatedLogs;
+
+      const sortedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
+      updatedLog = dateLog;
+      updatedAllLogs = sortedLogs;
+      return sortedLogs;
     });
-    saveLogForDate(userId, { date: dateStr, counts: {}, leads: [], ...updatedLogs.find(l => l.date === dateStr) } as any, updatedLogs);
+
+    if (updatedLog) {
+      saveLogForDate(userId, updatedLog, updatedAllLogs || undefined);
+    }
     setIsLeadCaptureModalOpen(false);
     addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} salvato!`, 'success');
   };
@@ -257,6 +278,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         const logTime = new Date(log.date).getTime();
         return logTime < start.getTime() || logTime > end.getTime();
       });
+      // Corrected: call save outside later if needed, but here we just clear cloud for that user or update
+      // Actually,saveLogs is fine here as we are replacing the WHOLE set
       saveLogs(userId, newLogs);
       return newLogs;
     });
@@ -310,43 +333,57 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     });
   }, [addNotification, effectiveCustomLabels, settings.enableGoals]);
 
-  const updateActivityLog = useCallback(async (updates: any[], dateStr: string) => {
-    setActivityLogs(prevLogs => {
-      const oldProgressMap = new Map();
-      updates.forEach(u => oldProgressMap.set(u.activity, {
-        daily: calculateProgressForActivity(prevLogs, u.activity, settings.commercialMonthStartDay), // this is complex, simplified for now
-        weekly: 0, monthly: 0 // logic depends on external utils
-      }));
+  const updateActivityLog = useCallback(async (updates: { activity: ActivityType, change: number, contractType?: ContractType }[], dateStr: string) => {
+    let updatedLog: ActivityLog | null = null;
+    let updatedAllLogs: ActivityLog[] | null = null;
 
+    setActivityLogs(prevLogs => {
       const newLogs = [...prevLogs];
-      let dateLog = newLogs.find(log => log.date === dateStr);
-      if (!dateLog) { dateLog = { date: dateStr, counts: {} }; newLogs.push(dateLog); }
+      const existingLogIndex = newLogs.findIndex(log => log.date === dateStr);
+
+      let dateLog: ActivityLog;
+      if (existingLogIndex >= 0) {
+        // Create a deep copy of the log to avoid mutation
+        dateLog = {
+          ...newLogs[existingLogIndex],
+          counts: { ...newLogs[existingLogIndex].counts },
+          contractDetails: newLogs[existingLogIndex].contractDetails ? { ...newLogs[existingLogIndex].contractDetails } : undefined
+        };
+        newLogs[existingLogIndex] = dateLog;
+      } else {
+        dateLog = { date: dateStr, counts: {}, leads: [] };
+        newLogs.push(dateLog);
+      }
 
       updates.forEach(u => {
-        dateLog!.counts[u.activity] = Math.max(0, (dateLog!.counts[u.activity] || 0) + u.change);
+        dateLog.counts[u.activity] = Math.max(0, (dateLog.counts[u.activity] || 0) + u.change);
 
-        // Handle contract details for earnings
         if (u.contractType) {
-          if (!dateLog!.contractDetails) dateLog!.contractDetails = {};
-          dateLog!.contractDetails[u.contractType] = Math.max(0, (dateLog!.contractDetails[u.contractType] || 0) + u.change);
+          if (!dateLog.contractDetails) dateLog.contractDetails = {};
+          dateLog.contractDetails[u.contractType] = Math.max(0, (dateLog.contractDetails[u.contractType] || 0) + u.change);
         } else if (u.activity === ActivityType.NEW_CONTRACTS && u.change < 0) {
-          // If decrementing contracts without a specific type, try to find a type to decrement
-          if (dateLog!.contractDetails) {
-            if ((dateLog!.contractDetails[ContractType.LIGHT] || 0) > 0) {
-              dateLog!.contractDetails[ContractType.LIGHT] = Math.max(0, dateLog!.contractDetails[ContractType.LIGHT]! - 1);
-            } else if ((dateLog!.contractDetails[ContractType.GREEN] || 0) > 0) {
-              dateLog!.contractDetails[ContractType.GREEN] = Math.max(0, dateLog!.contractDetails[ContractType.GREEN]! - 1);
+          if (dateLog.contractDetails) {
+            if ((dateLog.contractDetails[ContractType.LIGHT] || 0) > 0) {
+              dateLog.contractDetails[ContractType.LIGHT] = Math.max(0, dateLog.contractDetails[ContractType.LIGHT]! - 1);
+            } else if ((dateLog.contractDetails[ContractType.GREEN] || 0) > 0) {
+              dateLog.contractDetails[ContractType.GREEN] = Math.max(0, dateLog.contractDetails[ContractType.GREEN]! - 1);
             }
           }
         }
       });
 
       const sortedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
-      // Optimized: only upsert the changed row
-      saveLogForDate(userId, dateLog!, sortedLogs);
+      updatedLog = dateLog;
+      updatedAllLogs = sortedLogs;
       return sortedLogs;
     });
-  }, [userId, settings.commercialMonthStartDay]);
+
+    // Execute side effect OUTSIDE state updater
+    // Use a small delay or trust synchronously captured values (React's updater runs synchronously here)
+    if (updatedLog) {
+      saveLogForDate(userId, updatedLog, updatedAllLogs || undefined);
+    }
+  }, [userId]);
 
   const handleUpdateActivity = (activity: ActivityType, change: number, dateStr: string = getTodayDateString(), contractType?: ContractType) => {
     updateActivityLog([{ activity, change, contractType }], dateStr);
@@ -562,7 +599,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>Simulatore Daily Check v2.1.0</p>
+                        <p>My Sharing Simulator v2.1.0</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>

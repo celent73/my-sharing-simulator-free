@@ -144,12 +144,8 @@ const AppContent = () => {
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           console.log("Utente loggato con magic link, sessione:", session.user.email);
-          // Chiudi l"AuthModal se è aperto e apri direttamente il DailyCheck
+          // Chiudi l"AuthModal se è aperto. L'utente rimarrà sul My Sharing Simulator (Dashboard)
           closeModal();
-          // Un piccolo timeout per assicurarsi che i modali precedenti siano smontati
-          setTimeout(() => {
-            openModal('DAILY_CHECK');
-          }, 300);
         }
       }
     );

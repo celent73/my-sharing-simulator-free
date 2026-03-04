@@ -8,79 +8,68 @@ interface CareerStatusProps {
   userProfile?: UserProfile;
 }
 
-const TrophyIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M11 3a1 1 0 10-2 0v1.586l-1.293-1.293a1 1 0 00-1.414 1.414L7.586 6H6a2 2 0 00-2 2v6a2 2 0 002 2h8a2 2 0 002-2V8a2 2 0 00-2-2h-1.586l1.293-1.293a1 1 0 00-1.414-1.414L11 4.586V3zM4 10a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z" />
-  </svg>
+const GiftIcon = () => (
+  <span className="text-2xl mr-3">🎁</span>
 );
-
 
 const CareerStatus: React.FC<CareerStatusProps> = ({ activityLogs, userProfile }) => {
   // Use the manual qualification if set, otherwise calculate automatically
   const status = calculateCareerStatus(activityLogs, userProfile?.currentQualification);
 
   const progressBarClass = status.specialStatus === 'family_pro'
-    ? 'bg-gradient-to-r from-emerald-500 to-green-600'
+    ? 'bg-gradient-to-r from-pink-500 to-rose-600'
     : 'bg-gradient-to-r from-amber-400 to-amber-600';
 
   return (
-    <div className="bg-white dark:bg-black p-6 rounded-2xl shadow-lg transition-colors duration-300 border border-slate-200 dark:border-slate-800 relative overflow-hidden">
-      {status.isManualOverride && (
-        <div className="absolute top-0 right-0 bg-blue-100 text-blue-600 text-[10px] font-bold px-2 py-1 rounded-bl-lg dark:bg-blue-900/30 dark:text-blue-300">
-          MANUALE
-        </div>
-      )}
-      <div className="flex items-center mb-4">
-        <TrophyIcon />
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Status Carriera</h2>
+    <div className="bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
+      <div className="flex items-center mb-10">
+        <GiftIcon />
+        <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Status Carriera</h2>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-8">
         <div>
-          <p className="text-slate-500 dark:text-slate-400">Livello Attuale</p>
-          <p className={`text-4xl font-bold bg-gradient-to-r ${status.specialStatus === 'family_pro'
-            ? 'from-pink-600 to-rose-800 dark:from-pink-400 dark:to-rose-600'
-            : 'from-blue-500 to-cyan-500 dark:from-blue-400 dark:to-cyan-400'
-            } text-transparent bg-clip-text`}>{status.currentLevel.name}</p>
-          {status.currentLevel.name === 'Family Utility' && status.totalContracts < 10 && (
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Livello Attuale</p>
+          <p className={`text-6xl font-black bg-gradient-to-r ${status.specialStatus === 'family_pro'
+            ? 'from-pink-500 to-rose-600'
+            : 'from-blue-500 to-cyan-500'
+            } text-transparent bg-clip-text tracking-tighter`}>
+            {status.currentLevel.name}
+          </p>
+
+          {/* Specific requirement for Family Utility -> Pro */}
+          {status.totalContracts < 10 && (status.currentLevel.name === 'Family Utility' || status.currentLevel.name === 'Consulente Junior') && (
+            <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mt-2">
               Mancano {10 - status.totalContracts} contratti per Family Pro
             </p>
           )}
         </div>
 
-        <div>
-          <div className="flex justify-between items-end mb-1">
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-              {status.isMaxLevel ? 'Hai raggiunto il livello massimo (per ora)!' : 'Progresso al prossimo livello'}
+        <div className="pt-6 border-t border-slate-50 dark:border-slate-800/50">
+          <div className="flex justify-between items-end mb-4">
+            <span className="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">
+              Progresso al prossimo livello
             </span>
-            {!status.isMaxLevel && status.nextLevel && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {status.totalClients} / {status.clientsForNextLevel} acquisizioni
-              </span>
-            )}
+            <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
+              {status.totalClients} / {status.clientsForNextLevel > 0 && status.clientsForNextLevel < 9000 ? status.clientsForNextLevel : 11} acquisizioni
+            </span>
           </div>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-4 overflow-hidden border border-slate-200/20 shadow-inner">
             <div
-              className={`${progressBarClass} h-2.5 rounded-full transition-all duration-500`}
+              className={`${progressBarClass} h-full rounded-full transition-all duration-1000 shadow-lg`}
               style={{ width: `${status.progressPercentage}%` }}
             ></div>
           </div>
-          {!status.isMaxLevel && status.nextLevel && (
-            <p className="text-right text-xs text-slate-400 dark:text-slate-500 mt-1">
-              Prossimo livello: {
-                status.currentLevel.name === 'Family Pro'
-                  ? 'Family 3S'
-                  : (status.nextLevel.name === 'Consulente Junior' ? 'Family Pro' : status.nextLevel.name)
-              }
-            </p>
-          )}
-        </div>
 
-        <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
-          <p className="text-center text-slate-700 dark:text-slate-300">
-            Hai registrato un totale di <strong className="text-slate-900 dark:text-white">{status.totalClients}</strong> acquisizioni.
-            {status.isMaxLevel ? ' Ottimo lavoro!' : ' Continua così!'}
+          <p className="text-right text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-3">
+            {(() => {
+              let nextName = "Family Pro";
+              if (status.currentLevel.name === 'Family Pro') nextName = 'Family 3S';
+              else if (status.currentLevel.name === 'Family 3S') nextName = 'Family 5S';
+              // ... add more if needed, but the user said "fermati al family pro scrivendo il prossimo step family 3 s e basta"
+              return `Prossimo livello: ${nextName}`;
+            })()}
           </p>
         </div>
       </div>

@@ -17,7 +17,8 @@ import ActivityBarChart from './charts/ActivityBarChart';
 import { ACTIVITY_LABELS, activityIcons } from '../constants';
 import ActivityFocus from './ActivityFocus';
 import StatCard from './StatCard';
-import DateNavigator from './DateNavigator'; // <--- ECCO IL NUOVO COMPONENTE INTEGRATO
+import DateNavigator from './DateNavigator';
+import CareerStatus from './CareerStatus';
 
 interface DashboardProps {
   activityLogs: ActivityLog[] | undefined;
@@ -393,68 +394,81 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="animate-fade-in relative z-10">
           {!compactView && <GoalStatusReminder current={totalCurrent} goal={totalGoal} timeProgress={timeProgress} periodLabel={viewMode} />}
 
-          <div className={compactView ? "mb-0" : "mb-8"}>
-            {!compactView && (
-              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
-                {periodLabel}
-              </h3>
-            )}
-            <div className={`grid grid-cols-1 sm:grid-cols-2 ${compactView ? 'md:grid-cols-5' : 'md:grid-cols-3'} lg:grid-cols-3 gap-6 lg:gap-8`}>
-              {Object.values(ActivityType).map((activity) => {
+          <div className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-6 lg:p-8 shadow-xl w-full max-w-5xl mx-auto ${compactView ? 'mb-0' : 'mb-8'}`}>
+            <div className="flex flex-col gap-4 w-full">
+              {(Object.values(ActivityType) as ActivityType[]).map((activity, index, array) => {
                 const current = totals[activity] || 0;
                 const goal = relevantGoals?.[activity] || 0;
                 const progress = goal > 0 ? (current / goal) * 100 : 0;
                 const isGoalReached = goal > 0 && current >= goal;
                 const styles = CARD_STYLES[activity];
+                const label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
 
                 return (
-                  <div key={activity} className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_15px_45px_0_rgba(0,0,0,0.06)] border border-transparent transition-all hover:scale-[1.02] hover:shadow-[0_30px_70px_0_rgba(0,0,0,0.1)]">
-                    <div className="mb-8">
-                      <div className={`h-20 w-20 rounded-[1.75rem] ${styles.iconBg} flex items-center justify-center text-white shadow-lg`}>
-                        <div className="scale-[1.6]">
-                          {activityIcons[activity]}
+                  <React.Fragment key={activity}>
+                    <div className="group flex items-center justify-between gap-4 py-2 px-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl">
+
+                      {/* Sinistra: Icona, Titolo, Valore */}
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className={`h-10 w-10 shrink-0 rounded-xl ${styles.iconBg} flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105`}>
+                          <div className="scale-100">
+                            {activityIcons[activity]}
+                          </div>
                         </div>
-                      </div>
-                      {isGoalReached && <div className="absolute top-8 right-8 animate-bounce scale-150"><StarIcon /></div>}
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-black text-[#8e8e93] dark:text-slate-400 uppercase tracking-[0.2em] mb-3">{customLabels?.[activity] || ACTIVITY_LABELS[activity]}</p>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <p className="text-7xl font-black text-[#1c1c1e] dark:text-white tracking-tighter">{current}</p>
-                        {goal > 0 && <span className="text-lg font-bold text-[#aeaeb2] dark:text-slate-500">/ {goal}</span>}
+                        <div className="flex flex-col">
+                          <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">{label}</h4>
+                          <div className="flex items-baseline gap-2">
+                            <span className={`text-2xl font-black text-slate-800 dark:text-white leading-none`}>
+                              {current}
+                            </span>
+                            {goal > 0 && (
+                              <span className="text-xs font-bold text-slate-400">/ {goal}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
+                      {/* Centro: Barra di Progresso (opzionale) */}
                       {goal > 0 && (
-                        <div className="flex flex-col gap-1">
-                          {isGoalReached ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#34c759]/15 text-[#34c759] rounded-full text-[11px] font-black uppercase tracking-wider w-fit">
-                              🏆 Target {periodLabel.toLowerCase()} completato
-                            </span>
-                          ) : (
-                            <span className="text-[13px] font-extrabold text-[#ff9f0a]">
-                              Mancano {goal - current} azioni per il target
-                            </span>
-                          )}
-                          {viewMode === 'commercial_monthly' && timeProgress > 80 && progress < 50 && !isGoalReached && (
-                            <p className="text-[11px] font-bold text-red-500 animate-pulse bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg mt-1 w-fit border border-red-200 dark:border-red-800">
-                              ⚠️ Mese in chiusura, accelera!
-                            </p>
-                          )}
+                        <div className="hidden sm:flex flex-col gap-1 flex-1 max-w-[200px]">
+                          <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
+                              style={{ width: `${Math.min(progress, 100)}%` }}
+                            />
+                          </div>
+                          <span className={`text-[9px] font-bold uppercase tracking-tight ${isGoalReached ? 'text-emerald-500' : 'text-slate-400'}`}>
+                            {isGoalReached ? 'Completato' : `Mancano ${goal - current}`}
+                          </span>
                         </div>
                       )}
-                    </div>
-                    {!compactView && (
-                      <div className="mt-6">
-                        <div className="w-full bg-[#f2f2f7] dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                          <div className={`bg-gradient-to-r ${styles.gradient} h-full rounded-full transition-all duration-1000`} style={{ width: `${Math.min(progress, 100)}%` }}></div>
-                        </div>
+
+                      {/* Destra: Badge o Icona raggiungimento */}
+                      <div className="flex shrink-0">
+                        {isGoalReached && (
+                          <div className="p-1 bg-yellow-400/20 text-yellow-500 rounded-lg">
+                            <StarIcon />
+                          </div>
+                        )}
                       </div>
+
+                    </div>
+
+                    {index < array.length - 1 && (
+                      <hr className="border-slate-50 dark:border-slate-800/50" />
                     )}
-                  </div>
+                  </React.Fragment>
                 );
               })}
             </div>
+          </div>
+
+          {/* Career Status Widget */}
+          <div className="w-full max-w-5xl mx-auto mt-8">
+            <CareerStatus
+              activityLogs={activityLogs}
+              userProfile={userProfile}
+            />
           </div>
 
           {!compactView && (
