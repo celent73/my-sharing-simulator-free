@@ -19,7 +19,7 @@ export const CAREER_STAGES = [
 export const ACTIVITY_LABELS: Record<ActivityType, string> = {
   [ActivityType.CONTACTS]: 'Contatti effettuati',
   [ActivityType.VIDEOS_SENT]: 'Video 1 inviati',
-  [ActivityType.APPOINTMENTS]: 'Appuntamenti effettuati',
+  [ActivityType.APPOINTMENTS]: 'Appuntamenti fissati',
   [ActivityType.NEW_CONTRACTS]: 'Nuovi contratti effettuati',
   [ActivityType.NEW_FAMILY_UTILITY]: 'Nuovi Family utility',
 };
