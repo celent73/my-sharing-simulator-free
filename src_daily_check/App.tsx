@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification } from './types';
-import { loadLogs, saveLogs, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile } from './services/storageService';
+import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
 import Header from './components/Header';
 import ActivityInput from './components/ActivityInput';
@@ -230,7 +230,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       updatedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
       return updatedLogs;
     });
-    saveLogs(userId, updatedLogs);
+    saveLogForDate(userId, { date: dateStr, counts: {}, leads: [], ...updatedLogs.find(l => l.date === dateStr) } as any, updatedLogs);
     setIsLeadCaptureModalOpen(false);
     addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} salvato!`, 'success');
   };
@@ -341,7 +341,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       });
 
       const sortedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
-      saveLogs(userId, sortedLogs);
+      // Optimized: only upsert the changed row
+      saveLogForDate(userId, dateLog!, sortedLogs);
       return sortedLogs;
     });
   }, [userId, settings.commercialMonthStartDay]);

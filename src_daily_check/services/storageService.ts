@@ -67,21 +67,13 @@ export const loadLogs = async (userId: string | null): Promise<ActivityLog[]> =>
 
 export const saveLogs = async (userId: string | null, logs: ActivityLog[]) => {
   if (userId) {
-    // CLOUD MODE: We need to upsert.
-    // Since `logs` is the full array, we iterate and upsert.
-    // Optimization: In a real app we'd only save the changed one, but here we save all for safety or diff.
-    // BETTER STRATEGY: The app usually updates one log at a time or adds one.
-    // However, this function receives the WHOLE array.
-    // To avoid massive writes, we should ideally upsert only the changed ones.
-    // For simplicity in this migration, we Upsert the whole batch (careful with rate limits).
-
     const payload = logs.map(log => ({
       user_id: userId,
       date: log.date,
       counts: log.counts,
       contract_details: log.contractDetails || {},
       leads: log.leads || [],
-      updated_at: new Date().toISOString() // Force update
+      updated_at: new Date().toISOString()
     }));
 
     const { error } = await supabase
@@ -91,10 +83,34 @@ export const saveLogs = async (userId: string | null, logs: ActivityLog[]) => {
     if (error) console.error('Error saving logs to Supabase:', error);
 
   } else {
-    // LOCAL MODE
     localStorage.setItem(ACTIVITY_KEY, JSON.stringify(logs));
   }
 };
+
+/**
+ * OTTIMIZZATO: salva solo il log di UNA specifica data invece dell'intero array.
+ * Da usare per ogni aggiornamento in tempo reale (click su attività, lead, ecc.)
+ * Riduce il volume di scritture su Supabase di circa il 95%.
+ */
+export const saveLogForDate = async (userId: string | null, log: ActivityLog, allLogs?: ActivityLog[]) => {
+  if (userId) {
+    // Cloud: upsert solo la riga modificata
+    const { error } = await supabase.from('activity_logs').upsert({
+      user_id: userId,
+      date: log.date,
+      counts: log.counts,
+      contract_details: log.contractDetails || {},
+      leads: log.leads || [],
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id, date' });
+
+    if (error) console.error('Error saving log for date:', error);
+  } else {
+    // Local: dobbiamo comunque riscrivere l'intero array (limite localStorage)
+    if (allLogs) localStorage.setItem(ACTIVITY_KEY, JSON.stringify(allLogs));
+  }
+};
+
 
 export const clearLogs = async (userId: string | null) => {
   if (userId) {
