@@ -22,6 +22,7 @@ import MonthlyReportModal from './components/MonthlyReportModal';
 import ContractSelectorModal from './components/ContractSelectorModal';
 import VisionBoardModal from './components/VisionBoardModal';
 import DreamTrackerWidget from './components/DreamTrackerWidget';
+import LoginScreen from './components/LoginScreen';
 import AddAppointmentModal from './components/AddAppointmentModal';
 import TargetCalculatorModal from './components/TargetCalculatorModal';
 import DetailedGuideModal from './components/DetailedGuideModal';
@@ -420,7 +421,18 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification), [activityLogs, settings.userProfile.currentQualification]);
   const streak = useMemo(() => calculateCurrentStreak(activityLogs), [activityLogs]);
 
-  if (isInitializing || authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">Caricamento...</div>;
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-[0_0_40px_rgba(99,102,241,0.4)] animate-pulse">
+          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+        </div>
+        <p className="text-slate-400 font-bold text-sm tracking-widest uppercase">Caricamento...</p>
+      </div>
+    </div>
+  );
+
+  if (!user) return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
 
   return (
     <>
