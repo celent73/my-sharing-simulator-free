@@ -21,6 +21,7 @@ import SocialShareModal from './components/SocialShareModal';
 import MonthlyReportModal from './components/MonthlyReportModal';
 import ContractSelectorModal from './components/ContractSelectorModal';
 import VisionBoardModal from './components/VisionBoardModal';
+import DreamTrackerWidget from './components/DreamTrackerWidget';
 import AddAppointmentModal from './components/AddAppointmentModal';
 import TargetCalculatorModal from './components/TargetCalculatorModal';
 import DetailedGuideModal from './components/DetailedGuideModal';
@@ -358,6 +359,25 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     addNotification("Obiettivo aggiornato!", "success");
   };
 
+  const handleUpdateDreamEarnings = (network: number) => {
+    const currentMonth = (() => {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    })();
+    setSettings(prev => ({
+      ...prev,
+      visionBoard: {
+        ...prev.visionBoard,
+        networkEarnings: network,
+        earningsMonth: currentMonth,
+        enabled: prev.visionBoard?.enabled ?? true,
+        title: prev.visionBoard?.title ?? '',
+        targetAmount: prev.visionBoard?.targetAmount ?? 0,
+        imageData: prev.visionBoard?.imageData ?? null,
+      }
+    }));
+  };
+
   const handleUpdateQualification = (newQualification: Qualification) => {
     setSettings(prev => ({ ...prev, userProfile: { ...prev.userProfile, currentQualification: newQualification } }));
     addNotification(`Qualifica aggiornata!`, 'success');
@@ -446,6 +466,13 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
                       compactView={true} initialTab="overview"
                     />
+                    {settings.visionBoard?.enabled && settings.visionBoard?.targetAmount > 0 && (
+                      <DreamTrackerWidget
+                        visionBoardData={settings.visionBoard}
+                        autoPersonalEarnings={monthlyEarnings}
+                        onUpdateEarnings={handleUpdateDreamEarnings}
+                      />
+                    )}
                     <ActivityInput todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}
                       onUpdateActivity={handleUpdateActivity} onOpenPowerMode={() => setIsPowerModeOpen(true)}
                       onOpenObjectionHandler={() => setIsObjectionHandlerOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}

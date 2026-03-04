@@ -81,6 +81,9 @@ export interface VisionBoardData {
   title: string;
   targetAmount: number;
   imageData: string | null; // Base64 string
+  personalEarnings?: number;  // Guadagni personali manuali del mese
+  networkEarnings?: number;   // Guadagni della rete manuali del mese
+  earningsMonth?: string;     // YYYY-MM — per auto-reset ogni mese
 }
 
 export interface NextAppointment {

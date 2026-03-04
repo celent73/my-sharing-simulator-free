@@ -121,7 +121,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
         return () => window.removeEventListener('careerDatesUpdated', loadDates);
     }, [isHubMode]);
 
-    const upcomingDeadlineMessage = React.useMemo(() => {
+    const upcomingDeadline = React.useMemo(() => {
         if (!careerStatus || !isHubMode) return null;
 
         const qualificationsOrder = [
@@ -142,31 +142,31 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
-        let foundMessage = null;
+        let foundMessage: string | null = null;
         let minDiff = Infinity;
+        let foundDaysLeft = 0;
 
         for (const [stageName, dateStr] of Object.entries(targetDates)) {
             const stageIndex = qualificationsOrder.indexOf(stageName.toLowerCase());
 
-            // Only warn about future unreached targets, or correctly recognize missed targets
             if (stageIndex > currentIndex || currentIndex === -1) {
-                const targetDate = new Date(dateStr);
+                const targetDate = new Date(dateStr as string);
                 const diffDays = Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
 
-                // Show warning if <= 30 days away, or up to 7 days overdue
                 if (diffDays <= 30 && diffDays >= -7 && diffDays < minDiff) {
                     minDiff = diffDays;
+                    foundDaysLeft = diffDays;
                     if (diffDays > 0) {
-                        foundMessage = `⚠️ Scadenza "${stageName}" tra ${diffDays} gg (${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })})`;
+                        foundMessage = `Scadenza "${stageName}" tra ${diffDays} gg (${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })})`;
                     } else if (diffDays === 0) {
-                        foundMessage = `🚨 Oggi scade il traguardo "${stageName}"! Dai il massimo!`;
+                        foundMessage = `Oggi scade il traguardo "${stageName}"! Dai il massimo!`;
                     } else {
-                        foundMessage = `⚠️ Obiettivo "${stageName}" (scaduto il ${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}) non ancora raggiunto!`;
+                        foundMessage = `Obiettivo "${stageName}" (scaduto il ${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}) non ancora raggiunto!`;
                     }
                 }
             }
         }
-        return foundMessage;
+        return foundMessage ? { message: foundMessage, daysLeft: foundDaysLeft } : null;
     }, [careerStatus, targetDates, isHubMode]);
 
     const selectedDateFormatted = formatItalianDate(selectedDate);
@@ -249,9 +249,9 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                     </div>
 
                     {/* Commercial month info below pill */}
-                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 font-medium">
-                        <span className="px-2 py-0.5 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-100 dark:border-slate-700">{commercialMonthStr}</span>
-                        <span className="font-bold text-orange-400">{daysRemaining} gg alla fine mese</span>
+                    <div className="flex items-center gap-3 mt-2 text-xs font-medium">
+                        <span className="px-2 py-0.5 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300">{commercialMonthStr}</span>
+                        <span className="font-bold text-orange-500 dark:text-orange-400">{daysRemaining} gg alla fine mese</span>
                     </div>
                 </div>
             )}
@@ -294,26 +294,37 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                         </defs>
                                     </svg>
                                 </div>
-                                {/* WARNING MESSAGE PLACED OUTSIDE THE CIRCLE */}
-                                {upcomingDeadlineMessage && (
-                                    <div className="absolute top-[105%] left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-10 hidden sm:block">
-                                        <span className="text-[11px] sm:text-xs font-black text-red-500 bg-red-500/10 py-2 px-5 rounded-full border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.25)] animate-pulse inline-flex items-center gap-2 backdrop-blur-md">
-                                            {upcomingDeadlineMessage}
-                                        </span>
-                                    </div>
-                                )}
-                                {/* Mobile centered warning, adjusting absolute position logic */}
-                                {upcomingDeadlineMessage && (
-                                    <div className="mt-8 flex justify-center w-full sm:hidden relative z-10 text-center px-4">
-                                        <span className="text-[11px] font-black text-red-500 bg-red-500/10 py-2 px-5 rounded-full border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.25)] animate-pulse inline-flex items-center gap-2 backdrop-blur-md">
-                                            {upcomingDeadlineMessage}
-                                        </span>
-                                    </div>
-                                )}
+                                {/* WARNING: removed from inside ring — now shown as full-width banner below */}
                             </div>
                         </div>
                     </div>
                 )}
+
+                {/* DEADLINE BANNER — full width, outside the ring */}
+                {isHubMode && upcomingDeadline && (() => {
+                    const { message, daysLeft } = upcomingDeadline;
+                    // Color scheme based on days remaining
+                    const colors = daysLeft > 15
+                        ? { glow: 'from-emerald-500 to-green-400', bg: 'from-emerald-950/90 to-slate-900/90', border: 'border-emerald-500/40', shadow: 'rgba(16,185,129,0.25)', label: 'text-emerald-400', icon: '🟢', iconBg: 'bg-emerald-500/20 border-emerald-500/30' }
+                        : daysLeft > 5
+                            ? { glow: 'from-yellow-500 to-amber-400', bg: 'from-yellow-950/90 to-slate-900/90', border: 'border-yellow-500/40', shadow: 'rgba(234,179,8,0.25)', label: 'text-yellow-400', icon: '🟡', iconBg: 'bg-yellow-500/20 border-yellow-500/30' }
+                            : { glow: 'from-red-600 to-orange-500', bg: 'from-red-950/90 to-slate-900/90', border: 'border-red-500/40', shadow: 'rgba(239,68,68,0.25)', label: 'text-red-400', icon: '🔴', iconBg: 'bg-red-500/20 border-red-500/30' };
+                    return (
+                        <div className="w-full max-w-2xl mx-auto mb-6 relative">
+                            <div className={`absolute -inset-[2px] rounded-2xl bg-gradient-to-r ${colors.glow} animate-pulse opacity-70 blur-[2px]`} />
+                            <div className={`relative flex items-center gap-4 bg-gradient-to-r ${colors.bg} backdrop-blur-xl border ${colors.border} rounded-2xl px-5 py-4`}
+                                style={{ boxShadow: `0 0 40px ${colors.shadow}` }}>
+                                <div className={`flex-shrink-0 w-10 h-10 ${colors.iconBg} rounded-xl flex items-center justify-center border`}>
+                                    <span className="text-xl">{colors.icon}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className={`text-[10px] font-black ${colors.label} uppercase tracking-widest mb-0.5`}>Scadenza Carriera</p>
+                                    <p className="text-sm font-black text-white leading-snug">{message}</p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* ACTIVITY GRID */}
                 <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
