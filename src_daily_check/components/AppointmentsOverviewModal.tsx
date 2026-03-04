@@ -1,67 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
-import { ActivityType } from '../types';
+import React, { useMemo } from 'react';
+import { ActivityLog, ActivityType, Lead } from '../types';
 
 interface AppointmentsOverviewModalProps {
     isOpen: boolean;
     onClose: () => void;
-    userId: string;
+    activityLogs: ActivityLog[];
 }
 
-interface Appointment {
-    id: string;
-    contact_name: string;
-    notes: string;
-    appointment_date: string;
-    location_type: 'physical' | 'online' | null;
-    address: string | null;
-    platform: string | null;
-    created_at: string;
-}
+const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ isOpen, onClose, activityLogs }) => {
 
-const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ isOpen, onClose, userId }) => {
-    const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // Process appointments directly from activity logs
+    const appointments = useMemo(() => {
+        if (!isOpen || !activityLogs) return [];
 
-    useEffect(() => {
-        if (!isOpen || !userId) return;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        const fetchAppointments = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                // Fetch leads that have an appointment date set
-                const { data, error } = await supabase
-                    .from('leads')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .not('appointment_date', 'is', null)
-                    .order('appointment_date', { ascending: true }); // Most recent first
+        const upcoming: Lead[] = [];
 
-                if (error) throw error;
-
-                // Only keep appointments from today onwards
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                const upcoming = (data as Appointment[] || []).filter(app => {
-                    if (!app.appointment_date) return false;
-                    const d = new Date(app.appointment_date);
-                    return d >= today;
+        activityLogs.forEach(log => {
+            if (log.leads) {
+                log.leads.forEach(lead => {
+                    // Only appointments with a valid date and scheduled for today or the future
+                    if (lead.type === ActivityType.APPOINTMENTS && lead.appointmentDate) {
+                        const d = new Date(lead.appointmentDate);
+                        if (d >= today) {
+                            upcoming.push(lead);
+                        }
+                    }
                 });
-
-                setAppointments(upcoming);
-            } catch (err: any) {
-                console.error("Error fetching appointments:", err);
-                setError("Impossibile caricare gli appuntamenti.");
-            } finally {
-                setLoading(false);
             }
-        };
+        });
 
-        fetchAppointments();
-    }, [isOpen, userId]);
+        // Sort upcoming from the nearest to the furthest
+        upcoming.sort((a, b) => new Date(a.appointmentDate!).getTime() - new Date(b.appointmentDate!).getTime());
+        return upcoming;
+    }, [isOpen, activityLogs]);
 
     if (!isOpen) return null;
 
@@ -94,17 +68,7 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
 
                 {/* Content */}
                 <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center py-12">
-                            <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4" />
-                            <p className="text-slate-400 font-medium tracking-wide">Caricamento in corso...</p>
-                        </div>
-                    ) : error ? (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-2xl flex items-center gap-3">
-                            <span className="text-xl shrink-0">⚠️</span>
-                            <span className="font-bold text-sm">{error}</span>
-                        </div>
-                    ) : appointments.length === 0 ? (
+                    {appointments.length === 0 ? (
                         <div className="text-center py-16 px-4">
                             <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-700/50">
                                 <span className="text-3xl grayscale opacity-50">📅</span>
@@ -117,7 +81,7 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                     ) : (
                         <div className="space-y-4">
                             {appointments.map((app) => {
-                                const d = new Date(app.appointment_date);
+                                const d = new Date(app.appointmentDate!);
                                 const dateStr = d.toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
                                 const timeStr = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 
@@ -135,16 +99,16 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
 
                                             {/* Contact Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-lg font-black text-white truncate mb-1">{app.contact_name}</h4>
+                                                <h4 className="text-lg font-black text-white truncate mb-1">{app.name}</h4>
 
                                                 <div className="flex flex-wrap items-center gap-3 mt-2">
                                                     {/* Location Badge */}
-                                                    {app.location_type === 'online' ? (
+                                                    {app.locationType === 'online' ? (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
                                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                                                             {app.platform || 'Online'}
                                                         </div>
-                                                    ) : app.location_type === 'physical' ? (
+                                                    ) : app.locationType === 'physical' ? (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
                                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                                             {app.address ? (
@@ -154,10 +118,10 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                                     ) : null}
                                                 </div>
 
-                                                {app.notes && (
+                                                {app.note && (
                                                     <p className="mt-3 text-sm text-slate-400 line-clamp-2 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/30">
                                                         <span className="text-xs font-bold text-slate-500 mr-2">NOTE:</span>
-                                                        {app.notes}
+                                                        {app.note}
                                                     </p>
                                                 )}
                                             </div>

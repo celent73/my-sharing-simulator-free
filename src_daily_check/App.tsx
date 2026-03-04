@@ -496,7 +496,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         onOpenVisionBoard={() => setIsVisionBoardModalOpen(true)}
                       />
                     )}
-                    <ActivityInput todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}
+                    <ActivityInput
+                      activityLogs={activityLogs}
+                      todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}
                       onUpdateActivity={handleUpdateActivity} onOpenPowerMode={() => setIsPowerModeOpen(true)}
                       onOpenObjectionHandler={() => setIsObjectionHandlerOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}
                       selectedDate={selectedInputDate} onDateChange={setSelectedInputDate} commercialMonthStartDay={settings.commercialMonthStartDay}
