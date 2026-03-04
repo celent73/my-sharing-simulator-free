@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, supabaseUrl, supabaseStateless } from './utils/supabaseClient';
 import { PlanInput, CondoInput, ViewMode } from './types';
 import { useCompensationPlan } from './hooks/useSimulation';
@@ -35,7 +36,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.2.60";
+const APP_VERSION = "v1.2.61";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -56,6 +57,7 @@ import HeaderMenu from './components/HeaderMenu';
 import { DesktopHeaderNav } from './components/DesktopHeaderNav'; // Import Navigation
 import BottomDock from './components/BottomDock';
 import PaletteSelector from './components/PaletteSelector';
+import SplashScreen from './components/SplashScreen';
 
 import { ModalProvider, useModalDispatch } from './contexts/ModalContext';
 import ModalManager from './components/ModalManager';
@@ -111,6 +113,7 @@ const AppContent = () => {
   const [isPremium, setIsPremium] = useState(true);
 
   const [mobileTab, setMobileTab] = useState<'input' | 'results'>('input'); // NEW STATE FOR MOBILE SWIPE
+  const [showSplash, setShowSplash] = useState(true);
 
   // --- DASHBOARD TUTORIAL STATE ---
   const [showDashboardTutorial, setShowDashboardTutorial] = useState(false);
@@ -566,6 +569,10 @@ const AppContent = () => {
 
   return (
     <div className={`min-h-screen bg-white dark:bg-black text-gray-800 dark:text-gray-200 transition-colors duration-300 relative flex flex-col overflow-x-hidden`}>
+      <AnimatePresence mode="wait">
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      </AnimatePresence>
+
       <BackgroundMesh />
 
       {/* SHARY UI */}
