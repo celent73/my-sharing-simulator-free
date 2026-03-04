@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
 import { formatItalianDate, getCommercialMonthString, getDaysUntilCommercialMonthEnd, getCommercialMonthProgress } from '../utils/dateUtils';
+import LeadCaptureModal from './LeadCaptureModal';
+import AppointmentsOverviewModal from './AppointmentsOverviewModal';
 import HistoryListModal from './HistoryListModal';
 import {
     Plus,
@@ -13,7 +16,8 @@ import {
     Mic,
     ShieldCheck,
     Star,
-    Calculator
+    Calculator,
+    ListChecks
 } from 'lucide-react';
 
 import { CareerStatusInfo } from '../utils/careerUtils';
@@ -101,8 +105,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     isHubMode = false,
     careerStatus
 }) => {
+    const { user } = useAuth();
     const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ActivityType | null>(null);
     const [targetDates, setTargetDates] = useState<Record<string, string>>({});
+    const [isAppointmentsOverviewOpen, setIsAppointmentsOverviewOpen] = useState(false);
 
     React.useEffect(() => {
         if (!isHubMode) return;
@@ -342,12 +348,23 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                 {activityIcons[activity]}
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={(e) => handlePlusClick(e, activity)}
-                                            className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-lg hover:shadow-xl transition-all active:scale-95 group-hover:scale-110`}
-                                        >
-                                            <Plus className="w-6 h-6 lg:w-8 lg:h-8 drop-shadow-md" strokeWidth={3} />
-                                        </button>
+                                        <div className="flex gap-2">
+                                            {activity === ActivityType.APPOINTMENTS && (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setIsAppointmentsOverviewOpen(true); }}
+                                                    className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-slate-500 hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 shadow-sm hover:shadow-lg transition-all active:scale-95`}
+                                                    title="Vedi appuntamenti"
+                                                >
+                                                    <ListChecks className="w-5 h-5 lg:w-7 lg:h-7" strokeWidth={2.5} />
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={(e) => handlePlusClick(e, activity)}
+                                                className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-lg hover:shadow-xl transition-all active:scale-95 group-hover:scale-110`}
+                                            >
+                                                <Plus className="w-6 h-6 lg:w-8 lg:h-8 drop-shadow-md" strokeWidth={3} />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div>
@@ -392,6 +409,12 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 activityType={selectedActivityForDetails}
                 activityLog={currentLog}
                 customLabel={selectedActivityForDetails ? (customLabels?.[selectedActivityForDetails] || ACTIVITY_LABELS[selectedActivityForDetails]) : ''}
+            />
+
+            <AppointmentsOverviewModal
+                isOpen={isAppointmentsOverviewOpen}
+                onClose={() => setIsAppointmentsOverviewOpen(false)}
+                userId={user?.id || ''}
             />
         </div>
     );
