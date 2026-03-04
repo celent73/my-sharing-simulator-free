@@ -49,7 +49,7 @@ const DetailedGuideModal: React.FC<DetailedGuideModalProps> = ({ isOpen, onClose
 
   const steps = [
     {
-      title: "Benvenuto in My Sharing Simulator 🚀",
+      title: "Benvenuto in Daily Chek 🚀",
       content: (
         <div className="space-y-4">
           <p className="text-lg text-slate-600 dark:text-slate-300">
@@ -57,7 +57,7 @@ const DetailedGuideModal: React.FC<DetailedGuideModalProps> = ({ isOpen, onClose
           </p>
           <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
             <p className="font-semibold text-blue-800 dark:text-blue-200">
-              💡 Cos'è My Sharing Simulator?
+              💡 Cos'è Daily Chek?
             </p>
             <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
               Un'app intuitiva per tracciare contatti, appuntamenti e contratti, analizzare le performance e scalare la tua carriera.

@@ -397,7 +397,7 @@ const DetailedGuideModal: React.FC<DetailedGuideModalProps> = ({ isOpen, onClose
                         </div>
 
                         <div className="text-center text-xs text-gray-400 pt-10 border-t">
-                            My Sharing Simulator - Guida PDF generate automatically
+                            Daily Chek - Guida PDF generate automatically
                         </div>
                     </div>
                 </div>

@@ -15,7 +15,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     isOpen,
     onClose,
     onSuccess,
-    title = "Accedi a My Sharing Simulator",
+    title = "Accedi a Daily Chek",
     subtitle = "Inserisci la tua email per sincronizzare i tuoi obiettivi nel cloud in modo sicuro."
 }) => {
     const [email, setEmail] = useState('');

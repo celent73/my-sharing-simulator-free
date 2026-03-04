@@ -41,7 +41,7 @@ export const DesktopHeaderNav: React.FC<DesktopHeaderNavProps> = ({
                     <CalendarCheck className="w-6 h-6" />
                 </div>
                 <span className="text-[10px] font-bold leading-none text-union-green-400 flex items-center gap-1 uppercase tracking-tighter">
-                    My Sharing Simulator
+                    Daily Chek
                 </span>
             </button>
 

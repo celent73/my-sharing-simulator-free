@@ -77,7 +77,7 @@ const BottomDock: React.FC<BottomDockProps> = ({
                 >
                     <div className="group-hover:scale-110 transition-transform flex flex-col items-center">
                         <CalendarCheck className="w-7 h-7 text-union-green-400 [.theme-union-colors_&]:!text-white" />
-                        <span className="text-[7px] font-black uppercase tracking-tighter text-union-green-400 mt-0.5">My Sharing Simulator</span>
+                        <span className="text-[7px] font-black uppercase tracking-tighter text-union-green-400 mt-0.5">Daily Chek</span>
                     </div>
                 </button>
 

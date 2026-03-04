@@ -17,7 +17,7 @@ const LegalFooter: React.FC<LegalFooterProps> = ({ onOpenLegal }) => {
           {/* Copyright e Versione */}
           <div className="text-left">
             <p className="font-semibold text-white">
-              Tutti i diritti riservati © {new Date().getFullYear()} - My Sharing Simulator v1.2.59
+              Tutti i diritti riservati © {new Date().getFullYear()} - Daily Chek v1.2.59
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
               Applicazione indipendente non affiliata o sponsorizzata da terze parti.

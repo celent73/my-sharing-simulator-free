@@ -246,7 +246,7 @@ export const CashbackFocusMode: React.FC<CashbackFocusModeProps> = ({ isOpen, on
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     files: [file],
-                    title: 'My Sharing Simulator Focus Mode',
+                    title: 'Daily Chek Focus Mode',
                     text: `Guarda il mio potenziale risparmio con ${selectedBrand?.name}!`,
                 });
             } else {
