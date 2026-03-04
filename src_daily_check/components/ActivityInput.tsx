@@ -345,8 +345,8 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                             <div key={activity} className={`group relative bg-white dark:bg-slate-900 border ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-md ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-lg`}>
                                 <div className="flex flex-col h-full justify-between gap-6">
                                     <div className="flex justify-between items-start">
-                                        <div className={`h-12 w-12 ${isHubMode ? 'lg:h-16 lg:w-16' : 'lg:h-14 lg:w-14'} rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
-                                            <div className={isHubMode ? "scale-110 lg:scale-125" : "scale-100 lg:scale-110"}>
+                                        <div className={`h-10 w-10 ${isHubMode ? 'lg:h-12 lg:w-12' : 'lg:h-12 lg:w-12'} rounded-xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
+                                            <div className={isHubMode ? "scale-90 lg:scale-100" : "scale-90 lg:scale-95"}>
                                                 {activityIcons[activity]}
                                             </div>
                                         </div>
