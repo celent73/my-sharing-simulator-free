@@ -24,8 +24,12 @@ const BottomDock: React.FC<BottomDockProps> = ({
     useEffect(() => {
         let lastScrollY = window.scrollY;
 
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
+        const handleScroll = (e: any) => {
+            const target = e.target === document ? window : e.target;
+            const currentScrollY = target.scrollY !== undefined ? target.scrollY : target.scrollTop;
+
+            if (currentScrollY === undefined) return;
+
             if (currentScrollY < lastScrollY || currentScrollY < 50) {
                 setIsVisible(true);
             } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
@@ -40,14 +44,15 @@ const BottomDock: React.FC<BottomDockProps> = ({
             }
         };
 
-        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
         window.addEventListener('control-bottom-dock', handleCustomControl);
 
         return () => {
-            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('scroll', handleScroll, { capture: true } as any);
             window.removeEventListener('control-bottom-dock', handleCustomControl);
         };
     }, []);
+
 
     // Helper for button classes
     const getButtonClass = (isActive: boolean) => `

@@ -15,7 +15,6 @@ import { checkAndUnlockAchievements } from './utils/achievements';
 import ResetGoalsModal from './components/ResetGoalsModal';
 import PaywallModal from './components/PaywallModal';
 import AchievementsModal from './components/AchievementsModal';
-import PowerMode from './components/PowerMode';
 import ObjectionHandler from './components/ObjectionHandler';
 import SocialShareModal from './components/SocialShareModal';
 import MonthlyReportModal from './components/MonthlyReportModal';
@@ -35,17 +34,13 @@ import TeamLeaderboardModal from './components/TeamLeaderboardModal';
 import CareerPathModal from './components/CareerPathModal';
 import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  UserCircle as UserCircleIcon,
-  Target as TargetIcon,
-  Tag as TagIcon,
-  Eye as EyeIcon
-} from 'lucide-react';
+import { ChevronRight, Calendar, User, Zap, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, Target, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthModal from './components/AuthModal';
 import { supabase } from './supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
+import BackgroundMesh from '../components/BackgroundMesh';
 
 const DEFAULT_SETTINGS: AppSettings = {
   userProfile: {
@@ -138,6 +133,46 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   ], []);
 
   useEffect(() => {
+    const handleScroll = (e: any) => {
+      const target = e.target === document ? window : e.target;
+      const currentScrollY = target.scrollY !== undefined ? target.scrollY : target.scrollTop;
+      if (currentScrollY !== undefined) {
+        setShowBackToTop(currentScrollY > 300);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true } as any);
+  }, []);
+
+  const handleScrollToTop = () => {
+    const anchor = document.getElementById('top-anchor');
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const scrollContainer = document.getElementById('main-scroll-container');
+    if (scrollContainer) {
+      try {
+        scrollContainer.scroll({ top: 0, left: 0, behavior: 'smooth' });
+      } catch (e) {
+        scrollContainer.scrollTop = 0;
+      }
+      setTimeout(() => {
+        if (scrollContainer) scrollContainer.scrollTop = 0;
+      }, 100);
+      setTimeout(() => {
+        if (scrollContainer) scrollContainer.scrollTop = 0;
+      }, 300);
+    }
+    try {
+      window.scroll({ top: 0, left: 0, behavior: 'smooth' });
+    } catch (e) {
+      window.scrollTo(0, 0);
+    }
+    document.documentElement.scrollTop = 0;
+  };
+
+  useEffect(() => {
     if (!authLoading && !isInitializing) {
       if (Object.keys(careerDates).length > 0) {
         try {
@@ -176,6 +211,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'goals' | 'labels' | 'notifications'>('profile');
   const [isDeleteDataModalOpen, setDeleteDataModalOpen] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
   const [isPaywallModalOpen, setIsPaywallModalOpen] = useState(false);
   const [isAchievementsModalOpen, setAchievementsModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
@@ -185,7 +222,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const [isTargetCalculatorModalOpen, setIsTargetCalculatorModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCareerPathModalOpen, setIsCareerPathModalOpen] = useState(false);
-  const [isPowerModeOpen, setIsPowerModeOpen] = useState(false);
   const [isObjectionHandlerOpen, setIsObjectionHandlerOpen] = useState(false);
   const [isSocialShareModalOpen, setIsSocialShareModalOpen] = useState(false);
   const [isContractSelectorModalOpen, setIsContractSelectorModalOpen] = useState(false);
@@ -513,10 +549,11 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         {notifications.map(n => <NotificationItem key={n.id} notification={n} onClose={() => removeNotification(n.id)} />)}
       </div>
 
-      <div className="flex h-screen bg-slate-950 overflow-hidden text-slate-100">
+      <div className="relative w-full h-full flex bg-slate-50 dark:bg-black overflow-hidden text-slate-900 dark:text-slate-100 transition-colors duration-500">
+        <BackgroundMesh />
         <FocusNavigation activeView={activeView} onViewChange={setActiveView} />
 
-        <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 lg:pl-20">
+        <div className="flex-1 flex flex-col h-full min-w-0 transition-all duration-500 lg:pl-20 relative">
           <Header
             userProfile={settings.userProfile}
             onOpenSettings={() => handleOpenSettings()}
@@ -537,18 +574,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
             onCloseApp={activeView === 'settings' ? () => setActiveView('today') : onClose}
           />
 
-          <main id="main-scroll-container" className="flex-1 relative overflow-y-auto overflow-x-hidden scroll-smooth">
-            {/* Animated Background Mesh */}
-            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-950">
-              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
-              <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] animate-pulse-slow animation-delay-2000"></div>
-            </div>
+          <main id="main-scroll-container" className="flex-1 relative overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar">
+            <div id="top-anchor" className="absolute top-0 left-0 w-full h-[1px] pointer-events-none" />
+            {/* Animated Background Mesh removed from here, now global */}
 
             <div className="relative z-10 w-full min-h-full">
               <AnimatePresence mode="wait">
                 {activeView === 'today' && (
                   <motion.div key="today" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
-                    className="flex flex-col gap-12 max-w-screen-2xl mx-auto py-12 lg:py-20 px-4 sm:px-8 lg:px-12"
+                    className="flex flex-col gap-12 max-w-screen-2xl mx-auto py-12 lg:py-20 px-4 sm:px-8 lg:px-12 pb-32 md:pb-12"
                   >
                     <Dashboard activityLogs={activityLogs} goals={settings.goals} userProfile={settings.userProfile}
                       onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
@@ -567,7 +601,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                     <ActivityInput
                       activityLogs={activityLogs}
                       todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}
-                      onUpdateActivity={handleUpdateActivity} onOpenPowerMode={() => setIsPowerModeOpen(true)}
+                      onUpdateActivity={handleUpdateActivity}
                       onOpenObjectionHandler={() => setIsObjectionHandlerOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}
                       selectedDate={selectedInputDate} onDateChange={setSelectedInputDate} commercialMonthStartDay={settings.commercialMonthStartDay}
                       customLabels={effectiveCustomLabels} dailyEarnings={dailyEarnings} monthlyEarnings={monthlyEarnings}
@@ -618,24 +652,24 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                   <motion.div key="settings" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
                     className="max-w-4xl mx-auto py-12 px-6 lg:px-12"
                   >
-                    <div className="bg-white/5 backdrop-blur-3xl rounded-[3.5rem] p-10 lg:p-20 border border-white/10 shadow-3xl">
-                      <h2 className="text-5xl font-black text-white mb-12 tracking-tight">Impostazioni</h2>
+                    <div className="bg-white/70 dark:bg-white/5 backdrop-blur-3xl rounded-[3.5rem] p-10 lg:p-20 border border-slate-300 dark:border-white/20 shadow-3xl">
+                      <h2 className="text-5xl font-black text-slate-900 dark:text-white mb-12 tracking-tight">Impostazioni</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <button onClick={() => handleOpenSettings('profile')} className="group p-8 bg-white/5 hover:bg-white/10 rounded-[2.5rem] border border-white/5 transition-all flex flex-col gap-4 text-left">
+                        <button onClick={() => handleOpenSettings('profile')} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
                           <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><UserCircleIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-white">Profilo</h3><p className="text-slate-400">Personalizza il tuo nome e ruolo.</p></div>
+                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Profilo</h3><p className="text-slate-500 dark:text-slate-400 font-medium">Personalizza il tuo nome e ruolo.</p></div>
                         </button>
-                        <button onClick={() => handleOpenSettings('goals')} className="group p-8 bg-white/5 hover:bg-white/10 rounded-[2.5rem] border border-white/5 transition-all flex flex-col gap-4 text-left">
+                        <button onClick={() => handleOpenSettings('goals')} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
                           <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><TargetIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-white">Obiettivi</h3><p className="text-slate-400">Imposta i tuoi target giornalieri.</p></div>
+                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Obiettivi</h3><p className="text-slate-500 dark:text-slate-400 font-medium">Imposta i tuoi target giornalieri.</p></div>
                         </button>
-                        <button onClick={() => handleOpenSettings('labels')} className="group p-8 bg-white/5 hover:bg-white/10 rounded-[2.5rem] border border-white/5 transition-all flex flex-col gap-4 text-left">
+                        <button onClick={() => handleOpenSettings('labels')} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
                           <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><TagIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-white">Etichette</h3><p className="text-slate-400">Personalizza i nomi delle attività.</p></div>
+                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Etichette</h3><p className="text-slate-500 dark:text-slate-400 font-medium">Personalizza i nomi delle attività.</p></div>
                         </button>
-                        <button onClick={() => setIsVisionBoardModalOpen(true)} className="group p-8 bg-white/5 hover:bg-white/10 rounded-[2.5rem] border border-white/5 transition-all flex flex-col gap-4 text-left">
+                        <button onClick={() => setIsVisionBoardModalOpen(true)} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
                           <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><EyeIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-white">Vision Board</h3><p className="text-slate-400">I tuoi sogni e premi personali.</p></div>
+                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Vision Board</h3><p className="text-slate-500 dark:text-slate-400 font-medium">I tuoi sogni e premi personali.</p></div>
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
@@ -648,6 +682,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
               </AnimatePresence>
             </div>
           </main>
+
+          <button
+            onClick={handleScrollToTop}
+            className={`fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-[99999] flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 ${showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}
+            style={{ position: 'fixed', right: '1.5rem', bottom: '6rem' }}
+            aria-label="Salita Veloce"
+          >
+            <Zap className="w-6 h-6 fill-current" />
+          </button>
         </div>
       </div>
 
@@ -685,7 +728,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       <TargetCalculatorModal isOpen={isTargetCalculatorModalOpen} onClose={() => setIsTargetCalculatorModalOpen(false)} currentEarnings={monthlyEarnings} commercialMonthStartDay={settings.commercialMonthStartDay} userStatus={settings.userProfile.commissionStatus} />
       <DetailedGuideModal isOpen={isGuideModalOpen} onClose={() => setIsGuideModalOpen(false)} />
       <TeamLeaderboardModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} activityLogs={activityLogs} userName={`${settings.userProfile.firstName} ${settings.userProfile.lastName}`} commercialStartDay={settings.commercialMonthStartDay} />
-      <PowerMode isOpen={isPowerModeOpen} onClose={() => setIsPowerModeOpen(false)} onLogContact={() => handleUpdateActivity(ActivityType.CONTACTS, 1)} />
       <ObjectionHandler isOpen={isObjectionHandlerOpen} onClose={() => setIsObjectionHandlerOpen(false)} />
       <VoiceSpeedMode isOpen={isVoiceModeOpen} onClose={() => setIsVoiceModeOpen(false)} onUpdateActivity={(activity, count) => handleUpdateActivity(activity, count)} />
       <SocialShareModal isOpen={isSocialShareModalOpen} onClose={() => setIsSocialShareModalOpen(false)} todayCounts={selectedDateLog?.counts || {}} userProfile={settings.userProfile} customLabels={effectiveCustomLabels} />

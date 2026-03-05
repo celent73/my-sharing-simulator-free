@@ -131,8 +131,8 @@ const Header: React.FC<HeaderProps> = ({
     }, []);
 
     return (
-        <header className="bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 transition-all duration-500 border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.2)] pt-safe">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between relative z-10">
+        <header className="flex flex-col gap-4 mb-4 sm:mb-8 mx-4 mt-4 rounded-[2.5rem] p-6 border border-white/10 shadow-[0_32px_80px_0_rgba(0,0,0,0.8)] transition-all duration-500 relative z-50 bg-[#1c1c1e]">
+            <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10">
 
                 <div className="flex items-center gap-3 sm:gap-4">
                     <StreakBadge count={streak} />
@@ -141,14 +141,14 @@ const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center gap-2 sm:gap-3">
                     <InstallButton />
 
-                    <div className={`flex gap-1 bg-white/5 rounded-2xl p-1 backdrop-blur-xl border border-white/10 shadow-inner transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0 pointer-events-none'}`}>
-                        <button onClick={toggleTheme} className="p-2 sm:p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-sm transition-all" aria-label="Tema">
+                    <div className={`flex gap-1 transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0 pointer-events-none'}`}>
+                        <button onClick={toggleTheme} className="p-2 sm:p-2.5 rounded-xl text-white hover:bg-white/10 hover:shadow-sm transition-all" aria-label="Tema">
                             {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
                         </button>
-                        <button onClick={onOpenGuide} className="p-2 sm:p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-sm transition-all" aria-label="Guida">
+                        <button onClick={onOpenGuide} className="p-2 sm:p-2.5 rounded-xl text-white hover:bg-white/10 hover:shadow-sm transition-all" aria-label="Guida">
                             <QuestionMarkIcon />
                         </button>
-                        <button onClick={onOpenMonthlyReport} className="p-2 sm:p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-sm transition-all" aria-label="Report">
+                        <button onClick={onOpenMonthlyReport} className="p-2 sm:p-2.5 rounded-xl text-white hover:bg-white/10 hover:shadow-sm transition-all" aria-label="Report">
                             <DocumentIcon />
                         </button>
                         <button onClick={onOpenDeleteDataModal} className="p-2 sm:p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:shadow-sm transition-all" aria-label="Cancella Dati">

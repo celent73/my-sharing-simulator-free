@@ -28,7 +28,6 @@ interface ActivityInputProps {
     currentLog?: ActivityLog;
     monthTotals?: { [key in ActivityType]?: number };
     onUpdateActivity: (activity: ActivityType, change: number, dateStr: string, contractType?: ContractType) => void;
-    onOpenPowerMode: () => void;
     onOpenObjectionHandler: () => void;
     onOpenSocialShare: () => void;
     selectedDate: Date;
@@ -92,7 +91,6 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     todayCounts = {},
     currentLog,
     onUpdateActivity,
-    onOpenPowerMode,
     onOpenObjectionHandler,
     selectedDate,
     onDateChange,
@@ -110,6 +108,41 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     careerStatus
 }) => {
     const { user } = useAuth();
+    const [isFooterVisible, setIsFooterVisible] = React.useState(true);
+
+    const handleScrollToTop = () => {
+        const scrollContainer = document.getElementById('main-scroll-container');
+        if (scrollContainer) {
+            scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        // Fallback for older browsers
+        setTimeout(() => {
+            if (scrollContainer && scrollContainer.scrollTop > 0) {
+                scrollContainer.scrollTop = 0;
+            }
+        }, 300);
+    };
+
+    React.useEffect(() => {
+        const scrollContainer = document.getElementById('main-scroll-container');
+        if (!scrollContainer) return;
+
+        let lastScrollY = scrollContainer.scrollTop;
+        const handleScroll = () => {
+            const currentScrollY = scrollContainer.scrollTop;
+            if (currentScrollY < lastScrollY || currentScrollY < 50) {
+                setIsFooterVisible(true);
+            } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                setIsFooterVisible(false);
+            }
+            lastScrollY = currentScrollY;
+        };
+        scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+        return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }, []);
+
     const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ActivityType | null>(null);
     const [targetDates, setTargetDates] = useState<Record<string, string>>({});
     const [isAppointmentsOverviewOpen, setIsAppointmentsOverviewOpen] = useState(false);
@@ -208,63 +241,61 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     return (
         <div className={`transition-all duration-500 ${isHubMode ? 'scale-100' : ''}`}>
             {/* Date Navigator Pill — always visible */}
-            {(
-                <div className="mb-8 flex flex-col items-center">
-                    <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2rem] shadow-md border border-slate-100 dark:border-slate-800 px-4 py-4">
-                        {/* Row: < Date OGGI > */}
-                        <div className="flex items-center justify-between gap-2">
-                            <button
-                                onClick={() => changeDate(-1)}
-                                className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
-                            >
-                                <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
-                            </button>
+            <div className="mb-8 flex flex-col items-center">
+                <div className="w-full max-w-sm bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-700 px-4 py-4">
+                    {/* Row: < Date OGGI > */}
+                    <div className="flex items-center justify-between gap-2">
+                        <button
+                            onClick={() => changeDate(-1)}
+                            className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
+                        >
+                            <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
+                        </button>
 
-                            <div className="flex items-center gap-2 flex-1 justify-center">
-                                <span className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
-                                    {selectedDateFormatted}
+                        <div className="flex items-center gap-2 flex-1 justify-center">
+                            <span className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                                {selectedDateFormatted}
+                            </span>
+                            {isToday ? (
+                                <span className="text-[10px] font-black uppercase tracking-widest bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full">
+                                    OGGI
                                 </span>
-                                {isToday ? (
-                                    <span className="text-[10px] font-black uppercase tracking-widest bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full">
-                                        OGGI
-                                    </span>
-                                ) : (
-                                    <button
-                                        onClick={() => onDateChange(new Date())}
-                                        className="text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-blue-100 hover:text-blue-600 px-2.5 py-1 rounded-full transition-all"
-                                    >
-                                        OGGI
-                                    </button>
-                                )}
-                            </div>
-
-                            <button
-                                onClick={() => changeDate(1)}
-                                className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
-                            >
-                                <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
-                            </button>
+                            ) : (
+                                <button
+                                    onClick={() => onDateChange(new Date())}
+                                    className="text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-blue-100 hover:text-blue-600 px-2.5 py-1 rounded-full transition-all"
+                                >
+                                    OGGI
+                                </button>
+                            )}
                         </div>
 
-                        {/* Row: CAMBIA DATA */}
-                        <div className="mt-3 flex justify-center">
-                            <button
-                                onClick={onOpenCalendar}
-                                className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-500 transition-colors"
-                            >
-                                <Calendar className="w-3.5 h-3.5" />
-                                CAMBIA DATA
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => changeDate(1)}
+                            className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
+                        >
+                            <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
+                        </button>
                     </div>
 
-                    {/* Commercial month info below pill */}
-                    <div className="flex items-center gap-3 mt-2 text-xs font-medium">
-                        <span className="px-2 py-0.5 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300">{commercialMonthStr}</span>
-                        <span className="font-bold text-orange-500 dark:text-orange-400">{daysRemaining} gg alla fine mese</span>
+                    {/* Row: CAMBIA DATA */}
+                    <div className="mt-3 flex justify-center">
+                        <button
+                            onClick={onOpenCalendar}
+                            className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-500 transition-colors"
+                        >
+                            <Calendar className="w-3.5 h-3.5" />
+                            CAMBIA DATA
+                        </button>
                     </div>
                 </div>
-            )}
+
+                {/* Commercial month info below pill */}
+                <div className="flex items-center gap-3 mt-2 text-xs font-medium">
+                    <span className="px-2 py-0.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300">{commercialMonthStr}</span>
+                    <span className="font-bold text-orange-500 dark:text-orange-400">{daysRemaining} gg alla fine mese</span>
+                </div>
+            </div>
 
             {/* MAIN HUB STAGE */}
             <div className={`relative ${isHubMode ? 'flex flex-col items-center justify-center' : ''}`}>
@@ -273,10 +304,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 {isHubMode && (
                     <div className="mb-16 relative group">
                         <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700"></div>
-                        <div className="relative w-64 h-64 lg:w-80 lg:h-80 rounded-full border-[1.2rem] border-slate-200/20 dark:border-slate-800/50 flex items-center justify-center shadow-[inset_0_0_50px_rgba(0,0,0,0.1)]">
+                        <div className="relative w-64 h-64 lg:w-80 lg:h-80 rounded-full border-[1.5rem] border-slate-300/30 dark:border-slate-700/60 flex items-center justify-center shadow-[inset_0_0_60px_rgba(0,0,0,0.15)]">
                             <div className="text-center">
-                                <p className="text-[10px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Guadagno Oggi</p>
-                                <p className="text-4xl lg:text-6xl font-black text-slate-800 dark:text-white drop-shadow-sm">€{Math.round(dailyEarnings)}</p>
+                                <p className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Guadagno Oggi</p>
+                                <p className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white drop-shadow-sm">€{Math.round(dailyEarnings)}</p>
                                 <button
                                     onClick={onOpenTargetCalculator}
                                     className="mt-4 p-3 bg-white/5 dark:bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl transition-all active:scale-95 mx-auto"
@@ -284,14 +315,14 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                     <Calculator className="w-5 h-5 text-blue-500" />
                                 </button>
                                 <div className="mt-3 flex flex-col items-center gap-2">
-                                    <svg className="absolute inset-[-1.2rem] w-[calc(100%+2.4rem)] h-[calc(100%+2.4rem)] -rotate-90">
+                                    <svg className="absolute inset-[-1.5rem] w-[calc(100%+3rem)] h-[calc(100%+3rem)] -rotate-90">
                                         <circle
                                             cx="50%"
                                             cy="50%"
                                             r="48%"
                                             fill="transparent"
                                             stroke="url(#hubGradient)"
-                                            strokeWidth="1.2rem"
+                                            strokeWidth="1.5rem"
                                             strokeDasharray={`${Math.min(dailyEarnings / 10, 100) * 3} 1000`}
                                             strokeLinecap="round"
                                             className="drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-1000"
@@ -304,32 +335,30 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                         </defs>
                                     </svg>
                                 </div>
-                                {/* WARNING: removed from inside ring — now shown as full-width banner below */}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* DEADLINE BANNER — full width, outside the ring */}
-                {isHubMode && upcomingDeadline && (() => {
+                {/* Deadline Alert moved BELOW the ring for absolute visibility */}
+                {upcomingDeadline && (() => {
                     const { message, daysLeft } = upcomingDeadline;
-                    // Color scheme based on days remaining
                     const colors = daysLeft > 15
-                        ? { glow: 'from-emerald-500 to-green-400', bg: 'from-emerald-950/90 to-slate-900/90', border: 'border-emerald-500/40', shadow: 'rgba(16,185,129,0.25)', label: 'text-emerald-400', icon: '🟢', iconBg: 'bg-emerald-500/20 border-emerald-500/30' }
+                        ? { glow: 'from-emerald-500 to-green-400', bg: 'from-emerald-950/90 to-slate-900/90', border: 'border-emerald-500/40', shadow: 'rgba(16,185,129,0.25)', label: 'text-emerald-400', iconBg: 'bg-emerald-500/20 border-emerald-500/30', dot: 'bg-emerald-400' }
                         : daysLeft > 5
-                            ? { glow: 'from-yellow-500 to-amber-400', bg: 'from-yellow-950/90 to-slate-900/90', border: 'border-yellow-500/40', shadow: 'rgba(234,179,8,0.25)', label: 'text-yellow-400', icon: '🟡', iconBg: 'bg-yellow-500/20 border-yellow-500/30' }
-                            : { glow: 'from-red-600 to-orange-500', bg: 'from-red-950/90 to-slate-900/90', border: 'border-red-500/40', shadow: 'rgba(239,68,68,0.25)', label: 'text-red-400', icon: '🔴', iconBg: 'bg-red-500/20 border-red-500/30' };
+                            ? { glow: 'from-yellow-500 to-amber-400', bg: 'from-yellow-950/90 to-slate-900/90', border: 'border-yellow-500/40', shadow: 'rgba(234,179,8,0.4)', label: 'text-yellow-400', iconBg: 'bg-yellow-500/20 border-yellow-500/30', dot: 'bg-yellow-400' }
+                            : { glow: 'from-red-600 to-orange-500', bg: 'from-red-950/90 to-slate-900/90', border: 'border-red-500/40', shadow: 'rgba(239,68,68,0.25)', label: 'text-red-400', iconBg: 'bg-red-500/20 border-red-500/30', dot: 'bg-red-500' };
+
                     return (
-                        <div className="w-full max-w-2xl mx-auto mb-6 relative">
-                            <div className={`absolute -inset-[2px] rounded-2xl bg-gradient-to-r ${colors.glow} animate-pulse opacity-70 blur-[2px]`} />
-                            <div className={`relative flex items-center gap-4 bg-gradient-to-r ${colors.bg} backdrop-blur-xl border ${colors.border} rounded-2xl px-5 py-4`}
-                                style={{ boxShadow: `0 0 40px ${colors.shadow}` }}>
-                                <div className={`flex-shrink-0 w-10 h-10 ${colors.iconBg} rounded-xl flex items-center justify-center border`}>
-                                    <span className="text-xl">{colors.icon}</span>
+                        <div className="mb-12 relative animate-fade-in group z-20">
+                            <div className={`absolute -inset-[2px] rounded-2xl bg-gradient-to-r ${colors.glow} animate-pulse-slow opacity-80 blur-[6px]`} />
+                            <div className={`relative flex items-center gap-4 bg-gradient-to-r ${colors.bg} backdrop-blur-2xl border ${colors.border} rounded-2xl px-6 py-4 max-w-sm mx-auto shadow-[0_0_50px_${colors.shadow}]`}>
+                                <div className={`flex-shrink-0 w-12 h-12 ${colors.iconBg} rounded-xl flex items-center justify-center border border-white/10 shadow-inner`}>
+                                    <div className={`w-4 h-4 rounded-full ${colors.dot} shadow-[0_0_15px_${colors.shadow}] animate-pulse`} />
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className={`text-[10px] font-black ${colors.label} uppercase tracking-widest mb-0.5`}>Scadenza Carriera</p>
-                                    <p className="text-sm font-black text-white leading-snug">{message}</p>
+                                <div className="flex-1 text-left min-w-0">
+                                    <p className={`text-[10px] font-black ${colors.label} uppercase tracking-[0.2em] mb-1`}>SCADENZA CARRIERA</p>
+                                    <p className="text-sm lg:text-base font-black text-white leading-tight drop-shadow-sm">{message}</p>
                                 </div>
                             </div>
                         </div>
@@ -344,7 +373,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         const styles = CARD_STYLES[activity];
 
                         return (
-                            <div key={activity} className={`group relative bg-white dark:bg-slate-900 border ${styles.border} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-md ${styles.shadow} transition-all duration-500 hover:scale-[1.05] hover:shadow-lg`}>
+                            <div key={activity} className={`group relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200 dark:border-slate-700 ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none transition-all duration-500 hover:scale-[1.05] hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)]`}>
                                 <div className="flex flex-col h-full justify-between gap-6">
                                     <div className="flex justify-between items-start">
                                         <div className={`h-10 w-10 ${isHubMode ? 'lg:h-12 lg:w-12' : 'lg:h-12 lg:w-12'} rounded-xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
@@ -372,7 +401,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                     </div>
 
                                     <div>
-                                        <h3 className="text-[10px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
+                                        <h3 className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
                                         <div className="flex items-baseline gap-2">
                                             <span className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}>
                                                 {count}
@@ -402,10 +431,6 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 </div>
             </div>
 
-            {/* Quick Actions Footer - Removed */}
-            <div className={`mt-12 flex flex-wrap items-center justify-center gap-4 ${isHubMode ? 'opacity-80' : ''}`}>
-                {/* Buttons removed as requested */}
-            </div>
 
             <HistoryListModal
                 isOpen={!!selectedActivityForDetails}

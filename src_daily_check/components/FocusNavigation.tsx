@@ -74,7 +74,7 @@ export const FocusNavigation: React.FC<FocusNavigationProps> = ({ activeView, on
             </aside>
 
             {/* Mobile Floating Tab Bar (Bottom) */}
-            <nav className={`lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-16 bg-slate-900/95 backdrop-blur-3xl rounded-full border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[100] px-2 flex items-center justify-around transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-[200%] opacity-0 pointer-events-none'}`}>
+            <nav className={`lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-16 bg-[#1c1c1e] backdrop-blur-3xl rounded-full border border-white/10 shadow-[0_32px_80px_0_rgba(0,0,0,0.8)] z-[100] px-2 flex items-center justify-around transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-[200%] opacity-0 pointer-events-none'}`}>
                 {navItems.map((item) => (
                     <button
                         key={item.id}

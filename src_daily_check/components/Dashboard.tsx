@@ -338,21 +338,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Header e Selezione Vista */}
       <div className="relative z-10 flex flex-col items-start mb-10">
-        <h2 className="text-5xl font-black text-[#1c1c1e] dark:text-white tracking-tighter mb-1">Dashboard</h2>
-        <p className="text-lg font-medium text-[#8e8e93] dark:text-slate-400 mb-8">
+        <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">Dashboard</h2>
+        <p className="text-lg font-medium text-slate-500 dark:text-slate-400 mb-8">
           Analisi per{' '}
           {(userProfile.firstName || userProfile.lastName) && (
-            <span className="font-black text-[#1c1c1e] dark:text-white">
+            <span className="font-black text-slate-900 dark:text-white">
               {[userProfile.firstName, userProfile.lastName].filter(Boolean).join(' ')}
             </span>
           )}
         </p>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-6">
-          <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-[#e5e5ea] dark:border-slate-700">
-            <span className="text-[10px] font-black text-[#aeaeb2] uppercase tracking-[0.1em]">QUALIFICA:</span>
+          <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-700">
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.1em]">QUALIFICA:</span>
             <select
-              className="bg-transparent text-sm font-bold text-[#1c1c1e] dark:text-white outline-none cursor-pointer"
+              className="bg-transparent text-sm font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
               value={userProfile.currentQualification || ''}
               onChange={(e) => onUpdateQualification(e.target.value as Qualification)}
             >
@@ -401,7 +401,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           {!compactView && <GoalStatusReminder current={totalCurrent} goal={totalGoal} timeProgress={timeProgress} periodLabel={viewMode} />}
 
-          <div className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-6 lg:p-8 shadow-xl w-full max-w-5xl mx-auto ${compactView ? 'mb-0' : 'mb-8'}`}>
+          <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] p-6 lg:p-8 shadow-xl w-full max-w-5xl mx-auto ${compactView ? 'mb-0' : 'mb-8'}`}>
             <div className="flex flex-col gap-4 w-full">
               {(Object.values(ActivityType) as ActivityType[]).map((activity, index, array) => {
                 const current = totals[activity] || 0;
@@ -423,7 +423,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           </div>
                         </div>
                         <div className="flex flex-col">
-                          <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">{label}</h4>
+                          <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5">{label}</h4>
                           <div className="flex items-baseline gap-2">
                             <span className={`text-2xl font-black text-slate-800 dark:text-white leading-none`}>
                               {current}
