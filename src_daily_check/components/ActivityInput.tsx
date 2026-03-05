@@ -231,6 +231,8 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
             onOpenAppointmentModal('choice');
         } else if (activity === ActivityType.CONTACTS && onOpenLeadCapture) {
             onOpenLeadCapture(ActivityType.CONTACTS);
+        } else if (activity === ActivityType.NEW_FAMILY_UTILITY) {
+            onUpdateActivity(activity, 1, selectedDateStr);
         } else {
             onUpdateActivity(activity, 1, selectedDateStr);
         }

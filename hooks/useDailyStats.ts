@@ -5,7 +5,12 @@ import { calculateAggregateStats } from '../src_daily_check/utils/sessionUtils';
 import { supabase } from '../src_daily_check/supabaseClient';
 
 export const useDailyStats = () => {
-    const [stats, setStats] = useState({ contactToContractRate: 0, avgMonthlyContracts: 0 });
+    const [stats, setStats] = useState({
+        contactToContractRate: 0,
+        avgMonthlyContracts: 0,
+        newFamilyUtilityTotal: 0,
+        appointmentsTotal: 0
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

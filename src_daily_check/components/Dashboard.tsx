@@ -33,6 +33,8 @@ interface DashboardProps {
   onUpdateQualification: (q: Qualification) => void;
   compactView?: boolean;
   initialTab?: 'overview' | 'stats';
+  onOpenContractModal?: () => void;
+  onUpdateActivity: (activity: ActivityType, change: number) => void;
 }
 
 type ViewMode = 'daily' | 'weekly' | 'monthly' | 'commercial_monthly' | 'yearly' | 'custom';
@@ -112,7 +114,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   customLabels,
   onUpdateQualification,
   compactView = false,
-  initialTab = 'overview'
+  initialTab = 'overview',
+  onOpenContractModal,
+  onUpdateActivity
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
@@ -413,7 +417,16 @@ const Dashboard: React.FC<DashboardProps> = ({
 
                 return (
                   <React.Fragment key={activity}>
-                    <div className="group flex items-center justify-between gap-4 py-2 px-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl">
+                    <div
+                      onClick={() => {
+                        if (activity === ActivityType.NEW_CONTRACTS && onOpenContractModal) {
+                          onOpenContractModal();
+                        } else {
+                          onUpdateActivity(activity, 1);
+                        }
+                      }}
+                      className="group flex items-center justify-between gap-4 py-3 px-3 transition-all hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl cursor-pointer active:scale-[0.98]"
+                    >
 
                       {/* Sinistra: Icona, Titolo, Valore */}
                       <div className="flex items-center gap-4 flex-1">

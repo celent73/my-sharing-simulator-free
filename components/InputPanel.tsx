@@ -445,12 +445,22 @@ const InputPanel: React.FC<InputPanelProps> = ({
   // Sincronizzazione automatica se il ponte è attivo
   React.useEffect(() => {
     // Il ponte funziona solo se siamo in modalità Family Utility
-    if (useRealData && viewMode === 'family' && stats.contactToContractRate > 0) {
-      const totalUnitsThreshold = Math.round(plannedMonthlyActivity * stats.contactToContractRate);
-      onInputChange('myPersonalUnitsGreen', totalUnitsThreshold);
-      onInputChange('myPersonalUnitsLight', 0);
+    if (useRealData && viewMode === 'family') {
+      // 1. Sincronizzazione Utenze Personali
+      if (stats.contactToContractRate > 0) {
+        const totalUnitsThreshold = Math.round(plannedMonthlyActivity * stats.contactToContractRate);
+        onInputChange('myPersonalUnitsGreen', totalUnitsThreshold);
+        onInputChange('myPersonalUnitsLight', 0);
+      }
+
+      // 2. Sincronizzazione Reclutamento (Secondo Ponte)
+      // Se abbiamo reclutato partner nel periodo, impostiamo il target del simulatore
+      if (stats.newFamilyUtilityTotal > 0) {
+        // stats.newFamilyUtilityTotal è il totale degli ultimi 30 giorni (circa un mese)
+        onInputChange('directRecruits', Math.round(stats.newFamilyUtilityTotal));
+      }
     }
-  }, [useRealData, viewMode, plannedMonthlyActivity, stats.contactToContractRate]);
+  }, [useRealData, viewMode, plannedMonthlyActivity, stats.contactToContractRate, stats.newFamilyUtilityTotal]);
 
   // Reset ponte se cambiamo modalità (opzionale, ma consigliato per chiarezza)
   React.useEffect(() => {
@@ -593,35 +603,68 @@ const InputPanel: React.FC<InputPanelProps> = ({
                   initial={{ opacity: 0, height: 0, marginTop: 0 }}
                   animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
                   exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  className="relative z-20 overflow-hidden bg-blue-600/5 dark:bg-blue-500/10 rounded-[1.5rem] border border-blue-500/10 p-4 space-y-4"
+                  className="relative z-20 overflow-hidden bg-blue-600/5 dark:bg-blue-500/10 rounded-[1.5rem] border border-blue-500/10 p-4 space-y-5"
                 >
-                  <div className="flex justify-between items-center px-1">
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <Zap size={14} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Efficienza Reale:</span>
+                  {/* SEZIONE VENDITA PERSONALE */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center px-1">
+                      <div className="flex items-center gap-2 text-blue-600">
+                        <Zap size={14} className="animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Efficienza Vendita:</span>
+                      </div>
+                      <span className="text-sm font-black text-blue-600">{(stats.contactToContractRate * 100).toFixed(1)}%</span>
                     </div>
-                    <span className="text-sm font-black text-blue-600">{(stats.contactToContractRate * 100).toFixed(1)}%</span>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-black text-slate-400 px-1">
+                        <span className="uppercase tracking-tighter">CONTATTI / MESE</span>
+                        <span className="text-blue-600 text-sm font-black">{plannedMonthlyActivity}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="200"
+                        step="5"
+                        value={plannedMonthlyActivity}
+                        onChange={(e) => setPlannedMonthlyActivity(parseInt(e.target.value))}
+                        className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-[10px] font-black text-slate-400 px-1">
-                      <span className="uppercase tracking-tighter">CONTATTI / MESE</span>
-                      <span className="text-blue-600 text-sm font-black">{plannedMonthlyActivity}</span>
+                  {/* SEZIONE SVILUPPO RETE (SECONDO PONTE) */}
+                  <div className="pt-3 border-t border-blue-500/10 space-y-3">
+                    <div className="flex justify-between items-center px-1">
+                      <div className="flex items-center gap-2 text-purple-600">
+                        <Users size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Bravura Reclutamento:</span>
+                      </div>
+                      <span className="text-sm font-black text-purple-600">
+                        {/* Calcolo semplificato: partner reclutati / appuntamenti totali * 100 */}
+                        {stats.appointmentsTotal > 0 ? ((stats.newFamilyUtilityTotal / stats.appointmentsTotal) * 100).toFixed(1) : '0.0'}%
+                      </span>
                     </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="200"
-                      step="5"
-                      value={plannedMonthlyActivity}
-                      onChange={(e) => setPlannedMonthlyActivity(parseInt(e.target.value))}
-                      className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"
-                    />
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-black text-slate-400 px-1">
+                        <span className="uppercase tracking-tighter">TARGET RECLUTAMENTO / MESE</span>
+                        <span className="text-purple-600 text-sm font-black">{inputs.directRecruits} Partner (FU)</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value={inputs.directRecruits}
+                        onChange={(e) => onInputChange('directRecruits', parseInt(e.target.value))}
+                        className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-purple-500"
+                      />
+                    </div>
                   </div>
 
                   <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-blue-500/10 text-center">
                     <p className="text-[10px] lg:text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
-                      Produrrai circa <span className="text-blue-600 dark:text-blue-400 font-black text-sm lg:text-base">{Math.round(plannedMonthlyActivity * stats.contactToContractRate)}</span> utenze reali/mese
+                      Con questo ritmo produrrai <span className="text-blue-600 dark:text-blue-400 font-black text-sm">{Math.round(plannedMonthlyActivity * stats.contactToContractRate)}</span> utenze e recluterai <span className="text-purple-600 dark:text-purple-400 font-black text-sm">{inputs.directRecruits}</span> partner (FU) ogni mese.
                     </p>
                   </div>
                 </motion.div>

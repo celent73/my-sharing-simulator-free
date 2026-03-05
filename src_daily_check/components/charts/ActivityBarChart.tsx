@@ -48,18 +48,18 @@ const ActivityBarChart: React.FC<ActivityBarChartProps> = ({ data, customLabels 
         }}
       >
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-        <XAxis 
-          dataKey="name" 
-          stroke="#64748b" 
-          fontSize={12} 
-          tickLine={false} 
+        <XAxis
+          dataKey="name"
+          stroke="#64748b"
+          fontSize={12}
+          tickLine={false}
           axisLine={false}
         />
-        <YAxis 
-          stroke="#64748b" 
-          fontSize={12} 
-          tickLine={false} 
-          axisLine={false} 
+        <YAxis
+          stroke="#64748b"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
         />
         <Tooltip
           contentStyle={{

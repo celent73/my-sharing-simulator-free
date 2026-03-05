@@ -259,29 +259,47 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     setIsLeadCaptureModalOpen(true);
   };
 
-  const handleSaveLead = (leadData: { id?: string; name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string }) => {
+  const handleSaveLead = (leadData: { id?: string; name: string; phone: string; note: string; status?: 'pending' | 'won' | 'lost'; type?: ActivityType; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string }) => {
     let updatedLog: ActivityLog | null = null;
     let updatedAllLogs: ActivityLog[] | null = null;
 
     setActivityLogs(prevLogs => {
       const newLogs = [...prevLogs];
+      const dateStr = selectedInputDate.toISOString().split('T')[0];
 
       if (leadData.id) {
-        // EDIT MODE: Find the lead in any log
+        // EDIT MODE
         let found = false;
         for (let i = 0; i < newLogs.length; i++) {
           const log = newLogs[i];
           if (log.leads) {
             const leadIndex = log.leads.findIndex(l => l.id === leadData.id);
             if (leadIndex !== -1) {
+              const oldLead = log.leads[leadIndex];
               const updatedLeads = [...log.leads];
-              updatedLeads[leadIndex] = {
-                ...updatedLeads[leadIndex],
-                ...leadData as any
-              };
+              updatedLeads[leadIndex] = { ...oldLead, ...leadData as any };
               newLogs[i] = { ...log, leads: updatedLeads };
               updatedLog = newLogs[i];
               found = true;
+
+              // Se lo stato cambia in 'won' ora (era pending o lost prima)
+              if (leadData.status === 'won' && oldLead.status !== 'won') {
+                const targetActivity = leadData.type || ActivityType.NEW_CONTRACTS;
+                // Incrementiamo il contatore dell'attività corrispondente
+                newLogs[i].counts[targetActivity] = (newLogs[i].counts[targetActivity] || 0) + 1;
+
+                // AGGIUNTA: Se è un contratto, aggiorniamo anche i guadagni (contractDetails)
+                if (targetActivity === ActivityType.NEW_CONTRACTS) {
+                  if (!newLogs[i].contractDetails) newLogs[i].contractDetails = {};
+                  // Default a GREEN per ora affinché i guadagni si aggiornino
+                  newLogs[i].contractDetails![ContractType.GREEN] = (newLogs[i].contractDetails![ContractType.GREEN] || 0) + 1;
+
+                  // Automazione: se è un contratto vinto da lead, e vogliamo che sia Green, aggiungiamo anche FU
+                  newLogs[i].counts[ActivityType.NEW_FAMILY_UTILITY] = (newLogs[i].counts[ActivityType.NEW_FAMILY_UTILITY] || 0) + 1;
+                }
+
+                addNotification(`Grande! ${leadData.name} è ora un ${targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'Family Utility' : 'Cliente'}! 🚀`, 'success');
+              }
               break;
             }
           }
@@ -289,10 +307,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         if (!found) return prevLogs;
       } else {
         // CREATE MODE
-        const dateStr = selectedInputDate.toISOString().split('T')[0];
         const existingLogIndex = newLogs.findIndex(log => log.date === dateStr);
-
         let dateLog: ActivityLog;
+
         if (existingLogIndex >= 0) {
           dateLog = {
             ...newLogs[existingLogIndex],
@@ -305,23 +322,31 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
           newLogs.push(dateLog);
         }
 
-        dateLog.leads!.push({
+        const newLead = {
           id: Date.now().toString(),
           type: leadCaptureType,
           date: new Date().toISOString(),
-          status: 'pending' as const,
+          status: leadData.status || 'pending',
           ...leadData as any
-        });
+        };
 
-        const currentCount = dateLog.counts[leadCaptureType] || 0;
-        dateLog.counts[leadCaptureType] = currentCount + 1;
+        dateLog.leads!.push(newLead);
+
+        // Se creato direttamente come 'won' (raro ma possibile)
+        if (newLead.status === 'won') {
+          const targetActivity = leadData.type || ActivityType.NEW_CONTRACTS;
+          dateLog.counts[targetActivity] = (dateLog.counts[targetActivity] || 0) + 1;
+        } else {
+          // Incremento normale del contatore (contatto o appuntamento)
+          dateLog.counts[leadCaptureType] = (dateLog.counts[leadCaptureType] || 0) + 1;
+        }
+
         updatedLog = dateLog;
       }
 
       const sortedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
       updatedAllLogs = sortedLogs;
 
-      // SALVATAGGIO IMMEDIATO (SPOSTATO DENTRO PER SICUREZZA DI SCOPE)
       if (updatedLog) {
         saveLogForDate(userId, updatedLog, sortedLogs)
           .catch(err => {
@@ -336,7 +361,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
     setIsLeadCaptureModalOpen(false);
     setEditingLead(null);
-    addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} ${leadData.id ? 'aggiornato' : 'salvato'}! `, 'success');
+    if (!leadData.status || leadData.status !== 'won') {
+      addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} salvato! `, 'info');
+    }
   };
 
   const handleSaveSettings = (newSettings: AppSettings) => setSettings(newSettings);
@@ -443,19 +470,20 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       }
 
       updates.forEach(u => {
-        dateLog.counts[u.activity] = Math.max(0, (dateLog.counts[u.activity] || 0) + u.change);
+        // Regola Speciale: Se Azzeriamola Green -> Aggiunge anche un Family Utility
+        if (u.activity === ActivityType.NEW_CONTRACTS && u.contractType === ContractType.GREEN && u.change > 0) {
+          const currentFU = dateLog.counts[ActivityType.NEW_FAMILY_UTILITY] || 0;
+          dateLog.counts[ActivityType.NEW_FAMILY_UTILITY] = currentFU + u.change;
+        }
+
+        // Aggiornamento principale
+        const currentVal = dateLog.counts[u.activity] || 0;
+        dateLog.counts[u.activity] = Math.max(0, currentVal + u.change);
 
         if (u.contractType) {
           if (!dateLog.contractDetails) dateLog.contractDetails = {};
-          dateLog.contractDetails[u.contractType] = Math.max(0, (dateLog.contractDetails[u.contractType] || 0) + u.change);
-        } else if (u.activity === ActivityType.NEW_CONTRACTS && u.change < 0) {
-          if (dateLog.contractDetails) {
-            if ((dateLog.contractDetails[ContractType.LIGHT] || 0) > 0) {
-              dateLog.contractDetails[ContractType.LIGHT] = Math.max(0, dateLog.contractDetails[ContractType.LIGHT]! - 1);
-            } else if ((dateLog.contractDetails[ContractType.GREEN] || 0) > 0) {
-              dateLog.contractDetails[ContractType.GREEN] = Math.max(0, dateLog.contractDetails[ContractType.GREEN]! - 1);
-            }
-          }
+          const currentDetail = dateLog.contractDetails[u.contractType] || 0;
+          dateLog.contractDetails[u.contractType] = Math.max(0, currentDetail + u.change);
         }
       });
 
@@ -482,7 +510,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   };
 
   const handleContractSelection = (type: ContractType) => {
-    updateActivityLog([{ activity: ActivityType.NEW_CONTRACTS, change: 1, contractType: type }], getTodayDateString());
+    const dateStr = selectedInputDate.toISOString().split('T')[0];
+    updateActivityLog([{ activity: ActivityType.NEW_CONTRACTS, change: 1, contractType: type }], dateStr);
     setIsContractSelectorModalOpen(false);
   };
 
@@ -617,6 +646,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
                       customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
                       onEditLead={handleOpenLeadCapture}
+                      onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
+                      onUpdateActivity={handleUpdateActivity}
                       compactView={true} initialTab="overview"
                     />
                     {settings.visionBoard?.enabled && settings.visionBoard?.targetAmount > 0 && (
@@ -654,6 +685,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
                         customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
                         onEditLead={handleOpenLeadCapture}
+                        onUpdateActivity={handleUpdateActivity}
+                        onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
                         initialTab="stats"
                       />
                     </div>

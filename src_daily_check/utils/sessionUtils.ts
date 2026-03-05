@@ -76,9 +76,14 @@ export const calculateDailySessionStats = (todayLog: ActivityLog | undefined, go
     };
 };
 
-export const calculateAggregateStats = (logs: ActivityLog[]): { contactToContractRate: number; avgMonthlyContracts: number } => {
+export const calculateAggregateStats = (logs: ActivityLog[]): {
+    contactToContractRate: number;
+    avgMonthlyContracts: number;
+    newFamilyUtilityTotal: number;
+    appointmentsTotal: number;
+} => {
     if (!logs || logs.length === 0) {
-        return { contactToContractRate: 0, avgMonthlyContracts: 0 };
+        return { contactToContractRate: 0, avgMonthlyContracts: 0, newFamilyUtilityTotal: 0, appointmentsTotal: 0 };
     }
 
     // Prendiamo i log degli ultimi 30 giorni per una media recente
@@ -88,10 +93,14 @@ export const calculateAggregateStats = (logs: ActivityLog[]): { contactToContrac
 
     let totalContacts = 0;
     let totalContracts = 0;
+    let newFamilyUtilityTotal = 0;
+    let appointmentsTotal = 0;
 
     recentLogs.forEach(log => {
         totalContacts += log.counts[ActivityType.CONTACTS] || 0;
         totalContracts += log.counts[ActivityType.NEW_CONTRACTS] || 0;
+        newFamilyUtilityTotal += log.counts[ActivityType.NEW_FAMILY_UTILITY] || 0;
+        appointmentsTotal += log.counts[ActivityType.APPOINTMENTS] || 0;
     });
 
     const contactToContractRate = totalContacts > 0 ? (totalContracts / totalContacts) : 0;
@@ -103,6 +112,8 @@ export const calculateAggregateStats = (logs: ActivityLog[]): { contactToContrac
 
     return {
         contactToContractRate,
-        avgMonthlyContracts
+        avgMonthlyContracts,
+        newFamilyUtilityTotal,
+        appointmentsTotal
     };
 };
