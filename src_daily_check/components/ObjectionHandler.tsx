@@ -76,18 +76,19 @@ const ObjectionHandler: React.FC<ObjectionHandlerProps> = ({ isOpen, onClose }) 
                     </button>
                 </div>
 
-                {/* Search Bar */}
+                {/* Search Bar - Premium Style */}
                 <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
-                    <div className="relative">
+                    <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition-opacity" />
                         <input
                             type="text"
                             placeholder="Cerca obiezione (es. tempo, soldi...)"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="relative w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-sm focus:border-blue-500 outline-none transition-all dark:text-white"
                         />
-                        <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3.5 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
                 </div>

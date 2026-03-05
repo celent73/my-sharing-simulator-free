@@ -429,6 +429,25 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         );
                     })}
                 </div>
+
+                {/* Quick Actions / Tools Section */}
+                <div className="mt-12 flex flex-wrap justify-center gap-4">
+                    <button
+                        onClick={onOpenObjectionHandler}
+                        className="flex items-center gap-3 px-6 py-4 bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-2xl shadow-xl hover:bg-white/20 transition-all active:scale-95 group"
+                    >
+                        <ShieldCheck className="w-6 h-6 text-orange-500 group-hover:animate-bounce" />
+                        <span className="font-black text-xs uppercase tracking-widest text-slate-700 dark:text-white">Gestione Obiezioni</span>
+                    </button>
+
+                    <button
+                        onClick={onOpenVoiceMode}
+                        className="flex items-center gap-3 px-6 py-4 bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-2xl shadow-xl hover:bg-white/20 transition-all active:scale-95 group"
+                    >
+                        <Mic className="w-6 h-6 text-blue-500 group-hover:animate-pulse" />
+                        <span className="font-black text-xs uppercase tracking-widest text-slate-700 dark:text-white">Modalità Voce</span>
+                    </button>
+                </div>
             </div>
 
 
