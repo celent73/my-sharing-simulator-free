@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 
 // Importazioni base
-import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification } from '../types';
+import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead } from '../types';
 import {
   getWeekIdentifier,
   getMonthIdentifier,
@@ -19,12 +19,15 @@ import ActivityFocus from './ActivityFocus';
 import StatCard from './StatCard';
 import DateNavigator from './DateNavigator';
 import CareerStatus from './CareerStatus';
+import FollowUpWidget from './FollowUpWidget';
+import ConversionFunnel from './ConversionFunnel';
 
 interface DashboardProps {
   activityLogs: ActivityLog[] | undefined;
   goals: Goals;
   userProfile: UserProfile;
   onOpenAchievements: () => void;
+  onEditLead: (type: ActivityType, lead: Lead) => void;
   commercialMonthStartDay: number;
   customLabels?: Record<ActivityType, string>;
   onUpdateQualification: (q: Qualification) => void;
@@ -104,6 +107,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   goals,
   userProfile,
   onOpenAchievements,
+  onEditLead,
   commercialMonthStartDay,
   customLabels,
   onUpdateQualification,
@@ -391,7 +395,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Tab Riepilogo */}
       {currentTab === 'overview' && (
-        <div className="animate-fade-in relative z-10">
+        <div className="animate-fade-in relative z-10 w-full px-4">
+          {/* Follow-up Section */}
+          {!compactView && <FollowUpWidget activityLogs={activityLogs} onEditLead={onEditLead} />}
+
           {!compactView && <GoalStatusReminder current={totalCurrent} goal={totalGoal} timeProgress={timeProgress} periodLabel={viewMode} />}
 
           <div className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-6 lg:p-8 shadow-xl w-full max-w-5xl mx-auto ${compactView ? 'mb-0' : 'mb-8'}`}>
@@ -484,17 +491,31 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Tab Statistiche */}
       {currentTab === 'stats' && (
-        <div className="animate-fade-in relative z-10">
-          <h3 className="text-lg font-bold text-slate-700 dark:text-slate-100 mb-6 flex items-center gap-2"><span className="w-1 h-6 bg-purple-500 rounded-full"></span>Analisi Conversione ({periodLabel})</h3>
-          {conversionRates.totalContacts > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard icon={<FunnelIcon />} title="Contatto → Appuntamento" value={`${conversionRates.contactToAppointmentRate.toFixed(1)}%`} description={`${conversionRates.totalAppointments} appuntamenti su ${conversionRates.totalContacts}`} colorClass="text-blue-500" />
-              <StatCard icon={<HandshakeIcon />} title="Appuntamento → Contratto" value={`${conversionRates.appointmentToContractRate.toFixed(1)}%`} description={`${conversionRates.totalContracts} su ${conversionRates.totalAppointments}`} colorClass="text-emerald-500" />
-              <StatCard icon={<TargetIcon />} title="Chiusura Globale" value={`${conversionRates.overallConversionRate.toFixed(1)}%`} description="Totale contratti su contatti" colorClass="text-violet-500" />
+        <div className="animate-fade-in relative z-10 w-full px-4 flex flex-col items-center">
+          <div className="w-full max-w-5xl">
+            <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3">
+              <span className="w-1.5 h-8 bg-blue-500 rounded-full"></span>
+              IMBUTO DI CONVERSIONE
+            </h3>
+
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-6 lg:p-10 shadow-xl mb-10 overflow-hidden">
+              <ConversionFunnel data={totals} customLabels={customLabels} />
             </div>
-          ) : (
-            <div className="p-10 text-center text-slate-500 bg-[#e5e5ea] rounded-3xl border-2 border-dashed">Nessun dato sufficiente per le statistiche.</div>
-          )}
+
+            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-100 mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+              Analisi Dettagliata ({periodLabel})
+            </h3>
+            {conversionRates.totalContacts > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard icon={<FunnelIcon />} title="Contatto → Appuntamento" value={`${conversionRates.contactToAppointmentRate.toFixed(1)}%`} description={`${conversionRates.totalAppointments} appuntamenti su ${conversionRates.totalContacts}`} colorClass="text-blue-500" />
+                <StatCard icon={<HandshakeIcon />} title="Appuntamento → Contratto" value={`${conversionRates.appointmentToContractRate.toFixed(1)}%`} description={`${conversionRates.totalContracts} su ${conversionRates.totalAppointments}`} colorClass="text-emerald-500" />
+                <StatCard icon={<TargetIcon />} title="Chiusura Globale" value={`${conversionRates.overallConversionRate.toFixed(1)}%`} description="Totale contratti su contatti" colorClass="text-violet-500" />
+              </div>
+            ) : (
+              <div className="p-10 text-center text-slate-500 bg-[#e5e5ea] dark:bg-slate-800/50 rounded-3xl border-2 border-dashed border-[#e5e5ea] dark:border-slate-700">Nessun dato sufficiente per le statistiche.</div>
+            )}
+          </div>
         </div>
       )}
     </div>

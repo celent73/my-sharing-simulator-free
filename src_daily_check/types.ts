@@ -60,6 +60,7 @@ export interface Lead {
   locationType?: 'physical' | 'online';
   address?: string;
   platform?: string;
+  followUpDate?: string;
 }
 
 export type GoalPeriod = {

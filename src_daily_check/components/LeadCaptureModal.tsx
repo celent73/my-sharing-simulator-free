@@ -4,7 +4,7 @@ import { ActivityType, Lead } from '../types';
 interface LeadCaptureModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: { id?: string; name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string }) => void;
+    onSave: (data: { id?: string; name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string; followUpDate?: string }) => void;
     activityType: ActivityType;
     initialData?: Lead | null;
 }
@@ -25,6 +25,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [note, setNote] = useState('');
+    const [followUpDate, setFollowUpDate] = useState('');
 
     // Appointment-specific fields
     const [appointmentDate, setAppointmentDate] = useState('');
@@ -38,12 +39,13 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                 setName(initialData.name || '');
                 setPhone(initialData.phone || '');
                 setNote(initialData.note || '');
+                setFollowUpDate(initialData.followUpDate || '');
                 setAppointmentDate(initialData.appointmentDate || '');
                 setLocationType(initialData.locationType || 'online');
                 setAddress(initialData.address || '');
                 setPlatform(initialData.platform || 'zoom');
             } else {
-                setName(''); setPhone(''); setNote('');
+                setName(''); setPhone(''); setNote(''); setFollowUpDate('');
                 setAppointmentDate('');
                 setLocationType('online');
                 setAddress('');
@@ -60,6 +62,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
         onSave({
             id: initialData?.id,
             name, phone, note,
+            followUpDate: followUpDate || undefined,
             ...(isAppointment && {
                 appointmentDate,
                 locationType,
@@ -84,10 +87,10 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
     const calLinks = getCalendarLinks();
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md" onClick={onClose} />
 
-            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-scale-up max-h-[92vh] flex flex-col">
+            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden animate-scale-up max-h-[92vh] flex flex-col">
                 {/* Header */}
                 <div className={`p-5 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0 ${isAppointment ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
                     <div className={`h-12 w-12 rounded-2xl shadow-md flex items-center justify-center text-2xl bg-white dark:bg-slate-800`}>
@@ -184,6 +187,15 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                                 </div>
                             )}
                         </>
+                    )}
+
+                    {/* Follow-up Date */}
+                    {!isAppointment && (
+                        <div>
+                            <label className="block text-xs font-bold uppercase text-slate-400 mb-1.5">🚀 Prossimo Follow-up</label>
+                            <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)}
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white font-medium transition-all" />
+                        </div>
                     )}
 
                     {/* Note */}

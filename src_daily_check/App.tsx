@@ -553,6 +553,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                     <Dashboard activityLogs={activityLogs} goals={settings.goals} userProfile={settings.userProfile}
                       onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
                       customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
+                      onEditLead={handleOpenLeadCapture}
                       compactView={true} initialTab="overview"
                     />
                     {settings.visionBoard?.enabled && settings.visionBoard?.targetAmount > 0 && (
@@ -589,6 +590,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       <Dashboard activityLogs={activityLogs} goals={settings.goals} userProfile={settings.userProfile}
                         onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
                         customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
+                        onEditLead={handleOpenLeadCapture}
                         initialTab="stats"
                       />
                     </div>
@@ -637,7 +639,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>My Sharing Simulator v2.1.2</p>
+                        <p>My Sharing Simulator v2.1.3</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>
