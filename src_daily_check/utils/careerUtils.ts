@@ -134,3 +134,31 @@ export const calculateCareerStatus = (logs: ActivityLog[], overrideQualification
     isManualOverride
   };
 };
+
+export const predictQualificationDate = (logs: ActivityLog[], status: CareerStatusInfo): string | null => {
+  if (status.isMaxLevel || !status.nextLevel || status.isManualOverride) return null;
+
+  const targetClients = status.clientsForNextLevel;
+  const missingClients = targetClients - status.totalClients;
+
+  if (missingClients <= 0) return "Oggi!";
+
+  // Calcola la media giornaliera degli ultimi 30 giorni
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const relevantLogs = logs.filter(log => new Date(log.date) >= thirtyDaysAgo);
+  const totalNewInPeriod = relevantLogs.reduce((sum, log) => sum + (log.counts[ActivityType.NEW_CONTRACTS] || 0), 0);
+
+  // Usiamo il numero di log reali nel periodo per una media realistica
+  const daysInPeriod = Math.max(1, relevantLogs.length);
+  const dailyAverage = totalNewInPeriod / daysInPeriod;
+
+  if (dailyAverage <= 0) return null;
+
+  const daysToTarget = Math.ceil(missingClients / dailyAverage);
+  const estimatedDate = new Date();
+  estimatedDate.setDate(estimatedDate.getDate() + daysToTarget);
+
+  return estimatedDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+};

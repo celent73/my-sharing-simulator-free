@@ -17,7 +17,8 @@ interface HeaderProps {
     streak: number;
     onOpenTeamChallenge: () => void;
     onOpenCareerPath: () => void;
-    onCloseApp?: () => void; // Added here
+    onCloseApp?: () => void;
+    onOpenDailyRecap: () => void; // New prop
     // Auth Props
     isLoggedIn?: boolean;
     onLogin?: () => void;
@@ -108,6 +109,7 @@ const InstallButton = () => {
 const Header: React.FC<HeaderProps> = ({
     userProfile, onOpenSettings, onOpenDeleteDataModal, careerStatus, streak, isPremium, remainingTrialDays, onOpenPaywall, toggleTheme, currentTheme, onOpenMonthlyReport, onOpenGuide, onOpenTeamChallenge, onOpenCareerPath,
     onCloseApp,
+    onOpenDailyRecap, // Added here
     isLoggedIn, onLogin, onLogout
 }) => {
 
@@ -150,6 +152,11 @@ const Header: React.FC<HeaderProps> = ({
                         </button>
                         <button onClick={onOpenMonthlyReport} className="p-2 sm:p-2.5 rounded-xl text-white hover:bg-white/10 hover:shadow-sm transition-all" aria-label="Report">
                             <DocumentIcon />
+                        </button>
+                        <button onClick={onOpenDailyRecap} className="p-2 sm:p-2.5 rounded-xl text-blue-400 hover:bg-blue-500/10 hover:shadow-sm transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)] animate-pulse-slow" aria-label="Recap Sessione">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
                         </button>
                         <button onClick={onOpenDeleteDataModal} className="p-2 sm:p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:shadow-sm transition-all" aria-label="Cancella Dati">
                             <TrashIcon />

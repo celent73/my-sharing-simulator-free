@@ -6,6 +6,7 @@ interface PowerRingProps {
     size?: number;
     strokeWidth?: number;
     color?: string;
+    glowColor?: string;
     icon?: React.ReactNode;
 }
 
@@ -14,6 +15,7 @@ const PowerRing: React.FC<PowerRingProps> = ({
     size = 60,
     strokeWidth = 4,
     color = '#3b82f6',
+    glowColor = 'rgba(59, 130, 246, 0.4)',
     icon
 }) => {
     const radius = (size - strokeWidth) / 2;
@@ -48,7 +50,8 @@ const PowerRing: React.FC<PowerRingProps> = ({
                     r={radius}
                     cx={size / 2}
                     cy={size / 2}
-                    className="transition-all duration-1000 ease-out drop-shadow-[0_0_4px_rgba(255,255,255,0.5)]"
+                    className="transition-all duration-1000 ease-out"
+                    style={{ filter: `drop-shadow(0 0 8px ${glowColor})` }}
                 />
             </svg>
 

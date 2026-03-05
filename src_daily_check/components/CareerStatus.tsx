@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ActivityLog, UserProfile, Qualification } from '../types';
-import { calculateCareerStatus } from '../utils/careerUtils';
+import { calculateCareerStatus, predictQualificationDate } from '../utils/careerUtils';
 
 interface CareerStatusProps {
   activityLogs: ActivityLog[];
@@ -62,15 +62,21 @@ const CareerStatus: React.FC<CareerStatusProps> = ({ activityLogs, userProfile }
             ></div>
           </div>
 
-          <p className="text-right text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-3">
-            {(() => {
-              let nextName = "Family Pro";
-              if (status.currentLevel.name === 'Family Pro') nextName = 'Family 3S';
-              else if (status.currentLevel.name === 'Family 3S') nextName = 'Family 5S';
-              // ... add more if needed, but the user said "fermati al family pro scrivendo il prossimo step family 3 s e basta"
-              return `Prossimo livello: ${nextName}`;
-            })()}
-          </p>
+          <div className="flex justify-between items-center mt-3">
+            <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              {(() => {
+                let nextName = "Family Pro";
+                if (status.currentLevel.name === 'Family Pro') nextName = 'Family 3S';
+                else if (status.currentLevel.name === 'Family 3S') nextName = 'Family 5S';
+                return `Prossimo: ${nextName}`;
+              })()}
+            </p>
+            {predictQualificationDate(activityLogs, status) && (
+              <p className="text-[11px] font-black uppercase tracking-wider text-blue-500 animate-pulse">
+                Stima: {predictQualificationDate(activityLogs, status)} 📅
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -28,6 +28,8 @@ import TargetCalculatorModal from './components/TargetCalculatorModal';
 import DetailedGuideModal from './components/DetailedGuideModal';
 import LeadCaptureModal from './components/LeadCaptureModal';
 import CalendarModal from './components/CalendarModal';
+import DailyRecapModal from './components/DailyRecapModal';
+import { calculateDailySessionStats } from './utils/sessionUtils';
 
 import VoiceSpeedMode from './components/VoiceSpeedMode';
 import TeamLeaderboardModal from './components/TeamLeaderboardModal';
@@ -215,6 +217,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   const [isPaywallModalOpen, setIsPaywallModalOpen] = useState(false);
   const [isAchievementsModalOpen, setAchievementsModalOpen] = useState(false);
+  const [isDailyRecapOpen, setIsDailyRecapOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
   const [isVisionBoardModalOpen, setIsVisionBoardModalOpen] = useState(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
@@ -235,6 +238,13 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   const effectiveCustomLabels = (settings.enableCustomLabels ?? true) ? (settings.customLabels || ACTIVITY_LABELS) : ACTIVITY_LABELS;
   const effectiveGoals = (settings.enableGoals ?? true) ? settings.goals : { daily: {}, weekly: {}, monthly: {} };
+
+  const handleFinalizeSession = () => {
+    if (userId) {
+      syncLocalDataToCloud(userId);
+      addNotification("Sessione salvata con successo nel cloud! 🚀", 'success');
+    }
+  };
 
   const removeNotification = useCallback((id: number) => setNotifications(prev => prev.filter(n => n.id !== id)), []);
 
@@ -526,6 +536,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification), [activityLogs, settings.userProfile.currentQualification]);
   const streak = useMemo(() => calculateCurrentStreak(activityLogs), [activityLogs]);
 
+  const sessionStats = useMemo(() => calculateDailySessionStats(selectedDateLog, settings.goals), [selectedDateLog, settings.goals]);
+
   if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
       <div className="flex flex-col items-center gap-4">
@@ -569,6 +581,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
             streak={streak}
             onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
             onOpenCareerPath={() => setActiveView('career')}
+            onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
             isLoggedIn={!!user}
             onLogout={signOut}
             onCloseApp={activeView === 'settings' ? () => setActiveView('today') : onClose}
@@ -734,6 +747,12 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       <LeadCaptureModal isOpen={isLeadCaptureModalOpen} onClose={() => { setIsLeadCaptureModalOpen(false); setEditingLead(null); }} activityType={leadCaptureType} onSave={handleSaveLead} initialData={editingLead} />
       <CalendarModal isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)} selectedDate={selectedInputDate} onSelectDate={setSelectedInputDate} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />
+      <DailyRecapModal
+        isOpen={isDailyRecapOpen}
+        onClose={() => setIsDailyRecapOpen(false)}
+        stats={sessionStats}
+        onFinalize={handleFinalizeSession}
+      />
     </>
   );
 };
