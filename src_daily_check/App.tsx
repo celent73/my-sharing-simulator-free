@@ -320,12 +320,20 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
       const sortedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
       updatedAllLogs = sortedLogs;
+
+      // SALVATAGGIO IMMEDIATO (SPOSTATO DENTRO PER SICUREZZA DI SCOPE)
+      if (updatedLog) {
+        saveLogForDate(userId, updatedLog, sortedLogs)
+          .catch(err => {
+            console.error("Cloud save error:", err);
+            addNotification("Sincronizzazione Cloud fallita, ma dati salvati sul dispositivo! 🛡️", "info");
+          });
+        window.dispatchEvent(new CustomEvent('daily-check-updated'));
+      }
+
       return sortedLogs;
     });
 
-    if (updatedLog) {
-      saveLogForDate(userId, updatedLog, updatedAllLogs || undefined);
-    }
     setIsLeadCaptureModalOpen(false);
     setEditingLead(null);
     addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} ${leadData.id ? 'aggiornato' : 'salvato'}! `, 'success');
@@ -354,7 +362,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       });
       // Corrected: call save outside later if needed, but here we just clear cloud for that user or update
       // Actually,saveLogs is fine here as we are replacing the WHOLE set
-      saveLogs(userId, newLogs);
+      saveLogs(userId, newLogs).catch(err => {
+        console.error("Cloud save error:", err);
+        addNotification("Errore sincronizzazione Cloud, dati salvati localmente.", "info");
+      });
       return newLogs;
     });
     setDeleteDataModalOpen(false);
@@ -451,14 +462,19 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       const sortedLogs = newLogs.sort((a, b) => b.date.localeCompare(a.date));
       updatedLog = dateLog;
       updatedAllLogs = sortedLogs;
+
+      // SALVATAGGIO IMMEDIATO
+      if (updatedLog) {
+        saveLogForDate(userId, updatedLog, sortedLogs)
+          .catch(err => {
+            console.error("Cloud save error:", err);
+            addNotification("Sincronizzazione Cloud fallita, ma dati salvati sul dispositivo! 🛡️", "info");
+          });
+        window.dispatchEvent(new CustomEvent('daily-check-updated'));
+      }
+
       return sortedLogs;
     });
-
-    // Execute side effect OUTSIDE state updater
-    // Use a small delay or trust synchronously captured values (React's updater runs synchronously here)
-    if (updatedLog) {
-      saveLogForDate(userId, updatedLog, updatedAllLogs || undefined);
-    }
   }, [userId]);
 
   const handleUpdateActivity = (activity: ActivityType, change: number, dateStr: string = getTodayDateString(), contractType?: ContractType) => {

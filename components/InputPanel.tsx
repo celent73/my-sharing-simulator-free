@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import SharyTrigger from './SharyTrigger';
+import { useDailyStats } from '../hooks/useDailyStats';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Importazione del visualizzatore
 // FIX: Removing extra imports done manually in previous step if they exist or ensuring clean block
@@ -435,6 +437,28 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const lang = (language === 'it' || language === 'de') ? language : 'en';
   const txt = uiTexts[lang];
 
+  // --- REAL DATA BRIDGE LOGIC ---
+  const { stats, loading: statsLoading } = useDailyStats();
+  const [useRealData, setUseRealData] = useState(false);
+  const [plannedMonthlyActivity, setPlannedMonthlyActivity] = useState(20);
+
+  // Sincronizzazione automatica se il ponte è attivo
+  React.useEffect(() => {
+    // Il ponte funziona solo se siamo in modalità Family Utility
+    if (useRealData && viewMode === 'family' && stats.contactToContractRate > 0) {
+      const totalUnitsThreshold = Math.round(plannedMonthlyActivity * stats.contactToContractRate);
+      onInputChange('myPersonalUnitsGreen', totalUnitsThreshold);
+      onInputChange('myPersonalUnitsLight', 0);
+    }
+  }, [useRealData, viewMode, plannedMonthlyActivity, stats.contactToContractRate]);
+
+  // Reset ponte se cambiamo modalità (opzionale, ma consigliato per chiarezza)
+  React.useEffect(() => {
+    if (viewMode !== 'family' && useRealData) {
+      setUseRealData(false);
+    }
+  }, [viewMode]);
+
   return (
     <>
       <style>{`
@@ -506,47 +530,103 @@ const InputPanel: React.FC<InputPanelProps> = ({
           </button>
         )}
 
+        {/* PONTE DATI REALI - RIMOSSO DA QUI PER INTEGRAZIONE DISCRETA */}
+
         {/* CONTENITORE PRINCIPALE INPUT */}
         <div className="bg-white/70 dark:bg-black/30 backdrop-blur-3xl rounded-[3rem] shadow-2xl border border-white/80 dark:border-white/10 flex-grow flex flex-col p-4 sm:p-8 overflow-hidden relative z-10 transition-colors duration-300">
 
-          {/* HEADER PREMIUM */}
-          <div className="flex justify-between items-start mb-10 shrink-0">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 bg-gradient-to-br from-union-blue-500 to-union-blue-700 text-white rounded-3xl flex items-center justify-center shadow-xl shadow-union-blue-500/30 ring-4 ring-white">
-                <Heart size={32} fill="currentColor" strokeWidth={0} />
-              </div>
-              <div>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white leading-[0.9] tracking-tighter transition-colors">
-                  {txt.paramsTitle}<br />
-                  <span className="text-union-blue-600 dark:text-union-blue-400 font-extrabold text-base tracking-tight opacity-90">{txt.paramsSubtitle}</span>
-                </h2>
+          {/* BLOCCO HEADER & PONTE (FISSO IN ALTO) */}
+          <div className="shrink-0 mb-6 lg:mb-8">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-4 lg:gap-5">
+                <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-union-blue-500 to-union-blue-700 text-white rounded-2xl lg:rounded-3xl flex items-center justify-center shadow-xl shadow-union-blue-500/30 ring-4 ring-white">
+                  <Heart size={28} className="lg:w-8 lg:h-8" fill="currentColor" strokeWidth={0} />
+                </div>
+                <div>
+                  <h2 className="text-xl lg:text-2xl font-black text-slate-900 dark:text-white leading-[0.9] tracking-tighter transition-colors">
+                    {txt.paramsTitle}<br />
+                    <span className="text-union-blue-600 dark:text-union-blue-400 font-extrabold text-xs lg:text-base tracking-tight opacity-90">{txt.paramsSubtitle}</span>
+                  </h2>
 
-                {/* FAMILY PRO BADGE - VISIBLE ONLY IN PARTNER MODE */}
-                {viewMode !== 'client' && (
-                  (inputs.directRecruits >= 3 && inputs.contractsPerUser >= 1 && inputs.indirectRecruits >= 3) ||
-                  ((inputs.personalClientsGreen + inputs.personalClientsLight + inputs.personalClientsBusinessGreen + inputs.personalClientsBusinessLight + inputs.myPersonalUnitsGreen + inputs.myPersonalUnitsLight) + (inputs.directRecruits * inputs.contractsPerUser)) >= 10
-                ) && (
-                    <div className="mt-2 inline-flex items-center gap-2 bg-gradient-to-r from-purple-900 to-indigo-900 px-3 py-1.5 rounded-full border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.3)] animate-in fade-in zoom-in duration-500">
-                      <div className="relative flex items-center justify-center">
-                        <div className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-75"></div>
-                        <div className="relative bg-purple-500 rounded-full p-1">
-                          <Heart size={10} className="text-white fill-white" />
-                        </div>
+                  {/* FAMILY PRO BADGE */}
+                  {viewMode !== 'client' && (
+                    (inputs.directRecruits >= 3 && inputs.contractsPerUser >= 1 && inputs.indirectRecruits >= 3) ||
+                    ((inputs.personalClientsGreen + inputs.personalClientsLight + inputs.personalClientsBusinessGreen + inputs.personalClientsBusinessLight + inputs.myPersonalUnitsGreen + inputs.myPersonalUnitsLight) + (inputs.directRecruits * inputs.contractsPerUser)) >= 10
+                  ) && (
+                      <div className="mt-2 inline-flex items-center gap-2 bg-gradient-to-r from-purple-900 to-indigo-900 px-3 py-1.5 rounded-full border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.3)]">
+                        <Heart size={10} className="text-white fill-white" />
+                        <span className="text-[10px] font-black text-purple-100 uppercase tracking-widest leading-none">FAMILY PRO</span>
                       </div>
-                      <span className="text-[10px] font-black text-purple-100 uppercase tracking-widest leading-none">FAMILY PRO</span>
+                    )}
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-3">
+                <button
+                  onClick={onReset}
+                  className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-[#FF3B30] text-white rounded-xl lg:rounded-2xl shadow-lg shadow-red-500/20 hover:scale-110 active:scale-95 transition-all"
+                  title="Reset"
+                >
+                  <RotateCcw size={20} className="lg:w-6 lg:h-6" strokeWidth={3} />
+                </button>
+
+                {/* MINI TOGGLE PONTE DATI REALI */}
+                {viewMode === 'family' && (
+                  <button
+                    onClick={() => setUseRealData(!useRealData)}
+                    className={`flex items-center gap-2 lg:gap-3 p-1 pl-2.5 pr-1 lg:pl-4 lg:pr-2 lg:py-2 rounded-full border transition-all ${useRealData ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/20' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400'}`}
+                  >
+                    <Zap size={12} className={`lg:w-4 lg:h-4 ${useRealData ? 'animate-pulse' : ''}`} />
+                    <span className="text-[9px] lg:text-[11px] font-black uppercase tracking-tighter mr-0.5 lg:mr-1">Ponte Dati Reali</span>
+                    <div className={`w-7 h-3.5 lg:w-9 lg:h-4.5 rounded-full p-0.5 transition-all ${useRealData ? 'bg-white/30' : 'bg-slate-300 dark:bg-white/20'}`}>
+                      <div className={`w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 rounded-full bg-white shadow-sm transition-transform ${useRealData ? 'translate-x-3.5 lg:translate-x-4.5' : 'translate-x-0'}`} />
                     </div>
-                  )}
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* RESET BUTTON ONLY */}
-            <button
-              onClick={onReset}
-              className="w-14 h-14 flex items-center justify-center bg-[#FF3B30] text-white rounded-[1.25rem] shadow-xl shadow-red-500/30 hover:bg-[#D72C21] hover:scale-110 active:scale-90 transition-all border-2 border-white dark:border-white/10 ring-4 ring-red-50 dark:ring-red-900/20"
-              title="Reset"
-            >
-              <RefreshCcw size={24} strokeWidth={3} />
-            </button>
+            {/* ESPANSIONE PONTE DATI REALI (DENTRO LO SHRINK-0) */}
+            <AnimatePresence>
+              {useRealData && viewMode === 'family' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  className="relative z-20 overflow-hidden bg-blue-600/5 dark:bg-blue-500/10 rounded-[1.5rem] border border-blue-500/10 p-4 space-y-4"
+                >
+                  <div className="flex justify-between items-center px-1">
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <Zap size={14} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Efficienza Reale:</span>
+                    </div>
+                    <span className="text-sm font-black text-blue-600">{(stats.contactToContractRate * 100).toFixed(1)}%</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-[10px] font-black text-slate-400 px-1">
+                      <span className="uppercase tracking-tighter">CONTATTI / MESE</span>
+                      <span className="text-blue-600 text-sm font-black">{plannedMonthlyActivity}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="200"
+                      step="5"
+                      value={plannedMonthlyActivity}
+                      onChange={(e) => setPlannedMonthlyActivity(parseInt(e.target.value))}
+                      className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
+
+                  <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-blue-500/10 text-center">
+                    <p className="text-[10px] lg:text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
+                      Produrrai circa <span className="text-blue-600 dark:text-blue-400 font-black text-sm lg:text-base">{Math.round(plannedMonthlyActivity * stats.contactToContractRate)}</span> utenze reali/mese
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="flex-grow overflow-y-auto pr-3 custom-scrollbar min-h-0 space-y-4">

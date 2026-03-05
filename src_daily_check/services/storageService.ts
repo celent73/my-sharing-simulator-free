@@ -38,6 +38,8 @@ const getLocalAchievements = (): UnlockedAchievements => {
 // GESTIONE LOG ATTIVITÀ
 // ---------------------------------------------------------------------------
 export const loadLogs = async (userId: string | null): Promise<ActivityLog[]> => {
+  const localLogs = getLocalLogs();
+
   if (userId) {
     // CLOUD MODE
     const { data, error } = await supabase
@@ -47,26 +49,34 @@ export const loadLogs = async (userId: string | null): Promise<ActivityLog[]> =>
 
     if (error) {
       console.error('Error loading logs from Supabase:', error);
-      return [];
+      return localLogs; // Fallback al locale in caso di errore
+    }
+
+    if (!data || data.length === 0) {
+      return localLogs; // Se il cloud è vuoto, usa i dati locali
     }
 
     // Map snake_case DB columns to camelCase App properties
     const mappedData = data.map((item: any) => ({
       ...item,
-      contractDetails: item.contract_details, // Crucial mapping
+      contractDetails: item.contract_details,
       leads: item.leads,
       counts: item.counts,
       date: item.date
     }));
 
+    // In una versione futura potremmo voler fare un merge intelligente basato su timestamp
     return mappedData as ActivityLog[];
   } else {
     // LOCAL MODE
-    return getLocalLogs();
+    return localLogs;
   }
 };
 
 export const saveLogs = async (userId: string | null, logs: ActivityLog[]) => {
+  // SALVATAGGIO LOCALE (Sempre come backup)
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(logs));
+
   if (userId) {
     const payload = logs.map(log => ({
       user_id: userId,
@@ -81,19 +91,23 @@ export const saveLogs = async (userId: string | null, logs: ActivityLog[]) => {
       .from('activity_logs')
       .upsert(payload, { onConflict: 'user_id, date' });
 
-    if (error) console.error('Error saving logs to Supabase:', error);
-
-  } else {
-    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(logs));
+    if (error) {
+      console.error('Error saving logs to Supabase:', error);
+      // Notifichiamo l'errore se possibile (gestito poi nel componente)
+      throw error;
+    }
   }
 };
 
 /**
- * OTTIMIZZATO: salva solo il log di UNA specifica data invece dell'intero array.
- * Da usare per ogni aggiornamento in tempo reale (click su attività, lead, ecc.)
- * Riduce il volume di scritture su Supabase di circa il 95%.
+ * OTTIMIZZATO: salva solo il log di UNA specifica data.
  */
 export const saveLogForDate = async (userId: string | null, log: ActivityLog, allLogs?: ActivityLog[]) => {
+  // SALVATAGGIO LOCALE (Sempre come backup se allLogs è fornito)
+  if (allLogs) {
+    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(allLogs));
+  }
+
   if (userId) {
     // Cloud: upsert solo la riga modificata
     const { error } = await supabase.from('activity_logs').upsert({
@@ -105,10 +119,10 @@ export const saveLogForDate = async (userId: string | null, log: ActivityLog, al
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id, date' });
 
-    if (error) console.error('Error saving log for date:', error);
-  } else {
-    // Local: dobbiamo comunque riscrivere l'intero array (limite localStorage)
-    if (allLogs) localStorage.setItem(ACTIVITY_KEY, JSON.stringify(allLogs));
+    if (error) {
+      console.error('Error saving log for date to Supabase:', error);
+      throw error;
+    }
   }
 };
 
@@ -128,6 +142,7 @@ export const clearLogs = async (userId: string | null) => {
 // ---------------------------------------------------------------------------
 
 export const loadSettings = async (userId: string | null): Promise<AppSettings | null> => {
+  const localSettings = getLocalSettings();
   if (userId) {
     const { data, error } = await supabase
       .from('user_settings')
@@ -137,6 +152,7 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
       console.error("Error loading settings:", error);
+      return localSettings;
     }
 
     if (data) {
@@ -184,6 +200,9 @@ export const loadUserProfile = async (userId: string | null): Promise<UserProfil
 
 
 export const saveSettings = async (userId: string | null, settings: AppSettings) => {
+  // SALVATAGGIO LOCALE (Backup)
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+
   if (userId) {
     // Save Settings
     const { error: settingsError } = await supabase.from('user_settings').upsert({
@@ -199,8 +218,7 @@ export const saveSettings = async (userId: string | null, settings: AppSettings)
 
     if (settingsError) console.error("Error saving settings:", settingsError);
 
-    // Save Profile (User Profile is inside settings in the App state, but separate table in DB)
-    // SAFETY CHECK: Only save profile if it has content. Use specific check to avoid overwriting with empty defaults.
+    // Save Profile
     if (settings.userProfile && (settings.userProfile.firstName?.trim() || settings.userProfile.lastName?.trim())) {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: userId,
@@ -214,9 +232,6 @@ export const saveSettings = async (userId: string | null, settings: AppSettings)
 
       if (profileError) console.error("Error saving profile:", profileError);
     }
-
-  } else {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
 };
 

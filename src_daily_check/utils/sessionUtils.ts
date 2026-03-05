@@ -75,3 +75,34 @@ export const calculateDailySessionStats = (todayLog: ActivityLog | undefined, go
         totalActions
     };
 };
+
+export const calculateAggregateStats = (logs: ActivityLog[]): { contactToContractRate: number; avgMonthlyContracts: number } => {
+    if (!logs || logs.length === 0) {
+        return { contactToContractRate: 0, avgMonthlyContracts: 0 };
+    }
+
+    // Prendiamo i log degli ultimi 30 giorni per una media recente
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentLogs = logs.filter(log => new Date(log.date) >= thirtyDaysAgo);
+
+    let totalContacts = 0;
+    let totalContracts = 0;
+
+    recentLogs.forEach(log => {
+        totalContacts += log.counts[ActivityType.CONTACTS] || 0;
+        totalContracts += log.counts[ActivityType.NEW_CONTRACTS] || 0;
+    });
+
+    const contactToContractRate = totalContacts > 0 ? (totalContracts / totalContacts) : 0;
+
+    // Per la media mensile, usiamo tutti i log divisi per il numero di mesi unici
+    const uniqueMonths = new Set(logs.map(log => log.date.substring(0, 7)));
+    const totalAllContracts = logs.reduce((sum, log) => sum + (log.counts[ActivityType.NEW_CONTRACTS] || 0), 0);
+    const avgMonthlyContracts = uniqueMonths.size > 0 ? Math.round(totalAllContracts / uniqueMonths.size) : totalAllContracts;
+
+    return {
+        contactToContractRate,
+        avgMonthlyContracts
+    };
+};
