@@ -8,8 +8,12 @@ interface CareerStatusProps {
   userProfile?: UserProfile;
 }
 
-const GiftIcon = () => (
-  <span className="text-2xl mr-3">🎁</span>
+const TrophyIcon = () => (
+  <div className="mr-4 p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-lg shadow-orange-500/20 flex items-center justify-center border border-white/20">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+    </svg>
+  </div>
 );
 
 const CareerStatus: React.FC<CareerStatusProps> = ({ activityLogs, userProfile }) => {
@@ -23,8 +27,8 @@ const CareerStatus: React.FC<CareerStatusProps> = ({ activityLogs, userProfile }
   return (
     <div className="bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
       <div className="flex items-center mb-10">
-        <GiftIcon />
-        <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Status Carriera</h2>
+        <TrophyIcon />
+        <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight italic">Status Carriera</h2>
       </div>
 
       <div className="space-y-8">
