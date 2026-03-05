@@ -84,7 +84,7 @@ const NotificationItem: React.FC<{ notification: Notification; onClose: () => vo
   };
   const styles = typeStyles[notification.type];
   return (
-    <div className={`w-full max-w-xs p-3 mb-2 rounded-2xl shadow-xl animate-scale-up backdrop-blur-md border ${styles.bg} ${styles.text}`} role="alert">
+    <div className={`w-full max-w-xs p-3 mb-2 rounded-2xl shadow-xl animate-scale-up backdrop-blur-md border pointer-events-auto ${styles.bg} ${styles.text}`} role="alert">
       <div className="flex items-center gap-3">
         <div className={`inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl bg-white/20`}>{styles.icon}</div>
         <div className="text-sm font-bold">{notification.message}</div>

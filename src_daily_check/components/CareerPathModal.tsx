@@ -203,6 +203,16 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                         >
                             <div className="absolute top-0 left-0 right-0 h-2 shadow-[0_0_15px_currentColor]" style={{ backgroundColor: selectedStage.color, color: selectedStage.color }}></div>
 
+                            <button
+                                onClick={() => setSelectedStageIndex(null)}
+                                className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all border border-transparent hover:border-white/10 z-20"
+                                aria-label="Chiudi"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+
                             <h3 className="text-2xl font-black text-white mt-3 mb-2 drop-shadow-md" style={{ color: selectedStage.color }}>
                                 {selectedStage.name}
                             </h3>
@@ -240,6 +250,18 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                 >
                                     Conferma
                                 </button>
+
+                                {dates[selectedStage.name] && (
+                                    <button
+                                        onClick={() => {
+                                            handleDateChange(selectedStage.name, '');
+                                            setSelectedStageIndex(null);
+                                        }}
+                                        className="w-full py-3.5 rounded-xl font-black text-white bg-red-500 shadow-lg shadow-red-500/30 transition-transform active:scale-95 text-lg"
+                                    >
+                                        Azzera Traguardo
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     </motion.div>

@@ -28,15 +28,19 @@ const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 sm:p-6" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="p-6 border-b flex justify-between items-center flex-shrink-0">
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
             <span role="img" aria-label="trophy" className="text-2xl">🏆</span>
             Traguardi Carriera
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Chiudi">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <button
+            onClick={onClose}
+            className="p-2.5 rounded-full bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-all border border-red-100 dark:border-red-500/20 shadow-sm"
+            aria-label="Chiudi"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -51,8 +55,8 @@ const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose }
                 <div
                   key={stage.name}
                   className={`p-5 rounded-xl border flex items-center gap-5 transition-all duration-300 ${isUnlocked
-                      ? 'bg-white shadow-sm'
-                      : 'bg-slate-50 border-slate-200 opacity-60'
+                    ? 'bg-white shadow-sm'
+                    : 'bg-slate-50 border-slate-200 opacity-60'
                     }`}
                   style={isUnlocked ? { borderColor: `${stage.color}60` } : {}}
                 >
