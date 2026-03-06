@@ -406,6 +406,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           {!compactView && <GoalStatusReminder current={totalCurrent} goal={totalGoal} timeProgress={timeProgress} periodLabel={viewMode} />}
 
           <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] p-6 lg:p-8 shadow-xl w-full max-w-5xl mx-auto ${compactView ? 'mb-0' : 'mb-8'}`}>
+            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 text-center">TABELLA DI RIEPILOGO</h3>
             <div className="flex flex-col gap-4 w-full">
               {(Object.values(ActivityType) as ActivityType[]).map((activity, index, array) => {
                 const current = totals[activity] || 0;
