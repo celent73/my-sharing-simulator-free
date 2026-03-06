@@ -167,7 +167,7 @@ const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                                     <h3 className="text-xl font-bold text-slate-700">{userProfile.firstName} {userProfile.lastName}</h3>
                                     <p className="text-sm text-slate-500">Generato il: {generationDate}</p>
                                     <div className="mt-2 inline-block bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">
-                                        MY SHARING SIMULATOR
+                                        DAILY CHEK
                                     </div>
                                 </div>
                             </div>
@@ -274,7 +274,7 @@ const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                             {/* Footer */}
                             <div className="absolute bottom-10 left-10 right-10 border-t border-slate-200 pt-4 flex justify-between items-center">
                                 <div className="text-xs text-slate-400">
-                                    Generato con My Sharing Simulator
+                                    Generato con Daily Chek
                                 </div>
                                 <div className="text-xs font-bold text-slate-300 uppercase tracking-widest">
                                     BE UNSTOPPABLE
