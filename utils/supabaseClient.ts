@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nkdlrycrrafrsglptkyk.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZGxyeWNycmFmcnNnbHB0a3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTExMjEsImV4cCI6MjA4MDYyNzEyMX0.KAC5KsGMcCsrb3DJ-BPZIUaqbXEL2V2RHwnmOkvNQhc';
+export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cqgxokjqljwgrtcksryc.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxZ3hva2pxbGp3Z3J0Y2tzcnljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODI3MTYsImV4cCI6MjA4ODM1ODcxNn0.3xgA9vQTLsISofYClPxVlGfWJwqA-Ga-K0urm2TgtfA';
 
 if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
     console.warn("Mancano le variabili d'ambiente Supabase. Le funzionalità database non saranno disponibili.");

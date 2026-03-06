@@ -352,7 +352,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         saveLogForDate(userId, updatedLog, sortedLogs)
           .catch(err => {
             console.error("Cloud save error:", err);
-            addNotification("Sincronizzazione Cloud fallita, ma dati salvati sul dispositivo! 🛡️", "info");
+            const msg = err?.message || err?.details || "Errore sconosciuto";
+            addNotification(`Sincronizzazione Fallita: ${msg} 🛡️`, "info");
           });
         window.dispatchEvent(new CustomEvent('daily-check-updated'));
       }
@@ -429,13 +430,41 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     setUnlockedAchievements(loadedAchievements);
     setCareerDates(loadedCareerDates);
     setIsInitializing(false);
+
+    // Initial sync to cloud if logged in (safety net for migration)
+    if (userId) {
+      syncLocalDataToCloud(userId).catch(err => {
+        console.error("Initial auto-sync failed:", err);
+      });
+    }
   }, [userId]);
 
   useEffect(() => { if (!authLoading) loadLocalData(); }, [loadLocalData, authLoading]);
 
   useEffect(() => {
-    if (!isInitializing && !authLoading) saveSettings(userId, settings);
+    if (!isInitializing && !authLoading) {
+      saveSettings(userId, settings).catch(err => console.error(err));
+    }
   }, [settings, isInitializing, authLoading, userId]);
+
+  useEffect(() => {
+    if (!isInitializing && !authLoading && activityLogs.length > 0) {
+      saveLogs(userId, activityLogs).catch(err => console.error(err));
+      window.dispatchEvent(new Event('daily-check-updated'));
+    }
+  }, [activityLogs, isInitializing, authLoading, userId]);
+
+  useEffect(() => {
+    if (!isInitializing && !authLoading && Object.keys(unlockedAchievements).length > 0) {
+      saveUnlockedAchievements(userId, unlockedAchievements).catch(err => console.error(err));
+    }
+  }, [unlockedAchievements, isInitializing, authLoading, userId]);
+
+  useEffect(() => {
+    if (!isInitializing && !authLoading && Object.keys(careerDates).length > 0) {
+      saveCareerDates(userId, careerDates).catch(err => console.error(err));
+    }
+  }, [careerDates, isInitializing, authLoading, userId]);
 
   const checkAndNotify = useCallback((oldP: any, newP: any, goals: any, activity: any) => {
     if (settings.enableGoals === false) return;
@@ -497,7 +526,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         saveLogForDate(userId, updatedLog, sortedLogs)
           .catch(err => {
             console.error("Cloud save error:", err);
-            addNotification("Sincronizzazione Cloud fallita, ma dati salvati sul dispositivo! 🛡️", "info");
+            const msg = err?.message || err?.details || "Errore sconosciuto";
+            addNotification(`Sincronizzazione Fallita: ${msg} 🛡️`, "info");
           });
         window.dispatchEvent(new CustomEvent('daily-check-updated'));
       }
@@ -595,11 +625,11 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     </div>
   );
 
-  if (!user) return <LoginScreen onLoginSuccess={handleLoginSuccess} onClose={onClose} />;
-
   if (isPasswordRecovery) return (
     <ResetPasswordScreen onSuccess={() => { setIsPasswordRecovery(false); }} onClose={onClose} />
   );
+
+  if (!user) return <LoginScreen onLoginSuccess={handleLoginSuccess} onClose={onClose} />;
 
   return (
     <>
@@ -633,6 +663,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
               onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
               isLoggedIn={!!user}
               onLogout={signOut}
+              onCloseApp={onClose}
             />
           )}
 

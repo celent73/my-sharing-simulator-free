@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
+import { syncLocalDataToCloud } from '../services/storageService';
 
 interface AuthContextType {
     session: Session | null;
@@ -38,11 +39,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
         });
 
+        // Fallback for reading tokens from URL in case the event doesn't fire immediately
+        if (window.location.hash && window.location.hash.includes('type=recovery')) {
+            setIsPasswordRecovery(true);
+        }
+
+        // Check sessionStorage flag set by the root App.tsx
+        if (sessionStorage.getItem('pendingPasswordRecovery') === 'true') {
+            setIsPasswordRecovery(true);
+            sessionStorage.removeItem('pendingPasswordRecovery'); // Clear it so it doesn't trigger again on reload
+        }
+
         return () => subscription.unsubscribe();
     }, []);
 
     const signOut = async () => {
         try {
+            // Eseguiamo un'ultima sincronizzazione di sicurezza prima di scollegarci
+            if (user?.id) {
+                try {
+                    await syncLocalDataToCloud(user.id);
+                } catch (syncError) {
+                    console.error('Final sync before signout failed:', syncError);
+                }
+            }
+
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('sb-') || key.includes('supabase.auth.token')) {
                     localStorage.removeItem(key);

@@ -190,7 +190,7 @@ export const loadUserProfile = async (userId: string | null): Promise<UserProfil
         targetQualification: data.target_qualification as Qualification
       };
     }
-    return { firstName: 'Utente', lastName: '', commissionStatus: CommissionStatus.PRIVILEGIATO };
+    return { firstName: '', lastName: '', commissionStatus: CommissionStatus.PRIVILEGIATO };
   } else {
     // In local mode, profile is part of settings, so we extract it or return default
     const settings = getLocalSettings();

@@ -143,6 +143,13 @@ const AppContent = () => {
       }, 2000); // 2 seconds delay
     }
 
+    // Set a flag if the URL contains a password recovery hash, because Supabase
+    // might clear the hash before the Daily Check modal is completely mounted.
+    if (window.location.hash && window.location.hash.includes('type=recovery')) {
+      sessionStorage.setItem('pendingPasswordRecovery', 'true');
+      openModal('DAILY_CHECK');
+    }
+
     // Set up global Auth listener for Magic Link redirects
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -150,6 +157,10 @@ const AppContent = () => {
           console.log("Utente loggato con magic link, sessione:", session.user.email);
           // Chiudi l"AuthModal se è aperto. L'utente rimarrà sul Daily Chek (Dashboard)
           closeModal();
+        }
+        if (event === 'PASSWORD_RECOVERY') {
+          sessionStorage.setItem('pendingPasswordRecovery', 'true');
+          openModal('DAILY_CHECK');
         }
       }
     );
