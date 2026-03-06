@@ -22,7 +22,6 @@ interface GridMenuProps {
     onOpenPresentation: () => void;
     onOpenUnionEcosystem: () => void;
     onOpenFuelPitch: () => void;
-    onOpenFocusMode: () => void;
     toggleShary: () => void;
     isSharyActive: boolean;
     onOpenTarget: () => void;
@@ -106,7 +105,6 @@ const GridMenu: React.FC<GridMenuProps> = ({
     onOpenPresentation,
     onOpenUnionEcosystem,
     onOpenFuelPitch,
-    onOpenFocusMode,
     toggleShary,
     isSharyActive,
     onOpenTarget,
@@ -159,10 +157,9 @@ const GridMenu: React.FC<GridMenuProps> = ({
                             </motion.p>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3 sm:gap-8 w-full">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-8 w-full p-2">
                             <MenuItem icon={Presentation} label={t('menu.business')} colorClass="bg-purple-600" onClick={onOpenPresentation} />
                             <MenuItem icon={Share2} label={t('menu.revolution')} colorClass="bg-union-blue-500" onClick={onOpenUnionEcosystem} />
-                            <MenuItem icon={Zap} label={t('menu.focus_mode')} colorClass="bg-union-orange-500" onClick={onOpenFocusMode} />
                             <MenuItem icon={Fuel} label={t('menu.fuel_pitch')} colorClass="bg-rose-500" onClick={onOpenFuelPitch} />
                             <MenuItem icon={Bot} label={isSharyActive ? t('menu.shary_active') : t('menu.activate_shary')} colorClass={isSharyActive ? "bg-emerald-500" : "bg-slate-500"} onClick={toggleShary} />
                             <MenuItem icon={Target} label={t('menu.calc_goal')} colorClass="bg-indigo-600" onClick={onOpenTarget} />

@@ -115,7 +115,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent, forceStatus?: 'won' | 'lost') => {
+    const handleSubmit = (e: React.FormEvent, forceStatus?: 'won' | 'lost' | 'pending') => {
         if (e) e.preventDefault();
         if (!name.trim()) return;
 
@@ -338,43 +338,62 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                             className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white font-medium transition-all resize-none" />
                     </div>
 
-                    {/* Scelta Tipo per Lead Vinto */}
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
-                        <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest text-center italic">Esito: Se vinto, scegli il ruolo:</label>
-                        <div className="grid grid-cols-2 gap-3">
+                    {/* Scelta Esito */}
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800/50 space-y-4 shadow-inner">
+                        <label className="block text-xs font-black uppercase text-slate-500 tracking-widest text-center">Esito della chiamata</label>
+
+                        <div className="flex flex-col gap-3">
+                            {/* Option 1: Vinto - Cliente */}
                             <button
                                 type="button"
-                                onClick={() => setWonType('contract')}
-                                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${wonType === 'contract' ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-500/20 scale-105' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 opacity-60'}`}
+                                onClick={(e) => { setWonType('contract'); handleSubmit(e, 'won') }}
+                                className="w-full flex items-center justify-between p-4 rounded-2xl border-2 bg-emerald-500 hover:bg-emerald-600 border-emerald-400 text-white shadow-[0_8px_20px_-6px_rgba(16,185,129,0.5)] transition-all active:scale-[0.98]"
                             >
-                                <div className="text-xl">📄</div>
-                                <span className="text-[10px] font-black uppercase tracking-tight leading-none">Cliente</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-2xl bg-white/20 p-2 rounded-xl">📄</div>
+                                    <div className="text-left">
+                                        <div className="font-black text-sm uppercase tracking-wide">Nuovo Cliente!</div>
+                                        <div className="text-[10px] text-emerald-100 font-medium">Salva e incrementa contratti</div>
+                                    </div>
+                                </div>
+                                <div className="font-bold text-emerald-100">🚀</div>
                             </button>
+
+                            {/* Option 2: Vinto - Promoter */}
                             <button
                                 type="button"
-                                onClick={() => setWonType('partner')}
-                                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${wonType === 'partner' ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/20 scale-105' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 opacity-60'}`}
+                                onClick={(e) => { setWonType('partner'); handleSubmit(e, 'won') }}
+                                className="w-full flex items-center justify-between p-4 rounded-2xl border-2 bg-purple-500 hover:bg-purple-600 border-purple-400 text-white shadow-[0_8px_20px_-6px_rgba(168,85,247,0.5)] transition-all active:scale-[0.98]"
                             >
-                                <div className="text-xl">🤝</div>
-                                <span className="text-[10px] font-black uppercase tracking-tight leading-none">Family Utility</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-2xl bg-white/20 p-2 rounded-xl">🤝</div>
+                                    <div className="text-left">
+                                        <div className="font-black text-sm uppercase tracking-wide">Nuovo Promoter!</div>
+                                        <div className="text-[10px] text-purple-100 font-medium">Salva e incrementa Family Utility</div>
+                                    </div>
+                                </div>
+                                <div className="font-bold text-purple-100">⭐</div>
                             </button>
                         </div>
-                    </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-3 pt-2 pb-1">
-                        <button type="button" onClick={onClose}
-                            className="flex-1 py-4 px-4 rounded-2xl font-bold text-xs uppercase tracking-widest text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 active:scale-95 transition-all">
-                            Annulla
-                        </button>
-                        <button type="button" onClick={(e) => handleSubmit(e, 'lost')}
-                            className="flex-1 py-4 px-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white bg-red-500 shadow-lg shadow-red-500/20 active:scale-95 transition-all">
-                            Perso
-                        </button>
-                        <button type="submit" onClick={(e) => handleSubmit(e, 'won')}
-                            className={`flex-[1.5] py-4 px-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white shadow-lg active:scale-95 transition-all ${wonType === 'partner' ? 'bg-purple-600' : 'bg-emerald-600'}`}>
-                            Salva {wonType === 'partner' ? 'Family Utility' : 'Vinto'} ✓
-                        </button>
+                        <div className="relative flex items-center py-2">
+                            <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                            <span className="flex-shrink-0 mx-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Oppure</span>
+                            <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button type="button" onClick={(e) => handleSubmit(e, 'pending')}
+                                className="flex flex-col items-center justify-center gap-1 py-3 px-4 rounded-2xl font-bold text-xs uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 shadow-sm active:scale-95 transition-all">
+                                <span>Solo Contatto</span>
+                                <span className="text-[9px] text-slate-400 font-normal">Ci penserà</span>
+                            </button>
+                            <button type="button" onClick={(e) => handleSubmit(e, 'lost')}
+                                className="flex flex-col items-center justify-center gap-1 py-3 px-4 rounded-2xl font-black text-xs uppercase tracking-widest text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 active:scale-95 transition-all">
+                                <span>Non interessato</span>
+                                <span className="text-[9px] text-red-400/80 font-normal">Scarta l'opportunità</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

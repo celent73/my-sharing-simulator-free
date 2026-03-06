@@ -7,7 +7,6 @@ interface HeaderMenuProps {
     onOpenPresentation: () => void;
     onOpenUnionEcosystem: () => void;
     onOpenFuelPitch: () => void;
-    onOpenFocusMode: () => void;
     toggleShary: () => void;
     isSharyActive: boolean;
     onOpenTarget: () => void;

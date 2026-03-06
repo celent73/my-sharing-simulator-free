@@ -3,11 +3,12 @@ import {
     Calendar,
     BarChart2,
     Trophy,
-    Settings
+    Settings,
+    Zap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export type ActiveView = 'today' | 'stats' | 'career' | 'settings';
+export type ActiveView = 'today' | 'stats' | 'focus' | 'career' | 'settings';
 
 interface FocusNavigationProps {
     activeView: ActiveView;
@@ -17,6 +18,7 @@ interface FocusNavigationProps {
 const navItems = [
     { id: 'today', label: 'Oggi', icon: Calendar },
     { id: 'stats', label: 'Analisi', icon: BarChart2 },
+    { id: 'focus', label: 'Focus', icon: Zap },
     { id: 'career', label: 'Carriera', icon: Trophy },
     { id: 'settings', label: 'Profilo', icon: Settings },
 ];
@@ -54,8 +56,8 @@ export const FocusNavigation: React.FC<FocusNavigationProps> = ({ activeView, on
                             key={item.id}
                             onClick={() => onViewChange(item.id as ActiveView)}
                             className={`relative group flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 ${activeView === item.id
-                                ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]'
-                                : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                                ? (item.id === 'focus' ? 'bg-[#39ff14] text-black shadow-[0_0_20px_rgba(57,255,20,0.5)]' : 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]')
+                                : (item.id === 'focus' ? 'text-[#39ff14] hover:bg-white/10' : 'text-slate-400 hover:bg-white/10 hover:text-white')
                                 }`}
                         >
                             <item.icon className={`h-7 w-7 transition-transform duration-300 ${activeView === item.id ? 'scale-110' : 'group-hover:scale-110'}`} />
@@ -65,7 +67,7 @@ export const FocusNavigation: React.FC<FocusNavigationProps> = ({ activeView, on
                             {activeView === item.id && (
                                 <motion.div
                                     layoutId="activeNavIndicator"
-                                    className="absolute -right-2 w-1 h-8 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"
+                                    className={`absolute -right-2 w-1 h-8 rounded-full ${item.id === 'focus' ? 'bg-[#39ff14] shadow-[0_0_10px_#39ff14]' : 'bg-blue-500 shadow-[0_0_10px_#3b82f6]'}`}
                                 />
                             )}
                         </button>
@@ -79,10 +81,12 @@ export const FocusNavigation: React.FC<FocusNavigationProps> = ({ activeView, on
                     <button
                         key={item.id}
                         onClick={() => onViewChange(item.id as ActiveView)}
-                        className={`relative flex flex-col items-center justify-center h-12 w-12 rounded-full transition-all duration-300 ${activeView === item.id ? 'text-white bg-white/10' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                        className={`relative flex flex-col items-center justify-center h-12 w-12 rounded-full transition-all duration-300 ${activeView === item.id
+                            ? (item.id === 'focus' ? 'text-[#39ff14] bg-[#39ff14]/10 shadow-[0_0_15px_rgba(57,255,20,0.3)]' : 'text-white bg-white/10')
+                            : (item.id === 'focus' ? 'text-[#39ff14] opacity-80 hover:opacity-100 hover:bg-white/5 drop-shadow-[0_0_8px_rgba(57,255,20,0.4)]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5')
                             }`}
                     >
-                        <item.icon className={`h-5 w-5 ${activeView === item.id ? 'scale-110 drop-shadow-md' : ''}`} />
+                        <item.icon className={`h-5 w-5 ${activeView === item.id ? (item.id === 'focus' ? 'drop-shadow-[0_0_10px_rgba(57,255,20,0.8)] scale-110' : 'scale-110 drop-shadow-md') : ''}`} />
                     </button>
                 ))}
             </nav>

@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 interface FocusModeModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onAddContact?: () => void;
 }
 
 type SessionState = 'config' | 'active' | 'paused' | 'finished';
@@ -19,7 +20,7 @@ const GOAL_PRESETS = [
     { id: 'leads', icon: '🎯', label: '10 nuovi lead' }
 ];
 
-export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose }) => {
+export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose, onAddContact }) => {
     const { t } = useLanguage();
 
     const CHECKLIST_ITEMS = [
@@ -178,8 +179,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
                             <button
                                 onClick={() => setMode('instant')}
                                 className={`relative overflow-hidden p-4 rounded-3xl border transition-all duration-300 group text-left h-32 flex flex-col justify-between ${mode === 'instant'
-                                        ? 'bg-white text-black border-white shadow-[0_0_40px_rgba(255,255,255,0.15)] ring-2 ring-white/50'
-                                        : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/10'
+                                    ? 'bg-white text-black border-white shadow-[0_0_40px_rgba(255,255,255,0.15)] ring-2 ring-white/50'
+                                    : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/10'
                                     }`}
                             >
                                 <div className="absolute top-0 right-0 p-3 opacity-20">
@@ -197,8 +198,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
                             <button
                                 onClick={() => setMode('pro')}
                                 className={`relative overflow-hidden p-4 rounded-3xl border transition-all duration-300 group text-left h-32 flex flex-col justify-between ${mode === 'pro'
-                                        ? 'bg-[#15151A] text-white border-yellow-500/50 ring-2 ring-yellow-500/30'
-                                        : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/10'
+                                    ? 'bg-[#15151A] text-white border-yellow-500/50 ring-2 ring-yellow-500/30'
+                                    : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/10'
                                     }`}
                             >
                                 {mode === 'pro' && (
@@ -251,8 +252,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
                                                 key={preset.id}
                                                 onClick={() => setGoalText(preset.label)}
                                                 className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold border transition-all ${goalText === preset.label
-                                                        ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
-                                                        : 'bg-white/5 border-white/5 text-white/50 hover:bg-white/10 hover:text-white'
+                                                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                                                    : 'bg-white/5 border-white/5 text-white/50 hover:bg-white/10 hover:text-white'
                                                     }`}
                                             >
                                                 {preset.icon} {preset.label}
@@ -301,8 +302,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
                                                 key={item.id}
                                                 onClick={() => toggleCheckitem(item.id)}
                                                 className={`flex items-center gap-3 p-3 rounded-2xl border transition-all text-left ${checklist[item.id]
-                                                        ? 'bg-green-500/10 border-green-500/20'
-                                                        : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                                    ? 'bg-green-500/10 border-green-500/20'
+                                                    : 'bg-white/5 border-white/5 hover:bg-white/10'
                                                     }`}
                                             >
                                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${checklist[item.id] ? 'bg-green-500 border-green-500' : 'border-white/20'
@@ -347,8 +348,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
                                         key={p}
                                         onClick={() => setDuration(p)}
                                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${duration === p
-                                                ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
-                                                : 'bg-transparent text-white/30 border-white/10 hover:border-white/30 hover:text-white'
+                                            ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
+                                            : 'bg-transparent text-white/30 border-white/10 hover:border-white/30 hover:text-white'
                                             }`}
                                     >
                                         {p}m
@@ -363,8 +364,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
                                 onClick={handleStartSession}
                                 disabled={!allChecked}
                                 className={`group relative w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all duration-300 overflow-hidden ${allChecked
-                                        ? 'text-black shadow-[0_0_50px_rgba(34,197,94,0.4)] hover:shadow-[0_0_70px_rgba(34,197,94,0.6)] hover:scale-[1.02]'
-                                        : 'bg-white/5 text-white/20 border border-white/5 cursor-not-allowed'
+                                    ? 'text-black shadow-[0_0_50px_rgba(34,197,94,0.4)] hover:shadow-[0_0_70px_rgba(34,197,94,0.6)] hover:scale-[1.02]'
+                                    : 'bg-white/5 text-white/20 border border-white/5 cursor-not-allowed'
                                     }`}
                             >
                                 {allChecked ? (
@@ -410,8 +411,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
 
                             {/* The Time */}
                             <div className={`text-[7rem] sm:text-[8rem] font-thin tracking-tighter tabular-nums leading-none transition-all duration-300 ${sessionState === 'paused'
-                                    ? 'text-yellow-400 opacity-60 blur-[2px]'
-                                    : 'text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]'
+                                ? 'text-yellow-400 opacity-60 blur-[2px]'
+                                : 'text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]'
                                 }`}>
                                 {formatTime(timeLeft)}
                             </div>
@@ -468,7 +469,10 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
                             </button>
 
                             <button
-                                onClick={() => setContactsOk(prev => prev + 1)}
+                                onClick={() => {
+                                    setContactsOk(prev => prev + 1);
+                                    if (onAddContact) onAddContact();
+                                }}
                                 className="flex-1 py-4 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 hover:from-cyan-500/30 hover:to-blue-600/30 border border-cyan-500/30 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.1)]"
                             >
                                 <Phone size={20} className="text-cyan-400 fill-cyan-400" />

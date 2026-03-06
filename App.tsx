@@ -680,7 +680,6 @@ const AppContent = () => {
                   })}
                   onOpenUnionEcosystem={() => openModal('UNION_ECOSYSTEM')}
                   onOpenFuelPitch={() => openModal('FUEL_PITCH')}
-                  onOpenFocusMode={() => openModal('FOCUS_MODE')}
                   toggleShary={toggleShary}
                   isSharyActive={isActive}
                   onOpenTarget={handleTargetClick}

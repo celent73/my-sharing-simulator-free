@@ -43,6 +43,7 @@ import AuthModal from './components/AuthModal';
 import { supabase } from './supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
 import BackgroundMesh from '../components/BackgroundMesh';
+import { FocusModeModal } from '../components/FocusModeModal';
 
 const DEFAULT_SETTINGS: AppSettings = {
   userProfile: {
@@ -608,29 +609,32 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
       <div className="relative w-full h-full flex bg-slate-50 dark:bg-black overflow-hidden text-slate-900 dark:text-slate-100 transition-colors duration-500">
         <BackgroundMesh />
-        <FocusNavigation activeView={activeView} onViewChange={setActiveView} />
+        {activeView !== 'focus' && (
+          <FocusNavigation activeView={activeView} onViewChange={setActiveView} />
+        )}
 
-        <div className="flex-1 flex flex-col h-full min-w-0 transition-all duration-500 lg:pl-20 relative">
-          <Header
-            userProfile={settings.userProfile}
-            onOpenSettings={() => handleOpenSettings()}
-            onOpenDeleteDataModal={() => setDeleteDataModalOpen(true)}
-            careerStatus={careerStatus}
-            isPremium={true}
-            remainingTrialDays={remainingTrialDays}
-            onOpenPaywall={() => setIsPaywallModalOpen(true)}
-            toggleTheme={globalToggleTheme}
-            currentTheme={globalTheme as any}
-            onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
-            onOpenGuide={() => setIsGuideModalOpen(true)}
-            streak={streak}
-            onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
-            onOpenCareerPath={() => setActiveView('career')}
-            onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
-            isLoggedIn={!!user}
-            onLogout={signOut}
-            onCloseApp={activeView === 'settings' ? () => setActiveView('today') : onClose}
-          />
+        <div className={`flex-1 flex flex-col h-full min-w-0 transition-all duration-500 relative ${activeView !== 'focus' ? 'lg:pl-20' : ''}`}>
+          {activeView !== 'focus' && (
+            <Header
+              userProfile={settings.userProfile}
+              onOpenSettings={() => handleOpenSettings()}
+              onOpenDeleteDataModal={() => setDeleteDataModalOpen(true)}
+              careerStatus={careerStatus}
+              isPremium={true}
+              remainingTrialDays={remainingTrialDays}
+              onOpenPaywall={() => setIsPaywallModalOpen(true)}
+              toggleTheme={globalToggleTheme}
+              currentTheme={globalTheme as any}
+              onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
+              onOpenGuide={() => setIsGuideModalOpen(true)}
+              streak={streak}
+              onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
+              onOpenCareerPath={() => setActiveView('career')}
+              onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
+              isLoggedIn={!!user}
+              onLogout={signOut}
+            />
+          )}
 
           <main id="main-scroll-container" className="flex-1 relative overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar">
             <div id="top-anchor" className="absolute top-0 left-0 w-full h-[1px] pointer-events-none" />
@@ -688,6 +692,20 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         onUpdateActivity={handleUpdateActivity}
                         onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
                         initialTab="stats"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeView === 'focus' && (
+                  <motion.div key="focus" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
+                    className="h-full w-full flex flex-col items-center justify-center bg-black fixed inset-0 z-[99999]"
+                  >
+                    <div className="w-full h-full max-w-lg mx-auto overflow-hidden shadow-2xl relative">
+                      <FocusModeModal
+                        isOpen={true}
+                        onClose={() => setActiveView('today')}
+                        onAddContact={() => handleOpenLeadCapture(ActivityType.CONTACTS)}
                       />
                     </div>
                   </motion.div>
