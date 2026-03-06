@@ -418,14 +418,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 return (
                   <React.Fragment key={activity}>
                     <div
-                      onClick={() => {
-                        if (activity === ActivityType.NEW_CONTRACTS && onOpenContractModal) {
-                          onOpenContractModal();
-                        } else {
-                          onUpdateActivity(activity, 1);
-                        }
-                      }}
-                      className="group flex items-center justify-between gap-4 py-3 px-3 transition-all hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl cursor-pointer active:scale-[0.98]"
+                      className="group flex items-center justify-between gap-4 py-3 px-3 transition-all hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl active:scale-[0.98]"
                     >
 
                       {/* Sinistra: Icona, Titolo, Valore */}

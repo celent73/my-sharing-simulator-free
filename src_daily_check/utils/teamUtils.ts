@@ -62,7 +62,7 @@ export const calculateMonthlyStats = (
 
     return {
         id: `${userName}-${Date.now()}`,
-        name: userName || "Utente",
+        name: userName || "",
         period: period,
         stats: totals,
         totalScore: score,

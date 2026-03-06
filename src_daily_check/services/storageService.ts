@@ -182,13 +182,16 @@ export const loadUserProfile = async (userId: string | null): Promise<UserProfil
       .single();
 
     if (data) {
-      return {
+      const profile = {
         firstName: data.first_name || '',
         lastName: data.last_name || '',
         commissionStatus: (data.commission_status as CommissionStatus) || CommissionStatus.PRIVILEGIATO,
         currentQualification: data.current_qualification as Qualification,
         targetQualification: data.target_qualification as Qualification
       };
+      // Force clean "Utente" if found in cloud
+      if (profile.firstName === 'Utente') profile.firstName = '';
+      return profile;
     }
     return { firstName: '', lastName: '', commissionStatus: CommissionStatus.PRIVILEGIATO };
   } else {

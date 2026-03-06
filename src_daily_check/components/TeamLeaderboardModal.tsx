@@ -531,7 +531,7 @@ const TeamLeaderboardModal: React.FC<TeamLeaderboardModalProps> = ({
             await supabase.from('team_members').upsert({
                 team_id: teamId,
                 player_id: playerId,
-                name: userName || "Utente",
+                name: userName || "",
                 stats: { ...myCalc.stats, prev_week_score: prevCalc.totalScore, prev_week_id: prevWeekId },
                 total_score: myCalc.totalScore,
                 last_updated: new Date().toISOString(),
