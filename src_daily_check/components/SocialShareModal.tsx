@@ -111,7 +111,7 @@ const SocialShareModal: React.FC<SocialShareModalProps> = ({ isOpen, onClose, to
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                <span className="font-bold tracking-wide text-xs uppercase">Daily Chek</span>
+                                <span className="font-bold tracking-wide text-xs uppercase">My Sharing Simulator</span>
                             </div>
                             <span className="text-xs font-mono opacity-70">{dateStr}</span>
                         </div>

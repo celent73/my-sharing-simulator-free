@@ -78,7 +78,7 @@ const GoalsShareModal: React.FC<GoalsShareModalProps> = ({ isOpen, onClose, goal
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
                                 </div>
-                                <span className="font-bold tracking-wide text-xs uppercase text-slate-500">Daily Chek</span>
+                                <span className="font-bold tracking-wide text-xs uppercase text-slate-500">My Sharing Simulator</span>
                             </div>
                             <span className="text-xs font-mono opacity-70 uppercase">{dateStr}</span>
                         </div>

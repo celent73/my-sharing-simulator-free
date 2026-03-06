@@ -128,12 +128,12 @@ export const saveLogForDate = async (userId: string | null, log: ActivityLog, al
 
 
 export const clearLogs = async (userId: string | null) => {
+  // Clear local storage regardless of login state
+  localStorage.removeItem(ACTIVITY_KEY);
+
   if (userId) {
-    // Dangerous in cloud!
     const { error } = await supabase.from('activity_logs').delete().eq('user_id', userId);
-    if (error) console.error("Error clearing logs:", error);
-  } else {
-    localStorage.removeItem(ACTIVITY_KEY);
+    if (error) console.error("Error clearing logs in Supabase:", error);
   }
 };
 
@@ -194,7 +194,10 @@ export const loadUserProfile = async (userId: string | null): Promise<UserProfil
   } else {
     // In local mode, profile is part of settings, so we extract it or return default
     const settings = getLocalSettings();
-    return settings?.userProfile || { firstName: '', lastName: '', commissionStatus: CommissionStatus.PRIVILEGIATO };
+    const profile = settings?.userProfile || { firstName: '', lastName: '', commissionStatus: CommissionStatus.PRIVILEGIATO };
+    // Force clean "Utente" if found
+    if (profile.firstName === 'Utente') profile.firstName = '';
+    return profile;
   }
 }
 

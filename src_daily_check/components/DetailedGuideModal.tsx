@@ -49,7 +49,7 @@ const DetailedGuideModal: React.FC<DetailedGuideModalProps> = ({ isOpen, onClose
 
   const steps = [
     {
-      title: "Benvenuto in Daily Chek 🚀",
+      title: "Benvenuto in My Sharing Simulator 🚀",
       content: (
         <div className="space-y-4">
           <p className="text-lg text-slate-600 dark:text-slate-300">

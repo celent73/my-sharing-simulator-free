@@ -28,7 +28,7 @@ interface HeaderProps {
 const StreakBadge = ({ count }: { count: number }) => {
     return (
         <div className="flex items-center gap-1 bg-green-500/10 text-green-400 pl-3 pr-3 py-1.5 rounded-full text-[13px] font-black tracking-widest uppercase border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-            DAILY CHEK
+            MY SHARING SIMULATOR
         </div>
     );
 };
