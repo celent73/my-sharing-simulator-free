@@ -753,7 +753,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>My Sharing Simulator v2.1.3</p>
+                        <p>My Sharing Simulator v1.2.69</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>
