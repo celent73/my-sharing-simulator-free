@@ -207,7 +207,20 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                 </div>
 
                 {/* Scrollable form */}
-                <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+                <form onSubmit={handleSubmit} className="p-5 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+                    {/* Primary Save Button (Top) - To ensure a quick way to save */}
+                    <button
+                        type="submit"
+                        className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center justify-center gap-2 mb-2"
+                    >
+                        <span>💾</span> SALVA DATI
+                    </button>
+
+                    <div className="relative flex items-center py-2">
+                        <div className="flex-grow border-t border-slate-100 dark:border-slate-800"></div>
+                        <span className="flex-shrink-0 mx-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Oppure gestisci l'esito</span>
+                        <div className="flex-grow border-t border-slate-100 dark:border-slate-800"></div>
+                    </div>
                     {/* Nome */}
                     <div>
                         <div className="flex justify-between items-center mb-1.5">

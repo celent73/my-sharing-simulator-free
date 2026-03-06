@@ -21,6 +21,7 @@ import DateNavigator from './DateNavigator';
 import CareerStatus from './CareerStatus';
 import FollowUpWidget from './FollowUpWidget';
 import ConversionFunnel from './ConversionFunnel';
+import GoalCalendar from './GoalCalendar';
 
 interface DashboardProps {
   activityLogs: ActivityLog[] | undefined;
@@ -401,7 +402,17 @@ const Dashboard: React.FC<DashboardProps> = ({
       {currentTab === 'overview' && (
         <div className="animate-fade-in relative z-10 w-full px-4">
           {/* Follow-up Section */}
-          {!compactView && <FollowUpWidget activityLogs={activityLogs} onEditLead={onEditLead} />}
+          <FollowUpWidget activityLogs={activityLogs} onEditLead={onEditLead} />
+
+          {/* Productivity Calendar */}
+          <GoalCalendar
+            activityLogs={activityLogs}
+            goals={goals}
+            onSelectDate={(date) => {
+              setSelectedDate(date);
+              setViewMode('daily');
+            }}
+          />
 
           {!compactView && <GoalStatusReminder current={totalCurrent} goal={totalGoal} timeProgress={timeProgress} periodLabel={viewMode} />}
 

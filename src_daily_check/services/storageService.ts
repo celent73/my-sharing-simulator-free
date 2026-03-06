@@ -137,6 +137,22 @@ export const clearLogs = async (userId: string | null) => {
   }
 };
 
+export const deleteLogsInRange = async (userId: string | null, startDate: string, endDate: string) => {
+  if (userId) {
+    const { error } = await supabase
+      .from('activity_logs')
+      .delete()
+      .eq('user_id', userId)
+      .gte('date', startDate)
+      .lte('date', endDate);
+
+    if (error) {
+      console.error("Error deleting logs in range from Supabase:", error);
+      throw error;
+    }
+  }
+};
+
 // ---------------------------------------------------------------------------
 // GESTIONE IMPOSTAZIONI & PROFILO
 // ---------------------------------------------------------------------------

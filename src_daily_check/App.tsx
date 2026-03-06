@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification, Lead } from './types';
-import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates } from './services/storageService';
+import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates, deleteLogsInRange } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
 import Header from './components/Header';
 import ActivityInput from './components/ActivityInput';
@@ -382,23 +382,33 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     addNotification('Storico cancellato.', 'success');
   };
 
-  const handleDeleteCurrentMonth = () => {
+  const handleDeleteCurrentMonth = async () => {
     const { start, end } = getCommercialMonthRange(new Date(), settings.commercialMonthStartDay);
-    setActivityLogs(prevLogs => {
-      const newLogs = prevLogs.filter(log => {
-        const logTime = new Date(log.date).getTime();
-        return logTime < start.getTime() || logTime > end.getTime();
+    const startDateStr = start.toISOString().split('T')[0];
+    const endDateStr = end.toISOString().split('T')[0];
+
+    try {
+      if (userId) {
+        await deleteLogsInRange(userId, startDateStr, endDateStr);
+      }
+
+      setActivityLogs(prevLogs => {
+        const newLogs = prevLogs.filter(log => {
+          const logTime = new Date(log.date).getTime();
+          return logTime < start.getTime() || logTime > end.getTime();
+        });
+
+        // Update local storage as well
+        localStorage.setItem('daily-check-app-logs', JSON.stringify(newLogs));
+        return newLogs;
       });
-      // Corrected: call save outside later if needed, but here we just clear cloud for that user or update
-      // Actually,saveLogs is fine here as we are replacing the WHOLE set
-      saveLogs(userId, newLogs).catch(err => {
-        console.error("Cloud save error:", err);
-        addNotification("Errore sincronizzazione Cloud, dati salvati localmente.", "info");
-      });
-      return newLogs;
-    });
-    setDeleteDataModalOpen(false);
-    addNotification('Dati mese eliminati.', 'success');
+
+      setDeleteDataModalOpen(false);
+      addNotification('Dati mese eliminati.', 'success');
+    } catch (err) {
+      console.error("Error deleting month data:", err);
+      addNotification("Errore durante la cancellazione dei dati.", "info");
+    }
   };
 
   const handleResetGoals = () => {
