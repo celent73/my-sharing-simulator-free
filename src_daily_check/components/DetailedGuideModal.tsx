@@ -49,7 +49,7 @@ const DetailedGuideModal: React.FC<DetailedGuideModalProps> = ({ isOpen, onClose
 
   const steps = [
     {
-      title: "Benvenuto in My Sharing Simulator 🚀",
+      title: "Benvenuto in Daily Chek 🚀",
       content: (
         <div className="space-y-4">
           <p className="text-lg text-slate-600 dark:text-slate-300">
@@ -162,6 +162,17 @@ const DetailedGuideModal: React.FC<DetailedGuideModalProps> = ({ isOpen, onClose
         <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-400/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
 
         <div className="p-8 relative z-10 flex flex-col h-full min-h-[500px]">
+
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-all z-20"
+            aria-label="Chiudi"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
           {/* Header / Icon */}
           <div className="flex flex-col items-center justify-center mb-6">

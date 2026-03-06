@@ -28,7 +28,7 @@ interface HeaderProps {
 const StreakBadge = ({ count }: { count: number }) => {
     return (
         <div className="flex items-center gap-1 bg-green-500/10 text-green-400 pl-3 pr-3 py-1.5 rounded-full text-[13px] font-black tracking-widest uppercase border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-            MY SHARING SIMULATOR
+            DAILY CHEK
         </div>
     );
 };
@@ -143,7 +143,7 @@ const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center gap-1 sm:gap-3 overflow-x-auto no-scrollbar py-1">
                     <InstallButton />
 
-                    <div className={`flex gap-0.5 sm:gap-1 transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0 pointer-events-none'}`}>
+                    <div className={`flex gap-0 sm:gap-1 transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0 pointer-events-none'}`}>
                         <button onClick={toggleTheme} className="p-1.5 sm:p-2.5 rounded-xl text-white hover:bg-white/10 transition-all" aria-label="Tema">
                             {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
                         </button>
