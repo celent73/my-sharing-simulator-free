@@ -93,7 +93,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                     }}
                 />
 
-                <div className="w-40 h-40 md:w-56 md:h-56 bg-white/5 backdrop-blur-2xl rounded-[3rem] flex items-center justify-center border border-white/10 shadow-[0_0_80px_rgba(0,119,200,0.2)] p-8">
+                <div className="w-64 h-64 md:w-96 md:h-96 bg-white/5 backdrop-blur-2xl rounded-[4.5rem] flex items-center justify-center border border-white/10 shadow-[0_0_150px_rgba(0,119,200,0.4)] p-14">
                     <img src="/logo_new.png" alt="Logo" className="w-full h-full object-contain" />
                 </div>
             </motion.div>
