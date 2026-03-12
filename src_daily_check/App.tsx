@@ -16,7 +16,7 @@ import { checkAndUnlockAchievements } from './utils/achievements';
 import ResetGoalsModal from './components/ResetGoalsModal';
 import PaywallModal from './components/PaywallModal';
 import AchievementsModal from './components/AchievementsModal';
-import ObjectionHandler from './components/ObjectionHandler';
+import { ScriptLibrary } from './components/ScriptLibrary';
 import SocialShareModal from './components/SocialShareModal';
 import MonthlyReportModal from './components/MonthlyReportModal';
 import ContractSelectorModal from './components/ContractSelectorModal';
@@ -257,7 +257,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const [isTargetCalculatorModalOpen, setIsTargetCalculatorModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCareerPathModalOpen, setIsCareerPathModalOpen] = useState(false);
-  const [isObjectionHandlerOpen, setIsObjectionHandlerOpen] = useState(false);
+  const [isScriptLibraryOpen, setIsScriptLibraryOpen] = useState(false);
   const [isSocialShareModalOpen, setIsSocialShareModalOpen] = useState(false);
   const [isContractSelectorModalOpen, setIsContractSelectorModalOpen] = useState(false);
   const [isLeadCaptureModalOpen, setIsLeadCaptureModalOpen] = useState(false);
@@ -782,7 +782,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       activityLogs={activityLogs}
                       todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}
                       onUpdateActivity={handleUpdateActivity}
-                      onOpenObjectionHandler={() => setIsObjectionHandlerOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}
+                      onOpenObjectionHandler={() => setIsScriptLibraryOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}
                       selectedDate={selectedInputDate} onDateChange={setSelectedInputDate} commercialMonthStartDay={settings.commercialMonthStartDay}
                       customLabels={effectiveCustomLabels} dailyEarnings={dailyEarnings} monthlyEarnings={monthlyEarnings}
                       onOpenContractModal={() => setIsContractSelectorModalOpen(true)} onOpenAppointmentModal={() => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
@@ -869,7 +869,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>My Sharing Simulator v1.2.78</p>
+                        <p>My Sharing Simulator v1.2.79</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>
@@ -924,7 +924,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       <TargetCalculatorModal isOpen={isTargetCalculatorModalOpen} onClose={() => setIsTargetCalculatorModalOpen(false)} currentEarnings={monthlyEarnings} commercialMonthStartDay={settings.commercialMonthStartDay} userStatus={settings.userProfile.commissionStatus} />
       <DetailedGuideModal isOpen={isGuideModalOpen} onClose={() => setIsGuideModalOpen(false)} />
       <TeamLeaderboardModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} activityLogs={activityLogs} userName={`${settings.userProfile.firstName} ${settings.userProfile.lastName}`} commercialStartDay={settings.commercialMonthStartDay} />
-      <ObjectionHandler isOpen={isObjectionHandlerOpen} onClose={() => setIsObjectionHandlerOpen(false)} />
+      <ScriptLibrary isOpen={isScriptLibraryOpen} onClose={() => setIsScriptLibraryOpen(false)} />
       <VoiceSpeedMode isOpen={isVoiceModeOpen} onClose={() => setIsVoiceModeOpen(false)} onUpdateActivity={(activity, count) => handleUpdateActivity(activity, count)} />
       <SocialShareModal isOpen={isSocialShareModalOpen} onClose={() => setIsSocialShareModalOpen(false)} todayCounts={selectedDateLog?.counts || {}} userProfile={settings.userProfile} customLabels={effectiveCustomLabels} />
       <LeadCaptureModal isOpen={isLeadCaptureModalOpen} onClose={() => { setIsLeadCaptureModalOpen(false); setEditingLead(null); }} activityType={leadCaptureType} onSave={handleSaveLead} initialData={editingLead} />

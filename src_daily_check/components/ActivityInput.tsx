@@ -298,8 +298,17 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         </div>
                     </div>
                 )}
-
-
+                {/* QUICK ACTIONS */}
+                <div className="flex justify-end w-full mb-4 px-2">
+                    <button
+                        onClick={onOpenObjectionHandler}
+                        className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-2xl transition-all active:scale-95 group shadow-xl"
+                    >
+                        <Sparkles size={18} className="text-blue-400 group-hover:animate-pulse" />
+                        <span className="text-xs font-black uppercase tracking-widest text-white/80 group-hover:text-white transition-colors">Script Library</span>
+                        <ChevronRight size={14} className="text-white/20 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                </div>
 
                 {/* ACTIVITY GRID */}
                 <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
