@@ -135,23 +135,17 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = ({ isOpen, onClose })
                                 </div>
 
                                 {/* Actions */}
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="flex flex-col gap-3">
                                     <button 
                                         onClick={() => handleCopy(script)}
-                                        className={`flex items-center justify-center gap-2 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
+                                        className={`flex items-center justify-center gap-2 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
                                             copiedId === script.id 
                                             ? 'bg-green-500 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)]' 
-                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm'
                                         }`}
                                     >
-                                        <Copy size={16} />
-                                        {copiedId === script.id ? 'Copiato!' : 'Copia'}
-                                    </button>
-                                    <button 
-                                        className="flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20 active:scale-95 group/ai"
-                                    >
-                                        <Sparkles size={16} className="group-hover/ai:animate-pulse" />
-                                        Personalizza con AI
+                                        <Copy size={18} />
+                                        {copiedId === script.id ? 'Copiato negli Appunti!' : 'Copia Script'}
                                     </button>
                                 </div>
                             </motion.div>
