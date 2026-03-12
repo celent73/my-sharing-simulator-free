@@ -190,7 +190,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md" onClick={onClose} />
 
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden animate-scale-up max-h-[92vh] flex flex-col">

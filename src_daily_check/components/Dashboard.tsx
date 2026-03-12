@@ -19,7 +19,6 @@ import ActivityFocus from './ActivityFocus';
 import StatCard from './StatCard';
 import DateNavigator from './DateNavigator';
 import CareerStatus from './CareerStatus';
-import FollowUpWidget from './FollowUpWidget';
 import ConversionFunnel from './ConversionFunnel';
 import GoalCalendar from './GoalCalendar';
 
@@ -401,9 +400,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Tab Riepilogo */}
       {currentTab === 'overview' && (
         <div className="animate-fade-in relative z-10 w-full px-4">
-          {/* Follow-up Section */}
-          <FollowUpWidget activityLogs={activityLogs} onEditLead={onEditLead} />
-
           {/* Productivity Calendar */}
           <GoalCalendar
             activityLogs={activityLogs}

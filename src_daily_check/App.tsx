@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification, Lead } from './types';
 import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates, deleteLogsInRange } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
+import { format } from 'date-fns';
 import Header from './components/Header';
 import ActivityInput from './components/ActivityInput';
 import Dashboard from './components/Dashboard';
@@ -35,6 +36,7 @@ import VoiceSpeedMode from './components/VoiceSpeedMode';
 import TeamLeaderboardModal from './components/TeamLeaderboardModal';
 import CareerPathModal from './components/CareerPathModal';
 import CareerDeadlineBanner from './components/CareerDeadlineBanner';
+import FollowUpBanner from './components/FollowUpBanner';
 import AppointmentsOverviewModal from './components/AppointmentsOverviewModal';
 import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -295,7 +297,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
     setActivityLogs(prevLogs => {
       const newLogs = [...prevLogs];
-      const dateStr = selectedInputDate.toISOString().split('T')[0];
+      const dateStr = format(selectedInputDate, 'yyyy-MM-dd');
 
       if (leadData.id) {
         // EDIT MODE
@@ -462,7 +464,32 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       loadUserProfile(userId),
       loadCareerDates(userId)
     ]);
-    setActivityLogs(loadedLogs);
+
+    // DATA MIGRATION v1.2.75: Convert ISO dates to yyyy-MM-dd
+    const migratedLogs = loadedLogs.map(log => {
+      const newLog = { ...log };
+      if (newLog.date && newLog.date.includes('T')) {
+        newLog.date = newLog.date.split('T')[0];
+      }
+      if (newLog.leads) {
+        newLog.leads = newLog.leads.map(lead => {
+          const newLead = { ...lead };
+          if (newLead.date && newLead.date.includes('T')) {
+            newLead.date = newLead.date.split('T')[0];
+          }
+          if (newLead.followUpDate && newLead.followUpDate.includes('T')) {
+            newLead.followUpDate = newLead.followUpDate.split('T')[0];
+          }
+          if (newLead.appointmentDate && newLead.appointmentDate.includes('T')) {
+            newLead.appointmentDate = newLead.appointmentDate.split('T')[0];
+          }
+          return newLead;
+        });
+      }
+      return newLog;
+    });
+
+    setActivityLogs(migratedLogs);
     let mergedSettings = { ...DEFAULT_SETTINGS, ...(loadedSettings || {}) };
     if (loadedProfile) mergedSettings.userProfile = { ...mergedSettings.userProfile, ...loadedProfile };
     setSettings(mergedSettings);
@@ -580,7 +607,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   };
 
   const handleContractSelection = (type: ContractType) => {
-    const dateStr = selectedInputDate.toISOString().split('T')[0];
+    const dateStr = format(selectedInputDate, 'yyyy-MM-dd');
     updateActivityLog([{ activity: ActivityType.NEW_CONTRACTS, change: 1, contractType: type }], dateStr);
     setIsContractSelectorModalOpen(false);
   };
@@ -620,7 +647,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   }), []);
 
   const { dailyEarnings, monthlyEarnings } = useMemo(() => {
-    const selectedDateStr = selectedInputDate.toISOString().split('T')[0];
+    const selectedDateStr = format(selectedInputDate, 'yyyy-MM-dd');
     const { start, end } = getCommercialMonthRange(selectedInputDate, settings.commercialMonthStartDay);
     const userStatus = settings.userProfile.commissionStatus || CommissionStatus.PRIVILEGIATO;
     const rates = COMMISSION_RATES[userStatus];
@@ -647,7 +674,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     return totals;
   }, [activityLogs, selectedInputDate, settings.commercialMonthStartDay]);
 
-  const selectedDateLog = activityLogs.find(log => log.date === selectedInputDate.toISOString().split('T')[0]);
+  const selectedDateLog = activityLogs.find(log => log.date === format(selectedInputDate, 'yyyy-MM-dd'));
   const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification), [activityLogs, settings.userProfile.currentQualification]);
   const streak = useMemo(() => calculateCurrentStreak(activityLogs), [activityLogs]);
 
@@ -715,11 +742,14 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
           )}
 
           {(activeView === 'today' || activeView === 'stats') && (
-            <CareerDeadlineBanner
-              careerStatus={careerStatus}
-              targetDates={careerDates}
-              onOpenCareerPath={() => setActiveView('career')}
-            />
+            <>
+              <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
+              <CareerDeadlineBanner
+                careerStatus={careerStatus}
+                targetDates={careerDates}
+                onOpenCareerPath={() => setActiveView('career')}
+              />
+            </>
           )}
 
           <main id="main-scroll-container" className="flex-1 relative overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar">
@@ -839,7 +869,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>My Sharing Simulator v1.2.69</p>
+                        <p>My Sharing Simulator v1.2.76</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>

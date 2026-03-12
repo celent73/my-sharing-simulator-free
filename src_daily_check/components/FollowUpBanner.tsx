@@ -1,41 +1,79 @@
 import React, { useMemo, useState } from 'react';
 import { ActivityLog, Lead, ActivityType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getTodayDateString } from '../utils/dateUtils';
+import { format, subDays } from 'date-fns';
 
-interface FollowUpWidgetProps {
+interface FollowUpBannerProps {
     activityLogs: ActivityLog[];
     onEditLead: (type: ActivityType, lead: Lead) => void;
 }
-
-const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLead }) => {
-    const { followUps, staleLeads } = useMemo(() => {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(today.getDate() - 3);
-        const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
+const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLead }) => {
+    const { followUps, staleLeads, recentLeads, futureLeads, unregisteredContacts, debugInfo } = useMemo(() => {
+        const todayStr = getTodayDateString();
+        const threeDaysAgoStr = format(subDays(new Date(), 3), 'yyyy-MM-dd');
 
         const scheduled: Lead[] = [];
         const stale: Lead[] = [];
+        const recent: Lead[] = [];
+        const future: Lead[] = [];
+        let totalContactsCount = 0;
+        let registeredLeadsCount = 0;
+        const countsByStatus: Record<string, number> = { pending: 0, won: 0, lost: 0, missing: 0 };
+        const typesCount: Record<string, number> = {};
+        const datesFound: string[] = [];
 
         activityLogs.forEach(log => {
+            const logDateStr = log.date; 
+            if (logDateStr >= threeDaysAgoStr) {
+                totalContactsCount += log.counts[ActivityType.CONTACTS] || 0;
+            }
+
             if (log.leads) {
                 log.leads.forEach(lead => {
-                    if (lead.status === 'pending') {
-                        if (lead.followUpDate && lead.followUpDate <= todayStr) {
-                            scheduled.push(lead);
-                        } else if (!lead.followUpDate && lead.type === ActivityType.CONTACTS && lead.date <= threeDaysAgoStr) {
-                            stale.push(lead);
+                    const status = lead.status || 'pending';
+                    const type = lead.type || ActivityType.CONTACTS;
+                    
+                    if (!lead.status) countsByStatus.missing++;
+                    else countsByStatus[lead.status] = (countsByStatus[lead.status] || 0) + 1;
+                    
+                    typesCount[type] = (typesCount[type] || 0) + 1;
+
+                    if (status === 'pending') {
+                        // Unifichiamo la data di riferimento: priorità followUpDate, poi date (ISO), poi data del log
+                        const leadDateOnly = lead.date ? lead.date.split('T')[0] : logDateStr;
+                        const leadRefDate = lead.followUpDate || leadDateOnly;
+                        datesFound.push(`${lead.name}:${leadRefDate}`);
+
+                        if (lead.followUpDate) {
+                            if (lead.followUpDate <= todayStr) {
+                                scheduled.push(lead);
+                            } else {
+                                future.push(lead);
+                            }
+                        } else {
+                            if (leadRefDate <= threeDaysAgoStr) {
+                                stale.push(lead);
+                            } else {
+                                recent.push(lead);
+                            }
                         }
+                    }
+
+                    if (type === ActivityType.CONTACTS && (lead.date ? lead.date.split('T')[0] : logDateStr) >= threeDaysAgoStr) {
+                        registeredLeadsCount++;
                     }
                 });
             }
         });
 
-        // Filter and sort: Overdue first, then Today
         return {
-            followUps: scheduled.sort((a, b) => a.followUpDate!.localeCompare(b.followUpDate!)),
-            staleLeads: stale.sort((a, b) => a.date.localeCompare(b.date))
+            followUps: scheduled.sort((a, b) => (a.followUpDate || '').localeCompare(b.followUpDate || '')),
+            staleLeads: stale.sort((a, b) => (a.followUpDate || a.date || '').localeCompare(b.followUpDate || b.date || '')),
+            recentLeads: recent.sort((a, b) => (b.followUpDate || b.date || '').localeCompare(a.followUpDate || a.date || '')),
+            futureLeads: future.sort((a, b) => (a.followUpDate || '').localeCompare(b.followUpDate || '')),
+            unregisteredContacts: Math.max(0, totalContactsCount - registeredLeadsCount),
+            debugInfo: { todayStr, logsCount: activityLogs.length, totalContactsCount, registeredLeadsCount, countsByStatus, typesCount, datesFound: datesFound.slice(0, 5) }
         };
     }, [activityLogs]);
 
@@ -121,7 +159,8 @@ const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLea
 
     const [isOpen, setIsOpen] = useState(false);
 
-    if (followUps.length === 0 && staleLeads.length === 0) return null;
+    // Rimosso il return null per garantire feedback visivo che il componente esiste
+    const hasItems = followUps.length > 0 || staleLeads.length > 0 || recentLeads.length > 0 || futureLeads.length > 0 || unregisteredContacts > 0;
 
     return (
         <div className="mb-8 w-full max-w-5xl mx-auto">
@@ -136,12 +175,35 @@ const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLea
                     <div className="text-left">
                         <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight text-sm sm:text-base">Gestione Follow-up</h3>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                                {followUps.length} programmati
-                            </span>
-                            <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-md">
-                                {staleLeads.length} in sospeso
-                            </span>
+                            {hasItems ? (
+                                <>
+                                    <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                                        {followUps.length} programmati
+                                    </span>
+                                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-md">
+                                        {staleLeads.length} in sospeso
+                                    </span>
+                                    {recentLeads.length > 0 && (
+                                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">
+                                            {recentLeads.length} recenti da pianificare
+                                        </span>
+                                    )}
+                                    {futureLeads.length > 0 && (
+                                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md">
+                                            {futureLeads.length} pianificati
+                                        </span>
+                                    )}
+                                    {unregisteredContacts > 0 && (
+                                        <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-md animate-pulse">
+                                            {unregisteredContacts} contatti da registrare
+                                        </span>
+                                    )}
+                                </>
+                            ) : (
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md">
+                                    ✅ Ottimo lavoro! Nessun follow-up in sospeso.
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -218,6 +280,52 @@ const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLea
                                         </div>
                                     </div>
                                 )}
+
+                                {futureLeads.length > 0 && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl">📅</span>
+                                            <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Prossimi giorni</h3>
+                                            <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{futureLeads.length}</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-70">
+                                            {futureLeads.map(lead => renderLeadCard(lead, false))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {unregisteredContacts > 0 && (
+                                    <div className="p-6 bg-red-50 dark:bg-red-900/20 border-2 border-dashed border-red-200 dark:border-red-800 rounded-[2.5rem] text-center space-y-3">
+                                        <div className="text-4xl">⚠️</div>
+                                        <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Hai {unregisteredContacts} contatti non registrati</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                                            Hai incrementato il counter dei contatti per oggi, ma non hai inserito i loro dettagli (nome/telefono).
+                                            Inserisci i dati per poterli gestire nei futuri follow-up.
+                                        </p>
+                                        <button
+                                            onClick={() => { setIsOpen(false); onEditLead(ActivityType.CONTACTS, {} as any); }}
+                                            className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl shadow-lg transition-all active:scale-95"
+                                        >
+                                            REGISTRA ORA
+                                        </button>
+                                    </div>
+                                )}
+
+                                {!hasItems && (
+                                    <div className="py-20 text-center flex flex-col items-center justify-center space-y-4">
+                                        <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl flex items-center justify-center text-4xl shadow-inner animate-bounce">
+                                            ✨
+                                        </div>
+                                        <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Tutto in Ordine!</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto font-medium">
+                                            Non hai follow-up scaduti o nuovi contatti da gestire oggi. Continua così! 🚀
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 text-[9px] font-mono opacity-30">
+                                    DEBUG v1.2.75: Logs: {debugInfo.logsCount}, Contacts: {debugInfo.totalContactsCount}, Reg: {debugInfo.registeredLeadsCount}, P:{debugInfo.countsByStatus.pending} W:{debugInfo.countsByStatus.won} L:{debugInfo.countsByStatus.lost}, Types: {Object.entries(debugInfo.typesCount).map(([k,v]) => `${k}:${v}`).join(' ')}, Leads: {debugInfo.datesFound.join(' | ')}, Now: {debugInfo.todayStr}
+                                </div>
                             </div>
                         </motion.div>
                     </div>
@@ -227,4 +335,4 @@ const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLea
     );
 };
 
-export default FollowUpWidget;
+export default FollowUpBanner;

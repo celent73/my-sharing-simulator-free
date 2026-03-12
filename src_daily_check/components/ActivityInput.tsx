@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType, Lead } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
+import { format } from 'date-fns';
 import { formatItalianDate, getCommercialMonthString, getDaysUntilCommercialMonthEnd, getCommercialMonthProgress } from '../utils/dateUtils';
 import LeadCaptureModal from './LeadCaptureModal';
 import AppointmentsOverviewModal from './AppointmentsOverviewModal';
@@ -168,7 +169,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     const selectedDateFormatted = formatItalianDate(selectedDate);
     const commercialMonthStr = getCommercialMonthString(selectedDate, commercialMonthStartDay);
     const daysRemaining = getDaysUntilCommercialMonthEnd(selectedDate, commercialMonthStartDay);
-    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
 
     const changeDate = (days: number) => {
         const newDate = new Date(selectedDate);
