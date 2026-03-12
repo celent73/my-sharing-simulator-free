@@ -296,19 +296,19 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                 </div>
                             </div>
                         </div>
+
+                        {/* SCRIPT LIBRARY BUTTON UNDER THE RING */}
+                        <div className="mt-8">
+                            <button
+                                onClick={onOpenObjectionHandler}
+                                className="flex items-center gap-3 px-8 py-4 bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-3xl shadow-xl hover:bg-white/20 transition-all active:scale-95 group"
+                            >
+                                <Sparkles size={22} className="text-blue-400 group-hover:animate-pulse" />
+                                <span className="font-black text-sm uppercase tracking-[0.2em] text-slate-700 dark:text-white">Script Library</span>
+                            </button>
+                        </div>
                     </div>
                 )}
-                {/* QUICK ACTIONS */}
-                <div className="flex justify-end w-full mb-4 px-2">
-                    <button
-                        onClick={onOpenObjectionHandler}
-                        className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-2xl transition-all active:scale-95 group shadow-xl"
-                    >
-                        <Sparkles size={18} className="text-blue-400 group-hover:animate-pulse" />
-                        <span className="text-xs font-black uppercase tracking-widest text-white/80 group-hover:text-white transition-colors">Script Library</span>
-                        <ChevronRight size={14} className="text-white/20 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                </div>
 
                 {/* ACTIVITY GRID */}
                 <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
@@ -378,24 +378,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                     })}
                 </div>
 
-                {/* Quick Actions / Tools Section */}
-                <div className="mt-12 flex flex-wrap justify-center gap-4">
-                    <button
-                        onClick={onOpenObjectionHandler}
-                        className="flex items-center gap-3 px-6 py-4 bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-2xl shadow-xl hover:bg-white/20 transition-all active:scale-95 group"
-                    >
-                        <ShieldCheck className="w-6 h-6 text-orange-500 group-hover:animate-bounce" />
-                        <span className="font-black text-xs uppercase tracking-widest text-slate-700 dark:text-white">Gestione Obiezioni</span>
-                    </button>
-
-                    <button
-                        onClick={onOpenVoiceMode}
-                        className="flex items-center gap-3 px-6 py-4 bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-2xl shadow-xl hover:bg-white/20 transition-all active:scale-95 group"
-                    >
-                        <Mic className="w-6 h-6 text-blue-500 group-hover:animate-pulse" />
-                        <span className="font-black text-xs uppercase tracking-widest text-slate-700 dark:text-white">Modalità Voce</span>
-                    </button>
-                </div>
+                {/* Voice Mode and Bottom Actions removed as requested */}
             </div>
 
 
