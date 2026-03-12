@@ -1,12 +1,8 @@
 import React from 'react';
+import { CareerStatusInfo } from '../utils/careerUtils';
 
 interface CareerDeadlineBannerProps {
-    careerStatus: {
-        currentLevel: {
-            name: string;
-            qualificationValue?: string;
-        };
-    } | null;
+    careerStatus: CareerStatusInfo | null;
     targetDates: Record<string, string>;
     onOpenCareerPath?: () => void;
 }
@@ -94,9 +90,16 @@ const CareerDeadlineBanner: React.FC<CareerDeadlineBannerProps> = ({ careerStatu
                     
                     {/* Testo */}
                     <div className="flex-1 min-w-0">
-                        <p className={`text-[9px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none mb-0.5`}>
-                            🏆 SCADENZA CARRIERA
-                        </p>
+                        <div className="flex justify-between items-baseline mb-0.5">
+                            <p className={`text-[9px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none`}>
+                                🏆 SCADENZA CARRIERA
+                            </p>
+                            {careerStatus && (
+                                <p className="text-[9px] font-bold text-white/50 uppercase">
+                                    {careerStatus.totalClients} / {careerStatus.clientsForNextLevel > 0 && careerStatus.clientsForNextLevel < 9000 ? careerStatus.clientsForNextLevel : 11}
+                                </p>
+                            )}
+                        </div>
                         <p className="text-xs sm:text-sm font-bold text-white leading-snug truncate">
                             {message}
                         </p>

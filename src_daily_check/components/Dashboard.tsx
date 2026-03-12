@@ -18,9 +18,9 @@ import { ACTIVITY_LABELS, activityIcons } from '../constants';
 import ActivityFocus from './ActivityFocus';
 import StatCard from './StatCard';
 import DateNavigator from './DateNavigator';
-import CareerStatus from './CareerStatus';
 import ConversionFunnel from './ConversionFunnel';
 import GoalCalendar from './GoalCalendar';
+import { calculateCareerStatus } from '../utils/careerUtils';
 
 interface DashboardProps {
   activityLogs: ActivityLog[] | undefined;
@@ -339,6 +339,23 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="bg-[#f2f2f7] dark:bg-slate-900/40 min-h-screen p-3 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans">
+      {/* Calcolo status carriera per l'header */}
+      {(() => {
+        const careerStatus = calculateCareerStatus(activityLogs, userProfile.currentQualification);
+        return (
+          <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-2 pl-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">LIVELLO</span>
+              <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-tight">{careerStatus.currentLevel.name}</span>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-sm">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Header e Selezione Vista */}
       <div className="relative z-10 flex flex-col items-start mb-10">
@@ -508,13 +525,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* Career Status Widget */}
-          <div className="w-full max-w-5xl mx-auto mt-8">
-            <CareerStatus
-              activityLogs={activityLogs}
-              userProfile={userProfile}
-            />
-          </div>
 
           {!compactView && (
             <>

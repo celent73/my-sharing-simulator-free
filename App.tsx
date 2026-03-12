@@ -36,7 +36,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.2.77";
+const APP_VERSION = "v1.2.78";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -595,7 +595,7 @@ const AppContent = () => {
 
 
       <div className="fixed top-2 right-2 z-[9999] pointer-events-none opacity-50 text-[10px] font-mono bg-black/20 text-white px-2 py-0.5 rounded-full backdrop-blur-sm">
-        v1.2.77
+        v1.2.78
       </div>
 
 
@@ -623,7 +623,7 @@ const AppContent = () => {
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
                     <span className="text-white">My Sharing</span>
                     <span className="text-main-accent">Simulator</span>
-                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2">v1.2.77</span>
+                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2">v1.2.78</span>
                     <img
                       src="/logo_v2_main.png"
                       alt="Logo"
