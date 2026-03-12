@@ -301,10 +301,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         <div className="mt-8">
                             <button
                                 onClick={onOpenObjectionHandler}
-                                className="flex items-center gap-3 px-8 py-4 bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-3xl shadow-xl hover:bg-white/20 transition-all active:scale-95 group"
+                                className="flex items-center gap-3 px-10 py-4 bg-[#007aff] hover:bg-[#0063cc] text-white rounded-3xl shadow-xl shadow-blue-500/30 transition-all active:scale-95 group border border-blue-400/30"
                             >
-                                <Sparkles size={22} className="text-blue-400 group-hover:animate-pulse" />
-                                <span className="font-black text-sm uppercase tracking-[0.2em] text-slate-700 dark:text-white">Script Library</span>
+                                <Sparkles size={22} className="text-white group-hover:animate-pulse" />
+                                <span className="font-black text-sm uppercase tracking-[0.2em]">Script Library</span>
                             </button>
                         </div>
                     </div>
