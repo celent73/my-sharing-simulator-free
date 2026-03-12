@@ -4,7 +4,7 @@ import { ActivityType, Lead } from '../types';
 interface LeadCaptureModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: { id?: string; name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string; followUpDate?: string }) => void;
+    onSave: (data: { id?: string; name: string; phone: string; note: string; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string; followUpDate?: string; temperature?: 'freddo' | 'tiepido' | 'caldo' }) => void;
     activityType: ActivityType;
     initialData?: Lead | null;
 }
@@ -80,6 +80,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
     const [phone, setPhone] = useState('');
     const [note, setNote] = useState('');
     const [followUpDate, setFollowUpDate] = useState('');
+    const [temperature, setTemperature] = useState<'freddo' | 'tiepido' | 'caldo' | undefined>(undefined);
 
     // Appointment-specific fields
     const [appointmentDate, setAppointmentDate] = useState('');
@@ -100,6 +101,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                 setLocationType(initialData.locationType || 'online');
                 setAddress(initialData.address || '');
                 setPlatform(initialData.platform || 'zoom');
+                setTemperature(initialData.temperature);
                 // Se è già vinto, cerchiamo di capire che tipo era (anche se per ora è nuovo)
                 setWonType('contract');
             } else {
@@ -108,6 +110,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                 setLocationType('online');
                 setAddress('');
                 setPlatform('zoom');
+                setTemperature(undefined);
                 setWonType('contract');
             }
         }
@@ -135,6 +138,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
             status: finalStatus,
             type: finalType,
             followUpDate: followUpDate || undefined,
+            temperature,
             ...(isAppointment && {
                 appointmentDate,
                 locationType,
@@ -260,6 +264,37 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                                     </svg>
                                 </button>
                             )}
+                        </div>
+                    </div>
+
+                    {/* Temperatura Contatto */}
+                    <div>
+                        <label className="block text-xs font-bold uppercase text-slate-400 mb-2.5">Temperatura Contatto</label>
+                        <div className="grid grid-cols-3 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setTemperature('freddo')}
+                                className={`py-3 px-2 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all border-2 flex flex-col items-center gap-1.5 ${temperature === 'freddo' ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/30 scale-105' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-800 text-slate-400 hover:border-red-200'}`}
+                            >
+                                <span className="text-lg">❄️</span>
+                                Freddo
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setTemperature('tiepido')}
+                                className={`py-3 px-2 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all border-2 flex flex-col items-center gap-1.5 ${temperature === 'tiepido' ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-800 text-slate-400 hover:border-amber-200'}`}
+                            >
+                                <span className="text-lg">🌤️</span>
+                                Tiepido
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setTemperature('caldo')}
+                                className={`py-3 px-2 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all border-2 flex flex-col items-center gap-1.5 ${temperature === 'caldo' ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-105' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-800 text-slate-400 hover:border-emerald-200'}`}
+                            >
+                                <span className="text-lg">🔥</span>
+                                Caldo
+                            </button>
                         </div>
                     </div>
 

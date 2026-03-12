@@ -12,7 +12,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Calendar,
-    Zap,
+    Sparkles,
     Mic,
     ShieldCheck,
     Star,
@@ -146,6 +146,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ActivityType | null>(null);
     const [targetDates, setTargetDates] = useState<Record<string, string>>({});
     const [isAppointmentsOverviewOpen, setIsAppointmentsOverviewOpen] = useState(false);
+    const [appointmentsFilterDate, setAppointmentsFilterDate] = useState<Date | null>(null);
 
     React.useEffect(() => {
         if (!isHubMode) return;
@@ -163,54 +164,6 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
         window.addEventListener('careerDatesUpdated', loadDates);
         return () => window.removeEventListener('careerDatesUpdated', loadDates);
     }, [isHubMode]);
-
-    const upcomingDeadline = React.useMemo(() => {
-        if (!careerStatus || !isHubMode) return null;
-
-        const qualificationsOrder = [
-            'Family pro', 'Family pro 3x3', 'Family 3s', 'Family 5s', 'Top family',
-            'Pro manager', 'Regional manager', 'National manager', 'Director',
-            'Director pro', 'Ambassador', 'President'
-        ].map(s => s.toLowerCase());
-
-        const currentLvlName = careerStatus.currentLevel.qualificationValue
-            ? careerStatus.currentLevel.qualificationValue.toLowerCase()
-            : careerStatus.currentLevel.name.toLowerCase();
-
-        let currentIndex = qualificationsOrder.indexOf(currentLvlName);
-        if (['family utility', 'consulente junior', 'consulente senior', 'team leader', 'manager', 'top manager'].includes(currentLvlName)) {
-            currentIndex = -1;
-        }
-
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-
-        let foundMessage: string | null = null;
-        let minDiff = Infinity;
-        let foundDaysLeft = 0;
-
-        for (const [stageName, dateStr] of Object.entries(targetDates)) {
-            const stageIndex = qualificationsOrder.indexOf(stageName.toLowerCase());
-
-            if (stageIndex > currentIndex || currentIndex === -1) {
-                const targetDate = new Date(dateStr as string);
-                const diffDays = Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
-
-                if (diffDays <= 30 && diffDays >= -7 && diffDays < minDiff) {
-                    minDiff = diffDays;
-                    foundDaysLeft = diffDays;
-                    if (diffDays > 0) {
-                        foundMessage = `Scadenza "${stageName}" tra ${diffDays} gg (${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })})`;
-                    } else if (diffDays === 0) {
-                        foundMessage = `Oggi scade il traguardo "${stageName}"! Dai il massimo!`;
-                    } else {
-                        foundMessage = `Obiettivo "${stageName}" (scaduto il ${targetDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}) non ancora raggiunto!`;
-                    }
-                }
-            }
-        }
-        return foundMessage ? { message: foundMessage, daysLeft: foundDaysLeft } : null;
-    }, [careerStatus, targetDates, isHubMode]);
 
     const selectedDateFormatted = formatItalianDate(selectedDate);
     const commercialMonthStr = getCommercialMonthString(selectedDate, commercialMonthStartDay);
@@ -242,6 +195,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
     return (
         <div className={`transition-all duration-500 ${isHubMode ? 'scale-100' : ''}`}>
+            
             {/* Date Navigator Pill — always visible */}
             <div className="mb-8 flex flex-col items-center">
                 <div className="w-full max-w-sm bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-700 px-4 py-4">
@@ -302,6 +256,8 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
             {/* MAIN HUB STAGE */}
             <div className={`relative ${isHubMode ? 'flex flex-col items-center justify-center' : ''}`}>
 
+
+
                 {/* POWER RING (Central Indicator) - Only in Hub Mode */}
                 {isHubMode && (
                     <div className="mb-16 relative group">
@@ -342,36 +298,16 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                     </div>
                 )}
 
-                {/* Deadline Alert moved BELOW the ring for absolute visibility */}
-                {upcomingDeadline && (() => {
-                    const { message, daysLeft } = upcomingDeadline;
-                    const colors = daysLeft > 15
-                        ? { glow: 'from-emerald-500 to-green-400', bg: 'from-emerald-950/90 to-slate-900/90', border: 'border-emerald-500/40', shadow: 'rgba(16,185,129,0.25)', label: 'text-emerald-400', iconBg: 'bg-emerald-500/20 border-emerald-500/30', dot: 'bg-emerald-400' }
-                        : daysLeft > 5
-                            ? { glow: 'from-yellow-500 to-amber-400', bg: 'from-yellow-950/90 to-slate-900/90', border: 'border-yellow-500/40', shadow: 'rgba(234,179,8,0.4)', label: 'text-yellow-400', iconBg: 'bg-yellow-500/20 border-yellow-500/30', dot: 'bg-yellow-400' }
-                            : { glow: 'from-red-600 to-orange-500', bg: 'from-red-950/90 to-slate-900/90', border: 'border-red-500/40', shadow: 'rgba(239,68,68,0.25)', label: 'text-red-400', iconBg: 'bg-red-500/20 border-red-500/30', dot: 'bg-red-500' };
 
-                    return (
-                        <div className="mb-12 relative animate-fade-in group z-20">
-                            <div className={`absolute -inset-[2px] rounded-2xl bg-gradient-to-r ${colors.glow} animate-pulse-slow opacity-80 blur-[6px]`} />
-                            <div className={`relative flex items-center gap-4 bg-gradient-to-r ${colors.bg} backdrop-blur-2xl border ${colors.border} rounded-2xl px-6 py-4 max-w-sm mx-auto shadow-[0_0_50px_${colors.shadow}]`}>
-                                <div className={`flex-shrink-0 w-12 h-12 ${colors.iconBg} rounded-xl flex items-center justify-center border border-white/10 shadow-inner`}>
-                                    <div className={`w-4 h-4 rounded-full ${colors.dot} shadow-[0_0_15px_${colors.shadow}] animate-pulse`} />
-                                </div>
-                                <div className="flex-1 text-left min-w-0">
-                                    <p className={`text-[10px] font-black ${colors.label} uppercase tracking-[0.2em] mb-1`}>SCADENZA CARRIERA</p>
-                                    <p className="text-sm lg:text-base font-black text-white leading-tight drop-shadow-sm">{message}</p>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })()}
 
                 {/* ACTIVITY GRID */}
                 <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
                     {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
                         const count = todayCounts[activity] || 0;
-                        const label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
+                        let label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
+                        if (activity === ActivityType.APPOINTMENTS) {
+                            label = 'appuntamenti fissati';
+                        }
                         const styles = CARD_STYLES[activity];
 
                         return (
@@ -463,12 +399,17 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
             <AppointmentsOverviewModal
                 isOpen={isAppointmentsOverviewOpen}
-                onClose={() => setIsAppointmentsOverviewOpen(false)}
+                onClose={() => {
+                    setIsAppointmentsOverviewOpen(false);
+                    setAppointmentsFilterDate(null);
+                }}
                 onEdit={(lead) => {
                     setIsAppointmentsOverviewOpen(false);
+                    setAppointmentsFilterDate(null);
                     if (onEditLead) onEditLead(lead);
                 }}
                 activityLogs={activityLogs}
+                filterDate={appointmentsFilterDate}
             />
         </div>
     );

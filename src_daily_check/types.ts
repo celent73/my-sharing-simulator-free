@@ -61,6 +61,7 @@ export interface Lead {
   address?: string;
   platform?: string;
   followUpDate?: string;
+  temperature?: 'freddo' | 'tiepido' | 'caldo';
 }
 
 export type GoalPeriod = {

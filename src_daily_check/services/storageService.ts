@@ -301,7 +301,11 @@ export const loadCareerDates = async (userId: string | null): Promise<Record<str
       .eq('user_id', userId)
       .single();
 
-    return data?.career_path_dates || {};
+    if (data?.career_path_dates && Object.keys(data.career_path_dates).length > 0) {
+      return data.career_path_dates;
+    }
+    const localData = localStorage.getItem(CAREER_DATES_KEY);
+    return localData ? JSON.parse(localData) : {};
   } else {
     const localData = localStorage.getItem(CAREER_DATES_KEY);
     return localData ? JSON.parse(localData) : {};

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityLog, Lead, ActivityType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -39,7 +39,6 @@ const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLea
         };
     }, [activityLogs]);
 
-    if (followUps.length === 0 && staleLeads.length === 0) return null;
 
     const getStatusColor = (date: string, isStale: boolean = false) => {
         if (isStale) return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
@@ -71,7 +70,18 @@ const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLea
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-black text-slate-800 dark:text-white truncate">{lead.name}</h4>
+                    <div className="flex items-center gap-2">
+                        <h4 className="font-black text-slate-800 dark:text-white truncate">{lead.name}</h4>
+                        {lead.temperature && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter ${
+                                lead.temperature === 'caldo' ? 'bg-emerald-500/20 text-emerald-600' :
+                                lead.temperature === 'tiepido' ? 'bg-amber-500/20 text-amber-600' :
+                                'bg-red-500/20 text-red-600'
+                            }`}>
+                                {lead.temperature === 'caldo' ? '🔥' : lead.temperature === 'tiepido' ? '🌤️' : '❄️'} {lead.temperature}
+                            </span>
+                        )}
+                    </div>
                     <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400 font-bold">
                         <span>{lead.phone}</span>
                         {lead.note && <span className="opacity-50">•</span>}
@@ -109,37 +119,110 @@ const FollowUpWidget: React.FC<FollowUpWidgetProps> = ({ activityLogs, onEditLea
         </motion.div>
     );
 
-    return (
-        <div className="mb-8 w-full max-w-5xl mx-auto space-y-8">
-            {followUps.length > 0 && (
-                <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xl">🚀</span>
-                        <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Prossimi Follow-up</h3>
-                        <span className="bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{followUps.length}</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <AnimatePresence mode="popLayout">
-                            {followUps.map(lead => renderLeadCard(lead, false))}
-                        </AnimatePresence>
-                    </div>
-                </div>
-            )}
+    const [isOpen, setIsOpen] = useState(false);
 
-            {staleLeads.length > 0 && (
-                <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xl">⚠️</span>
-                        <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Contatti in Sospeso</h3>
-                        <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{staleLeads.length}</span>
+    if (followUps.length === 0 && staleLeads.length === 0) return null;
+
+    return (
+        <div className="mb-8 w-full max-w-5xl mx-auto">
+            <button
+                onClick={() => setIsOpen(true)}
+                className="w-full flex items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:scale-[1.01] hover:shadow-lg transition-all shadow-sm group"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                        📝
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <AnimatePresence mode="popLayout">
-                            {staleLeads.map(lead => renderLeadCard(lead, true))}
-                        </AnimatePresence>
+                    <div className="text-left">
+                        <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight text-sm sm:text-base">Gestione Follow-up</h3>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                                {followUps.length} programmati
+                            </span>
+                            <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-md">
+                                {staleLeads.length} in sospeso
+                            </span>
+                        </div>
                     </div>
                 </div>
-            )}
+                <div className="shrink-0 flex items-center gap-2 text-blue-500 font-bold px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                    Apri
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            </button>
+
+            {/* Modal Overlay */}
+            <AnimatePresence>
+                {isOpen && (
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsOpen(false)}
+                            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col relative z-10 shadow-2xl overflow-hidden"
+                        >
+                            {/* Modal Header */}
+                            <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-20">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                        <span className="text-xl">📝</span>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-black text-slate-900 dark:text-white">Gestione Follow-up</h2>
+                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Contatti in attesa di risposta o richiamata</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsOpen(false)}
+                                    className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-10">
+                                {followUps.length > 0 && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl">🚀</span>
+                                            <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Prossimi Follow-up</h3>
+                                            <span className="bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{followUps.length}</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {followUps.map(lead => renderLeadCard(lead, false))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {staleLeads.length > 0 && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl">⚠️</span>
+                                            <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Contatti in Sospeso</h3>
+                                            <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{staleLeads.length}</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {staleLeads.map(lead => renderLeadCard(lead, true))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

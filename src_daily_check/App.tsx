@@ -34,9 +34,12 @@ import { calculateDailySessionStats } from './utils/sessionUtils';
 import VoiceSpeedMode from './components/VoiceSpeedMode';
 import TeamLeaderboardModal from './components/TeamLeaderboardModal';
 import CareerPathModal from './components/CareerPathModal';
+import CareerDeadlineBanner from './components/CareerDeadlineBanner';
+import AppointmentsOverviewModal from './components/AppointmentsOverviewModal';
 import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight, Calendar, User, Zap, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, Target, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon } from 'lucide-react';
+import { ChevronRight, Calendar, User, ArrowUp, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, Target, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon
+} from 'lucide-react';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthModal from './components/AuthModal';
@@ -211,6 +214,32 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     }
   }, [authLoading, isInitializing, CAREER_STAGES, addNotification, careerDates]);
 
+  useEffect(() => {
+    const handleUpdateDates = () => {
+      loadCareerDates(userId).then(setCareerDates);
+    };
+    window.addEventListener('careerDatesUpdated', handleUpdateDates);
+    return () => window.removeEventListener('careerDatesUpdated', handleUpdateDates);
+  }, [userId]);
+
+  const [isGlobalAppointmentsOpen, setIsGlobalAppointmentsOpen] = useState(false);
+  const [globalAppointmentsFilterDate, setGlobalAppointmentsFilterDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const handleOpenAppointments = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log('[App.tsx] listener open-appointments-overview received', customEvent.detail);
+      if (customEvent.detail?.date) {
+        setGlobalAppointmentsFilterDate(new Date(customEvent.detail.date));
+      } else {
+        setGlobalAppointmentsFilterDate(null);
+      }
+      setIsGlobalAppointmentsOpen(true);
+    };
+    window.addEventListener('open-appointments-overview', handleOpenAppointments);
+    return () => window.removeEventListener('open-appointments-overview', handleOpenAppointments);
+  }, []);
+
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'goals' | 'labels' | 'notifications'>('profile');
   const [isDeleteDataModalOpen, setDeleteDataModalOpen] = useState(false);
@@ -260,7 +289,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     setIsLeadCaptureModalOpen(true);
   };
 
-  const handleSaveLead = (leadData: { id?: string; name: string; phone: string; note: string; status?: 'pending' | 'won' | 'lost'; type?: ActivityType; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string }) => {
+  const handleSaveLead = (leadData: { id?: string; name: string; phone: string; note: string; status?: 'pending' | 'won' | 'lost'; type?: ActivityType; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string; temperature?: 'freddo' | 'tiepido' | 'caldo' }) => {
     let updatedLog: ActivityLog | null = null;
     let updatedAllLogs: ActivityLog[] | null = null;
 
@@ -647,6 +676,14 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         {notifications.map(n => <NotificationItem key={n.id} notification={n} onClose={() => removeNotification(n.id)} />)}
       </div>
 
+      <AppointmentsOverviewModal
+        isOpen={isGlobalAppointmentsOpen}
+        onClose={() => { setIsGlobalAppointmentsOpen(false); setGlobalAppointmentsFilterDate(null); }}
+        onEdit={(lead) => { setIsGlobalAppointmentsOpen(false); setGlobalAppointmentsFilterDate(null); setEditingLead(lead); }}
+        activityLogs={activityLogs}
+        filterDate={globalAppointmentsFilterDate}
+      />
+
       <div className="relative w-full h-full flex bg-slate-50 dark:bg-black overflow-hidden text-slate-900 dark:text-slate-100 transition-colors duration-500">
         <BackgroundMesh />
         {activeView !== 'focus' && (
@@ -674,6 +711,14 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
               isLoggedIn={!!user}
               onLogout={signOut}
               onCloseApp={onClose}
+            />
+          )}
+
+          {(activeView === 'today' || activeView === 'stats') && (
+            <CareerDeadlineBanner
+              careerStatus={careerStatus}
+              targetDates={careerDates}
+              onOpenCareerPath={() => setActiveView('career')}
             />
           )}
 
@@ -810,7 +855,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
             style={{ position: 'fixed', right: '1.5rem', bottom: '6rem' }}
             aria-label="Salita Veloce"
           >
-            <Zap className="w-6 h-6 fill-current" />
+            <ArrowUp className="w-6 h-6 fill-current" />
           </button>
         </div>
       </div>

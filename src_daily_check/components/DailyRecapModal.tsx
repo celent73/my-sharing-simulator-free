@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Zap, TrendingUp, Award, Share2, Sparkles, X, ChevronRight } from 'lucide-react';
+import { Target, Sparkles, TrendingUp, Award, Share2, X, ChevronRight } from 'lucide-react';
 import { SessionStats } from '../utils/sessionUtils';
 import PowerRing from './PowerRing';
 

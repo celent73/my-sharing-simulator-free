@@ -409,8 +409,29 @@ const Dashboard: React.FC<DashboardProps> = ({
             activityLogs={activityLogs}
             goals={goals}
             onSelectDate={(date) => {
+              // RIPRISTINO: cambia la vista al click
               setSelectedDate(date);
               setViewMode('daily');
+
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              const localDateStr = `${year}-${month}-${day}`;
+
+              // Stessa logica esatta di GoalCalendar per l'icona 📅:
+              const hasScheduled = activityLogs.some(log =>
+                log.leads?.some(lead => lead.appointmentDate?.startsWith(localDateStr))
+              );
+              const hasApptEntry = activityLogs.some(log =>
+                log.date === localDateStr && log.leads?.some(lead => lead.type === ActivityType.APPOINTMENTS)
+              );
+
+              console.log('[Calendar Click]', localDateStr, 'hasScheduled:', hasScheduled, 'hasApptEntry:', hasApptEntry);
+
+              if (hasScheduled || hasApptEntry) {
+                console.log('[Calendar] DISPATCHING open-appointments-overview for', localDateStr);
+                window.dispatchEvent(new CustomEvent('open-appointments-overview', { detail: { date: localDateStr } }));
+              }
             }}
           />
 
@@ -425,7 +446,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                 const progress = goal > 0 ? (current / goal) * 100 : 0;
                 const isGoalReached = goal > 0 && current >= goal;
                 const styles = CARD_STYLES[activity];
-                const label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
+                let label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
+                if (activity === ActivityType.APPOINTMENTS) {
+                    label = 'appuntamenti fissati';
+                }
 
                 return (
                   <React.Fragment key={activity}>

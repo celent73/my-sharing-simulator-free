@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { ActivityLog, ActivityType, Lead } from '../types';
 
 interface AppointmentsOverviewModalProps {
@@ -6,9 +7,10 @@ interface AppointmentsOverviewModalProps {
     onClose: () => void;
     onEdit: (lead: Lead) => void;
     activityLogs: ActivityLog[];
+    filterDate?: Date | null;
 }
 
-const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ isOpen, onClose, onEdit, activityLogs }) => {
+const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ isOpen, onClose, onEdit, activityLogs, filterDate }) => {
 
     // Process appointments directly from activity logs
     const appointments = useMemo(() => {
@@ -16,17 +18,36 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        
+        const filterStr = filterDate ? filterDate.toISOString().split('T')[0] : null;
 
         const upcoming: Lead[] = [];
 
         activityLogs.forEach(log => {
             if (log.leads) {
                 log.leads.forEach(lead => {
-                    // Only appointments with a valid date and scheduled for today or the future
-                    if (lead.type === ActivityType.APPOINTMENTS && lead.appointmentDate) {
-                        const d = new Date(lead.appointmentDate);
-                        if (d >= today) {
-                            upcoming.push(lead);
+                    // Logica inclusiva: 
+                    // 1. Ha una appointmentDate impostata
+                    // 2. Oppure è di tipo APPOINTMENTS
+                    if (lead.appointmentDate || lead.type === ActivityType.APPOINTMENTS) {
+                        const d = lead.appointmentDate ? new Date(lead.appointmentDate) : null;
+                        
+                        if (filterStr) {
+                            // Se c'è un filtro per data specifica
+                            const isScheduledForDay = lead.appointmentDate?.startsWith(filterStr);
+                            const isLoggedThisDay = log.date === filterStr && lead.type === ActivityType.APPOINTMENTS;
+                            
+                            if (isScheduledForDay || isLoggedThisDay) {
+                                upcoming.push(lead);
+                            }
+                        } else {
+                            // Vista generale: appuntamenti futuri
+                            if (d && d >= today) {
+                                upcoming.push(lead);
+                            } else if (!d && lead.type === ActivityType.APPOINTMENTS && log.date === filterStr) {
+                                // Se per qualche motivo non ha appointmentDate ma è nel log di oggi
+                                upcoming.push(lead);
+                            }
                         }
                     }
                 });
@@ -40,10 +61,10 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[200000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-slate-900 border border-slate-700/50 rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col relative z-10 shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-slate-900 border border-slate-700/50 rounded-3xl w-full max-w-2xl max-h-[80vh] flex flex-col relative z-10 shadow-2xl overflow-hidden transform transition-all">
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900/95 backdrop-blur-xl z-10">
                     <div className="flex items-center gap-3">
@@ -53,8 +74,14 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                             </svg>
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-white">Appuntamenti Fissati</h2>
-                            <p className="text-xs font-medium text-slate-400">I tuoi prossimi impegni programmati</p>
+                            <h2 className="text-xl font-black text-white">
+                                {filterDate ? 'Dettaglio Appuntamenti' : 'Appuntamenti Fissati'}
+                            </h2>
+                            <p className="text-xs font-medium text-slate-400">
+                                {filterDate 
+                                    ? `In programma per il ${filterDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}` 
+                                    : 'I tuoi prossimi impegni programmati'}
+                            </p>
                         </div>
                     </div>
                     <button
@@ -76,7 +103,9 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                             </div>
                             <h3 className="text-white font-black text-lg mb-2">Nessun appuntamento</h3>
                             <p className="text-slate-400 text-sm max-w-[250px] mx-auto">
-                                Non hai ancora nessun appuntamento futuro programmato.
+                                {filterDate 
+                                    ? 'Non hai nessun appuntamento programmato per questa data.' 
+                                    : 'Non hai ancora nessun appuntamento futuro programmato.'}
                             </p>
                         </div>
                     ) : (
@@ -101,7 +130,18 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                             {/* Contact Info */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between gap-2">
-                                                    <h4 className="text-lg font-black text-white truncate mb-1">{app.name}</h4>
+                                                    <div className="flex items-center gap-2 truncate">
+                                                        <h4 className="text-lg font-black text-white truncate">{app.name}</h4>
+                                                        {app.temperature && (
+                                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter ${
+                                                                app.temperature === 'caldo' ? 'bg-emerald-500/20 text-emerald-600' :
+                                                                app.temperature === 'tiepido' ? 'bg-amber-500/20 text-amber-600' :
+                                                                'bg-red-500/20 text-red-600'
+                                                            }`}>
+                                                                {app.temperature === 'caldo' ? '🔥' : app.temperature === 'tiepido' ? '🌤️' : '❄️'}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <button
                                                         onClick={() => onEdit(app)}
                                                         className="p-2 rounded-lg bg-slate-700/50 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 transition-all border border-slate-600/50 hover:border-emerald-500/30 shadow-sm active:scale-90"
@@ -114,7 +154,6 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                                 </div>
 
                                                 <div className="flex flex-wrap items-center gap-3 mt-2">
-                                                    {/* Location Badge */}
                                                     {app.locationType === 'online' ? (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
                                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
@@ -123,9 +162,7 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                                     ) : app.locationType === 'physical' ? (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
                                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                            {app.address ? (
-                                                                <span className="truncate max-w-[150px]">{app.address}</span>
-                                                            ) : 'Di Persona'}
+                                                            {app.address ? <span className="truncate max-w-[150px]">{app.address}</span> : 'Di Persona'}
                                                         </div>
                                                     ) : null}
                                                 </div>
@@ -145,7 +182,8 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

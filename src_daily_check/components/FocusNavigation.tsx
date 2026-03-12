@@ -4,7 +4,7 @@ import {
     BarChart2,
     Trophy,
     Settings,
-    Zap
+    Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -18,7 +18,7 @@ interface FocusNavigationProps {
 const navItems = [
     { id: 'today', label: 'Oggi', icon: Calendar },
     { id: 'stats', label: 'Analisi', icon: BarChart2 },
-    { id: 'focus', label: 'Focus', icon: Zap },
+    { id: 'focus', label: 'Focus', icon: Sparkles },
     { id: 'career', label: 'Carriera', icon: Trophy },
     { id: 'settings', label: 'Profilo', icon: Settings },
 ];
