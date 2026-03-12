@@ -718,42 +718,42 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         )}
 
         <div className={`flex-1 flex flex-col h-full min-w-0 transition-all duration-500 relative ${activeView !== 'focus' ? 'lg:pl-20' : ''}`}>
-          {activeView !== 'focus' && (
-            <Header
-              userProfile={settings.userProfile}
-              onOpenSettings={() => handleOpenSettings()}
-              onOpenDeleteDataModal={() => setDeleteDataModalOpen(true)}
-              careerStatus={careerStatus}
-              isPremium={true}
-              remainingTrialDays={remainingTrialDays}
-              onOpenPaywall={() => setIsPaywallModalOpen(true)}
-              toggleTheme={globalToggleTheme}
-              currentTheme={globalTheme as any}
-              onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
-              onOpenGuide={() => setIsGuideModalOpen(true)}
-              streak={streak}
-              onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
-              onOpenCareerPath={() => setActiveView('career')}
-              onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
-              isLoggedIn={!!user}
-              onLogout={signOut}
-              onCloseApp={onClose}
-            />
-          )}
-
-          {(activeView === 'today' || activeView === 'stats') && (
-            <>
-              <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
-              <CareerDeadlineBanner
-                careerStatus={careerStatus}
-                targetDates={careerDates}
-                onOpenCareerPath={() => setActiveView('career')}
-              />
-            </>
-          )}
-
           <main id="main-scroll-container" className="flex-1 relative overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar">
             <div id="top-anchor" className="absolute top-0 left-0 w-full h-[1px] pointer-events-none" />
+            
+            {activeView !== 'focus' && (
+              <Header
+                userProfile={settings.userProfile}
+                onOpenSettings={() => handleOpenSettings()}
+                onOpenDeleteDataModal={() => setDeleteDataModalOpen(true)}
+                careerStatus={careerStatus}
+                isPremium={true}
+                remainingTrialDays={remainingTrialDays}
+                onOpenPaywall={() => setIsPaywallModalOpen(true)}
+                toggleTheme={globalToggleTheme}
+                currentTheme={globalTheme as any}
+                onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
+                onOpenGuide={() => setIsGuideModalOpen(true)}
+                streak={streak}
+                onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
+                onOpenCareerPath={() => setActiveView('career')}
+                onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
+                isLoggedIn={!!user}
+                onLogout={signOut}
+                onCloseApp={onClose}
+              />
+            )}
+
+            {(activeView === 'today' || activeView === 'stats') && (
+              <>
+                <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
+                <CareerDeadlineBanner
+                  careerStatus={careerStatus}
+                  targetDates={careerDates}
+                  onOpenCareerPath={() => setActiveView('career')}
+                />
+              </>
+            )}
             {/* Animated Background Mesh removed from here, now global */}
 
             <div className="relative z-10 w-full min-h-full">
@@ -869,7 +869,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         </button>
                       </div>
                       <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>My Sharing Simulator v1.2.79</p>
+                        <p>My Sharing Simulator v1.2.80</p>
                         <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
                       </div>
                     </div>
