@@ -262,7 +262,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 {/* POWER RING (Central Indicator) - Only in Hub Mode */}
                 {isHubMode && (
                     <div className="mb-16 relative group">
-                        <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700"></div>
+                        <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none"></div>
                         <div className="relative w-64 h-64 lg:w-80 lg:h-80 rounded-full border-[1.5rem] border-slate-300/30 dark:border-slate-700/60 flex items-center justify-center shadow-[inset_0_0_60px_rgba(0,0,0,0.15)]">
                             <div className="text-center">
                                 <p className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Guadagno Oggi</p>
@@ -298,7 +298,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         </div>
 
                         {/* SCRIPT LIBRARY BUTTON UNDER THE RING */}
-                        <div className="mt-8">
+                        <div className="mt-8 relative z-20">
                             <button
                                 onClick={onOpenObjectionHandler}
                                 className="flex items-center gap-3 px-10 py-4 bg-[#007aff] hover:bg-[#0063cc] text-white rounded-3xl shadow-xl shadow-blue-500/30 transition-all active:scale-95 group border border-blue-400/30"

@@ -29,7 +29,7 @@ if ('serviceWorker' in navigator && !isDev) {
       }
 
       // Register new one with version query param
-      navigator.serviceWorker.register('/service-worker.js?v=1.2.82')
+      navigator.serviceWorker.register('/service-worker.js?v=1.2.83')
         .then((registration) => {
           console.log('ServiceWorker registration successful with scope: ', registration.scope);
 
