@@ -49,6 +49,8 @@ import { supabase } from './supabaseClient';
 import { useTheme } from '../contexts/ThemeContext';
 import BackgroundMesh from '../components/BackgroundMesh';
 import { FocusModeModal } from '../components/FocusModeModal';
+import { useDailyStats } from '../hooks/useDailyStats';
+import GoalRecoveryWidget from './components/GoalRecoveryWidget';
 
 const DEFAULT_SETTINGS: AppSettings = {
   userProfile: {
@@ -112,6 +114,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   const userId = user?.id || null;
 
+  const { commercialMonth, recoveryStats, loading: statsLoading } = useDailyStats();
+
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [careerDates, setCareerDates] = useState<Record<string, string>>({});
@@ -120,6 +124,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const [activeView, setActiveView] = useState<ActiveView>('today');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedInputDate, setSelectedInputDate] = useState<Date>(new Date());
+  
+  // States for Focus Recovery Mode
+  const [recoveryFocusGoal, setRecoveryFocusGoal] = useState<string | undefined>(undefined);
+  const [recoveryFocusTarget, setRecoveryFocusTarget] = useState<number | undefined>(undefined);
 
   const addNotification = useCallback((message: string, type: NotificationVariant) => {
     setNotifications(prev => [...prev, { id: Date.now(), message, type }]);
@@ -762,6 +770,17 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                   <motion.div key="today" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
                     className="flex flex-col gap-12 max-w-screen-2xl mx-auto py-12 lg:py-20 px-4 sm:px-8 lg:px-12 pb-32 md:pb-12"
                   >
+                    <GoalRecoveryWidget 
+                      commercialMonth={commercialMonth} 
+                      recoveryStats={recoveryStats.filter(s => s.target > 0)} 
+                      loading={statsLoading} 
+                      onActivateFocus={(goal, target) => {
+                        setRecoveryFocusGoal(goal);
+                        setRecoveryFocusTarget(target);
+                        setActiveView('focus');
+                      }}
+                    />
+                    
                     <Dashboard activityLogs={activityLogs} goals={settings.goals} userProfile={settings.userProfile}
                       onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
                       customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
@@ -820,8 +839,14 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                     <div className="w-full h-full max-w-lg mx-auto overflow-hidden shadow-2xl relative">
                       <FocusModeModal
                         isOpen={true}
-                        onClose={() => setActiveView('today')}
+                        onClose={() => {
+                          setActiveView('today');
+                          setRecoveryFocusGoal(undefined);
+                          setRecoveryFocusTarget(undefined);
+                        }}
                         onAddContact={() => handleOpenLeadCapture(ActivityType.CONTACTS)}
+                        initialGoalText={recoveryFocusGoal}
+                        initialTargetContacts={recoveryFocusTarget}
                       />
                     </div>
                   </motion.div>

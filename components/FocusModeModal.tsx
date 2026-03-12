@@ -6,6 +6,8 @@ interface FocusModeModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAddContact?: () => void;
+    initialGoalText?: string;
+    initialTargetContacts?: number;
 }
 
 type SessionState = 'config' | 'active' | 'paused' | 'finished';
@@ -20,7 +22,7 @@ const GOAL_PRESETS = [
     { id: 'leads', icon: '🎯', label: '10 nuovi lead' }
 ];
 
-export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose, onAddContact }) => {
+export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose, onAddContact, initialGoalText, initialTargetContacts }) => {
     const { t } = useLanguage();
 
     const CHECKLIST_ITEMS = [
@@ -48,12 +50,12 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose,
     useEffect(() => {
         if (isOpen) {
             setSessionState('config');
-            setMode('instant'); // Default to Instant
+            setMode(initialGoalText ? 'pro' : 'instant'); // Auto-select PRO if we have a recovery goal
             setDuration(45);
             setContactsOk(0);
             setAttempts(0);
-            setGoalText('');
-            setTargetContacts(5);
+            setGoalText(initialGoalText || '');
+            setTargetContacts(initialTargetContacts || 5);
             setChecklist({});
         } else {
             if (timerRef.current) clearInterval(timerRef.current);

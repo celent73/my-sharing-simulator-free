@@ -117,3 +117,49 @@ export const calculateAggregateStats = (logs: ActivityLog[]): {
         appointmentsTotal
     };
 };
+
+export interface CommercialMonthProgress {
+    start: Date;
+    end: Date;
+    daysTotal: number;
+    daysElapsed: number;
+    daysRemaining: number;
+    progressPercentage: number; // Linear time progress
+    isBehind: (current: number, target: number) => boolean;
+    recoveryDailyTarget: (current: number, target: number) => number;
+}
+
+export const calculateCommercialMonthProgress = (startDay: number = 16): CommercialMonthProgress => {
+    const today = new Date();
+    let start = new Date(today.getFullYear(), today.getMonth(), startDay);
+    
+    // Se oggi è prima del giorno di inizio, il mese commerciale è iniziato nel mese precedente
+    if (today.getDate() < startDay) {
+        start.setMonth(start.getMonth() - 1);
+    }
+    
+    let end = new Date(start.getFullYear(), start.getMonth() + 1, startDay - 1);
+    
+    const daysTotal = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const daysElapsed = Math.ceil((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const daysRemaining = Math.max(0, daysTotal - daysElapsed);
+    const progressPercentage = (daysElapsed / daysTotal) * 100;
+
+    return {
+        start,
+        end,
+        daysTotal,
+        daysElapsed,
+        daysRemaining,
+        progressPercentage,
+        isBehind: (current: number, target: number) => {
+            const linearTarget = (target / daysTotal) * daysElapsed;
+            return current < linearTarget;
+        },
+        recoveryDailyTarget: (current: number, target: number) => {
+            if (daysRemaining <= 0) return 0;
+            const gap = Math.max(0, target - current);
+            return gap / daysRemaining;
+        }
+    };
+};
