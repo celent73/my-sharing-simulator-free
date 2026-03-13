@@ -792,7 +792,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                 {activeView === 'today' && (
                   <GoalRecoveryWidget 
                     commercialMonth={commercialMonth} 
-                    recoveryStats={recoveryStats.filter(s => s.target > 0)} 
+                    recoveryStats={(recoveryStats || []).filter(s => s && s.target > 0)} 
                     loading={statsLoading} 
                     onActivateFocus={(goal, target) => {
                       setRecoveryFocusGoal(goal);

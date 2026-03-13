@@ -62,7 +62,7 @@ const FunnelStep: React.FC<{
                     
                     {/* Background Segment (Glass) */}
                     <path
-                        d={`M ${230 - width / 2} 4 L ${230 + width / 2} 4 L ${230 + bottomWidth / 2} 92 L ${230 - bottomWidth / 2} 92 Z text-slate-900`}
+                        d={`M ${230 - width / 2} 4 L ${230 + width / 2} 4 L ${230 + bottomWidth / 2} 92 L ${230 - bottomWidth / 2} 92 Z`}
                         fill="currentColor"
                         className="text-slate-200/20 dark:text-slate-700/20 backdrop-blur-md"
                     />
@@ -139,11 +139,11 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
     }, [rates]);
 
     const insight = useMemo(() => {
-        if (bottleneckIndex === -1) return null;
+        if (bottleneckIndex === -1 || !steps || !steps[bottleneckIndex] || !rates) return null;
         const bottleneckStep = steps[bottleneckIndex];
         const rate = rates[bottleneckIndex];
 
-        if (rate === null) return null;
+        if (rate === null || rate === undefined) return null;
 
         if (rate < 30) {
             return {

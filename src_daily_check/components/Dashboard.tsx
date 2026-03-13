@@ -412,10 +412,10 @@ const Dashboard: React.FC<DashboardProps> = ({
               const localDateStr = `${year}-${month}-${day}`;
 
               // Stessa logica esatta di GoalCalendar per l'icona 📅:
-              const hasScheduled = activityLogs.some(log =>
+              const hasScheduled = activityLogs?.some(log =>
                 log.leads?.some(lead => lead.appointmentDate?.startsWith(localDateStr))
               );
-              const hasApptEntry = activityLogs.some(log =>
+              const hasApptEntry = activityLogs?.some(log =>
                 log.date === localDateStr && log.leads?.some(lead => lead.type === ActivityType.APPOINTMENTS)
               );
 
