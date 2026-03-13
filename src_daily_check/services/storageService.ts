@@ -180,6 +180,7 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
         customLabels: data.custom_labels,
         notificationSettings: data.notification_settings,
         visionBoard: data.vision_board,
+        acknowledgedDeadlines: data.acknowledged_deadlines || {},
         userProfile: { firstName: '', lastName: '' } // Profile is loaded separately usually, but we need to merge
       };
     }
@@ -235,6 +236,7 @@ export const saveSettings = async (userId: string | null, settings: AppSettings)
       custom_labels: settings.customLabels,
       notification_settings: settings.notificationSettings,
       vision_board: settings.visionBoard,
+      acknowledged_deadlines: settings.acknowledgedDeadlines || {},
       updated_at: new Date().toISOString()
     });
 

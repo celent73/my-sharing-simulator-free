@@ -37,6 +37,7 @@ import TeamLeaderboardModal from './components/TeamLeaderboardModal';
 import CareerPathModal from './components/CareerPathModal';
 import FollowUpBanner from './components/FollowUpBanner';
 import AppointmentsOverviewModal from './components/AppointmentsOverviewModal';
+import CareerDeadlineAlertModal from './components/CareerDeadlineAlertModal';
 import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight, Calendar, User, ArrowUp, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, Target, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon
@@ -128,6 +129,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const [recoveryFocusGoal, setRecoveryFocusGoal] = useState<string | undefined>(undefined);
   const [recoveryFocusTarget, setRecoveryFocusTarget] = useState<number | undefined>(undefined);
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
+  const [deadlineAlert, setDeadlineAlert] = useState<{ stageName: string; date: string } | null>(null);
 
   const addNotification = useCallback((message: string, type: NotificationVariant) => {
     setNotifications(prev => [...prev, { id: Date.now(), message, type }]);
@@ -192,37 +194,55 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     if (!authLoading && !isInitializing) {
       if (Object.keys(careerDates).length > 0) {
         try {
-          const dates = careerDates;
-          let currentLevelIndex = -1;
-          for (let i = CAREER_STAGES.length - 1; i >= 0; i--) {
-            if (dates[CAREER_STAGES[i].name]) {
-              currentLevelIndex = i;
-              break;
-            }
-          }
-          const nextLevelIndex = currentLevelIndex + 1;
-          if (nextLevelIndex < CAREER_STAGES.length) {
-            const nextLevelName = CAREER_STAGES[nextLevelIndex].name;
-            const nextLevelDateStr = dates[nextLevelName];
-            if (nextLevelDateStr) {
-              const deadline = new Date(nextLevelDateStr);
-              deadline.setHours(23, 59, 59, 999);
-              const now = new Date();
-              const diffTime = deadline.getTime() - now.getTime();
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              if (diffDays > 0 && diffDays <= 7) {
-                setTimeout(() => addNotification(`Mancano solo ${diffDays} giorni al tuo obiettivo: ${nextLevelName}! 🔥`, 'info'), 2000);
-              } else if (diffDays === 0) {
-                setTimeout(() => addNotification(`Oggi è il giorno! Obiettivo ${nextLevelName} in scadenza! 🚀`, 'info'), 2000);
-              } else if (diffDays < 0) {
-                setTimeout(() => addNotification(`La data per ${nextLevelName} è passata. Aggiorna il tuo percorso carriera! 📅`, 'info'), 2000);
+          const now = new Date();
+          const todayStr = format(now, 'yyyy-MM-dd');
+          
+          for (const [stageName, dateStr] of Object.entries(careerDates)) {
+            if (!dateStr) continue;
+            
+            const deadline = new Date(dateStr);
+            const deadlineStr = format(deadline, 'yyyy-MM-dd');
+            
+            // Se la data è oggi o passata
+            if (deadlineStr <= todayStr) {
+              const alreadyAck = settings.acknowledgedDeadlines?.[stageName] === dateStr;
+              
+              if (!alreadyAck) {
+                // Mostra il popup
+                setDeadlineAlert({ stageName, date: dateStr });
+                break; // Mostra solo uno alla volta
               }
             }
           }
         } catch (e) { console.error(e); }
       }
     }
-  }, [authLoading, isInitializing, CAREER_STAGES, addNotification, careerDates]);
+  }, [authLoading, isInitializing, careerDates, settings.acknowledgedDeadlines]);
+
+  const handleDeadlineAchieved = () => {
+    if (!deadlineAlert) return;
+    
+    // Segna come riconosciuto per questa data specifica
+    const newAck = { ...settings.acknowledgedDeadlines, [deadlineAlert.stageName]: deadlineAlert.date };
+    const newSettings = { ...settings, acknowledgedDeadlines: newAck };
+    setSettings(newSettings);
+    saveSettings(userId, newSettings);
+    
+    // Notifica di successo
+    addNotification(`FANTASTICO! Hai raggiunto il traguardo ${deadlineAlert.stageName}! 🏆✨`, 'success');
+    setDeadlineAlert(null);
+  };
+
+  const handleDeadlinePostpone = () => {
+    if (!deadlineAlert) return;
+    
+    // Chiude popup e apre Piano Carriera per cambiare data
+    setDeadlineAlert(null);
+    setActiveView('today'); // Assicuriamoci di essere in vista oggi
+    setIsCalendarModalOpen(false); // Chiude altri modal eventuali
+    // Qui in realtà dovremmo forzare l'apertura del percorso carriera
+    setActiveView('career');
+  };
 
   useEffect(() => {
     const handleUpdateDates = () => {
@@ -998,6 +1018,14 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         addNotification={addNotification}
       />
       <TargetCalculatorModal isOpen={isTargetCalculatorModalOpen} onClose={() => setIsTargetCalculatorModalOpen(false)} currentEarnings={monthlyEarnings} commercialMonthStartDay={settings.commercialMonthStartDay} userStatus={settings.userProfile.commissionStatus} />
+      
+      <CareerDeadlineAlertModal 
+        isOpen={!!deadlineAlert}
+        stageName={deadlineAlert?.stageName || ''}
+        onAchieved={handleDeadlineAchieved}
+        onPostpone={handleDeadlinePostpone}
+        onClose={() => setDeadlineAlert(null)}
+      />
       <DetailedGuideModal isOpen={isGuideModalOpen} onClose={() => setIsGuideModalOpen(false)} />
       <TeamLeaderboardModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} activityLogs={activityLogs} userName={`${settings.userProfile.firstName} ${settings.userProfile.lastName}`} commercialStartDay={settings.commercialMonthStartDay} />
       <ScriptLibrary isOpen={isScriptLibraryOpen} onClose={() => setIsScriptLibraryOpen(false)} />

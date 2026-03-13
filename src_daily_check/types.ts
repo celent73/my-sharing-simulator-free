@@ -116,6 +116,7 @@ export interface AppSettings {
   nextAppointment?: NextAppointment; // New field for smart planning
   enableGoals?: boolean;
   enableCustomLabels?: boolean;
+  acknowledgedDeadlines?: Record<string, string>; // Stage Name -> Date string (when it was shown)
 }
 
 export type NotificationVariant = 'success' | 'info';
