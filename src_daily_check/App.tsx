@@ -834,6 +834,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       onUpdateActivity={handleUpdateActivity}
                       compactView={true} initialTab="overview"
                       viewMode={viewMode} setViewMode={setViewMode}
+                      selectedDate={selectedInputDate} onDateChange={setSelectedInputDate}
                     />
                     {settings.visionBoard?.enabled && settings.visionBoard?.targetAmount > 0 && (
                       <DreamTrackerWidget
@@ -876,6 +877,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
                         initialTab="stats"
                         viewMode={viewMode} setViewMode={setViewMode}
+                        selectedDate={selectedInputDate} onDateChange={setSelectedInputDate}
                       />
                     </div>
                   </motion.div>

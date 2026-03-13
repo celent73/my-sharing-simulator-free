@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { format } from 'date-fns';
 
 const ChevronLeftIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -35,7 +36,7 @@ const DateNavigator: React.FC<DateNavigatorProps> = ({ currentDate, onDateChange
       if ('showPicker' in dateInputRef.current) {
         (dateInputRef.current as any).showPicker();
       } else {
-        dateInputRef.current.click();
+        (dateInputRef.current as any).click();
       }
     }
   };
@@ -52,7 +53,7 @@ const DateNavigator: React.FC<DateNavigatorProps> = ({ currentDate, onDateChange
     year: 'numeric' 
   });
 
-  const inputDateValue = currentDate.toISOString().split('T')[0];
+  const inputDateValue = format(currentDate, 'yyyy-MM-dd');
 
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-2 mb-6 shadow-sm flex items-center justify-between max-w-md mx-auto w-full">

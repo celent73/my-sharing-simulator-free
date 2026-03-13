@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 
 // Importazioni base
 import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead, ViewMode } from '../types';
@@ -37,6 +38,8 @@ interface DashboardProps {
   onUpdateActivity: (activity: ActivityType, change: number) => void;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  selectedDate?: Date;
+  onDateChange?: (date: Date) => void;
 }
 
 type DashboardTab = 'overview' | 'stats';
@@ -119,7 +122,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   onOpenContractModal,
   onUpdateActivity,
   viewMode,
-  setViewMode
+  setViewMode,
+  selectedDate: propSelectedDate,
+  onDateChange: propOnDateChange
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
@@ -127,8 +132,11 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const [currentTab, setCurrentTab] = useState<DashboardTab>(initialTab);
 
-  // STATO PER LA DATA SELEZIONATA (usata dal DateNavigator)
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // STATO PER LA DATA SELEZIONATA (usata dal DateNavigator) - Fallback se non passata come prop
+  const [internalSelectedDate, setInternalSelectedDate] = useState(new Date());
+  
+  const selectedDate = propSelectedDate || internalSelectedDate;
+  const setSelectedDate = propOnDateChange || setInternalSelectedDate;
 
   const [customDateRange, setCustomDateRange] = useState<{ start: string; end: string }>({
     start: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString().split('T')[0],
@@ -232,8 +240,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     let relevantGoalsForPeriod: GoalPeriod;
 
     if (viewMode === 'daily') {
-      // MODIFICATO: In modalità Daily, usa la selectedDate dal DateNavigator
-      const selectedStr = selectedDate.toISOString().split('T')[0];
+      // MODIFICATO: In modalità Daily, usa la selectedDate dal DateNavigator con formattazione sicura
+      const selectedStr = format(selectedDate, 'yyyy-MM-dd');
       logsToSum = activityLogs.filter(log => log.date === selectedStr);
 
       const isToday = selectedDate.toDateString() === now.toDateString();
