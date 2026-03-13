@@ -338,7 +338,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className="bg-[#f2f2f7] dark:bg-slate-900/40 min-h-screen p-3 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans">
+    <div className={`bg-[#f2f2f7] dark:bg-slate-900/40 ${compactView ? '' : 'min-h-screen'} ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:p-10'} rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans`}>
       {/* Calcolo status carriera per l'header */}
       {(() => {
         const careerStatus = calculateCareerStatus(activityLogs, userProfile.currentQualification);
@@ -359,16 +359,6 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Header e Selezione Vista */}
       <div className="relative z-10 flex flex-col items-start mb-10">
-        <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">Dashboard</h2>
-        <p className="text-lg font-medium text-slate-500 dark:text-slate-400 mb-8">
-          Analisi per{' '}
-          {(userProfile.firstName || userProfile.lastName) && (
-            <span className="font-black text-slate-900 dark:text-white">
-              {[userProfile.firstName, userProfile.lastName].filter(Boolean).join(' ')}
-            </span>
-          )}
-        </p>
-
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-6">
           <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-700">
             <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.1em]">QUALIFICA:</span>

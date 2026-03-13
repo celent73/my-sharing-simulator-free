@@ -417,8 +417,19 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const handleClearAllData = async () => {
     await clearLogs(userId);
     setActivityLogs([]);
+    
+    // Also clear goals and achievements for a truly clean slate
+    setSettings(prev => ({ 
+      ...prev, 
+      goals: { daily: {}, weekly: {}, monthly: {} } 
+    }));
+    setUnlockedAchievements({});
+    
     setDeleteDataModalOpen(false);
-    addNotification('Storico cancellato.', 'success');
+    addNotification('Tutto lo storico e gli obiettivi sono stati cancellati.', 'success');
+    
+    // Notify hooks to refresh
+    window.dispatchEvent(new CustomEvent('daily-check-updated'));
   };
 
   const handleDeleteCurrentMonth = async () => {
@@ -433,8 +444,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
       setActivityLogs(prevLogs => {
         const newLogs = prevLogs.filter(log => {
-          const logTime = new Date(log.date).getTime();
-          return logTime < start.getTime() || logTime > end.getTime();
+          // Compare using date strings to avoid timezone/time issues
+          return log.date < startDateStr || log.date > endDateStr;
         });
 
         // Update local storage as well
@@ -444,6 +455,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
       setDeleteDataModalOpen(false);
       addNotification('Dati mese eliminati.', 'success');
+      
+      // Notify hooks to refresh
+      window.dispatchEvent(new CustomEvent('daily-check-updated'));
     } catch (err) {
       console.error("Error deleting month data:", err);
       addNotification("Errore durante la cancellazione dei dati.", "info");
@@ -454,6 +468,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     setSettings((prev: AppSettings) => ({ ...prev, goals: { daily: {}, weekly: {}, monthly: {} } }));
     setResetGoalsModalOpen(false);
     addNotification('Obiettivi azzerati.', 'success');
+    
+    // Notify hooks to refresh
+    window.dispatchEvent(new CustomEvent('daily-check-updated'));
   };
 
   const handleLoginSuccess = async () => {
@@ -575,9 +592,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
       updates.forEach(u => {
         // Regola Speciale: Se Azzeriamola Green -> Aggiunge anche un Family Utility
-        if (u.activity === ActivityType.NEW_CONTRACTS && u.contractType === ContractType.GREEN && u.change > 0) {
+        if (u.activity === ActivityType.NEW_CONTRACTS && u.contractType === ContractType.GREEN) {
           const currentFU = dateLog.counts[ActivityType.NEW_FAMILY_UTILITY] || 0;
-          dateLog.counts[ActivityType.NEW_FAMILY_UTILITY] = currentFU + u.change;
+          dateLog.counts[ActivityType.NEW_FAMILY_UTILITY] = Math.max(0, currentFU + u.change);
         }
 
         // Aggiornamento principale
@@ -753,14 +770,38 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
             )}
 
             {(activeView === 'today' || activeView === 'stats') && (
-              <>
+              <div className="flex flex-col gap-8 max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 pt-12">
+                <div className="relative z-10 flex flex-col items-start mb-2">
+                  <h2 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">Dashboard</h2>
+                  <p className="text-base sm:text-lg font-medium text-slate-500 dark:text-slate-400">
+                    Analisi per{' '}
+                    {(settings.userProfile.firstName || settings.userProfile.lastName) && (
+                      <span className="font-black text-slate-900 dark:text-white">
+                        {[settings.userProfile.firstName, settings.userProfile.lastName].filter(Boolean).join(' ')}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                {activeView === 'today' && (
+                  <GoalRecoveryWidget 
+                    commercialMonth={commercialMonth} 
+                    recoveryStats={recoveryStats.filter(s => s.target > 0)} 
+                    loading={statsLoading} 
+                    onActivateFocus={(goal, target) => {
+                      setRecoveryFocusGoal(goal);
+                      setRecoveryFocusTarget(target);
+                      setActiveView('focus');
+                    }}
+                  />
+                )}
                 <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
                 <CareerDeadlineBanner
                   careerStatus={careerStatus}
                   targetDates={careerDates}
                   onOpenCareerPath={() => setActiveView('career')}
                 />
-              </>
+              </div>
             )}
             {/* Animated Background Mesh removed from here, now global */}
 
@@ -768,18 +809,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
               <AnimatePresence mode="wait">
                 {activeView === 'today' && (
                   <motion.div key="today" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
-                    className="flex flex-col gap-12 max-w-screen-2xl mx-auto py-12 lg:py-20 px-4 sm:px-8 lg:px-12 pb-32 md:pb-12"
+                    className="flex flex-col gap-6 max-w-screen-2xl mx-auto py-6 lg:py-12 px-4 sm:px-8 lg:px-12 pb-32 md:pb-12"
                   >
-                    <GoalRecoveryWidget 
-                      commercialMonth={commercialMonth} 
-                      recoveryStats={recoveryStats.filter(s => s.target > 0)} 
-                      loading={statsLoading} 
-                      onActivateFocus={(goal, target) => {
-                        setRecoveryFocusGoal(goal);
-                        setRecoveryFocusTarget(target);
-                        setActiveView('focus');
-                      }}
-                    />
                     
                     <Dashboard activityLogs={activityLogs} goals={settings.goals} userProfile={settings.userProfile}
                       onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
