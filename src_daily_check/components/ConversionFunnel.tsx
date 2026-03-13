@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { ActivityType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, TrendingUp, CheckCircle2, Target } from 'lucide-react';
+import { AlertCircle, TrendingUp, Target } from 'lucide-react';
 
 interface ConversionFunnelProps {
     data: {
@@ -25,54 +25,43 @@ const FunnelStep: React.FC<{
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay, duration: 0.6 }}
-            className="relative flex flex-col items-center mb-[-10px] group cursor-pointer w-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay, duration: 0.8 }}
+            className="relative flex flex-col items-center group cursor-pointer w-full"
         >
-            {/* Step Label & Value */}
-            <div className="flex justify-between w-full max-w-[720px] px-2 mb-1">
-                <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{label}</span>
-                    {isBottleneck && (
-                        <motion.div
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ repeat: Infinity, duration: 2 }}
-                        >
-                            <AlertCircle size={12} className="text-red-500" />
-                        </motion.div>
-                    )}
+            <div className="relative w-full flex justify-center h-48 sm:h-56">
+                {/* Step Label & Value - Absolute inside the segment area */}
+                <div className="absolute top-4 left-0 right-0 z-30 px-6 flex justify-between w-full max-w-[720px] pointer-events-none">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-400/80 dark:text-slate-500/80 drop-shadow-sm">{label}</span>
+                    <span className="text-2xl font-black text-slate-800 dark:text-white drop-shadow-md">{value}</span>
                 </div>
-                <span className="text-sm font-black text-slate-800 dark:text-white">{value}</span>
-            </div>
 
-            {/* Funnel Segment SVG with Neon & Glass effect */}
-            <div className="relative w-full flex justify-center h-48">
-                <svg width="100%" height="200" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" className="max-w-[720px] overflow-visible">
+                <svg width="100%" height="100%" viewBox="0 0 720 220" preserveAspectRatio="none" className="max-w-[720px] overflow-visible">
                     <defs>
                         <linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor={color} stopOpacity="0.8" />
+                            <stop offset="0%" stopColor={color} stopOpacity="0.85" />
                             <stop offset="100%" stopColor={color} stopOpacity="0.4" />
                         </linearGradient>
                         <filter id={`glow-${color.replace('#', '')}`} x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="4" result="blur" />
+                            <feGaussianBlur stdDeviation="6" result="blur" />
                             <feComposite in="SourceGraphic" in2="blur" operator="over" />
                         </filter>
                     </defs>
                     
                     {/* Background Segment (Glass) */}
                     <path
-                        d={`M ${360 - width / 2} 4 L ${360 + width / 2} 4 L ${360 + bottomWidth / 2} 196 L ${360 - bottomWidth / 2} 196 Z`}
+                        d={`M ${360 - width / 2} 0 L ${360 + width / 2} 0 L ${360 + bottomWidth / 2} 220 L ${360 - bottomWidth / 2} 220 Z`}
                         fill="currentColor"
-                        className="text-slate-200/20 dark:text-slate-700/20 backdrop-blur-md"
+                        className="text-slate-200/20 dark:text-slate-700/20 backdrop-blur-xl"
                     />
 
                     {/* Animated Fill Segment */}
                     <motion.path
                         initial={{ pathLength: 0, opacity: 0 }}
                         animate={{ pathLength: 1, opacity: 1 }}
-                        transition={{ delay: delay + 0.3, duration: 1.2, ease: "easeOut" }}
-                        d={`M ${360 - width / 2} 4 L ${360 + width / 2} 4 L ${360 + bottomWidth / 2} 196 L ${360 - bottomWidth / 2} 196 Z`}
+                        transition={{ delay: delay + 0.3, duration: 1.5, ease: "easeInOut" }}
+                        d={`M ${360 - width / 2} 0 L ${360 + width / 2} 0 L ${360 + bottomWidth / 2} 220 L ${360 - bottomWidth / 2} 220 Z`}
                         fill={`url(#grad-${color})`}
                         stroke={color}
                         strokeWidth="1.5"
@@ -84,19 +73,19 @@ const FunnelStep: React.FC<{
                 {/* Conversion Rate Badge */}
                 {rate !== null && (
                     <motion.div
-                        initial={{ scale: 0, opacity: 0, x: 20 }}
+                        initial={{ scale: 0, opacity: 0, x: 30 }}
                         animate={{ scale: 1, opacity: 1, x: 0 }}
-                        transition={{ delay: delay + 0.6, type: "spring", stiffness: 200 }}
-                        className={`absolute top-1/2 right-[1%] sm:right-[3%] -translate-y-1/2 rounded-2xl p-[1px] shadow-2xl z-20 overflow-hidden
+                        transition={{ delay: delay + 0.8, type: "spring", stiffness: 150 }}
+                        className={`absolute bottom-6 right-[2%] sm:right-[10%] rounded-2xl p-[1.5px] shadow-2xl z-40 overflow-hidden
                             ${isBottleneck 
                                 ? 'bg-gradient-to-tr from-red-500 to-orange-400' 
                                 : 'bg-gradient-to-tr from-slate-200 to-white dark:from-slate-700 dark:to-slate-600'}`}
                     >
-                        <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-[15px] flex flex-col items-center">
-                            <span className={`text-[8px] font-black uppercase leading-none mb-0.5 ${isBottleneck ? 'text-red-500' : 'text-slate-400'}`}>
+                        <div className="bg-white dark:bg-slate-900 px-4 py-2 rounded-[14px] flex flex-col items-center">
+                            <span className={`text-[9px] font-black uppercase leading-none mb-0.5 ${isBottleneck ? 'text-red-500' : 'text-slate-400'}`}>
                                 {isBottleneck ? 'Strozzatura' : 'Conv.'}
                             </span>
-                            <span className={`text-xs font-black leading-none ${isBottleneck ? 'text-red-600' : 'text-blue-500'}`}>
+                            <span className={`text-base font-black leading-none ${isBottleneck ? 'text-red-600' : 'text-blue-500'}`}>
                                 {formattedRate}%
                             </span>
                         </div>
@@ -109,10 +98,10 @@ const FunnelStep: React.FC<{
 
 const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels }) => {
     const steps = useMemo(() => [
-        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 720, bottom: 640, label: customLabels?.CONTACTS || 'Contatti' },
-        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 640, bottom: 560, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
-        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 560, bottom: 480, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
-        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 480, bottom: 400, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
+        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 720, bottom: 600, label: customLabels?.CONTACTS || 'Contatti' },
+        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 600, bottom: 480, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
+        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 480, bottom: 360, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
+        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 360, bottom: 240, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
     ], [customLabels]);
 
     const values = useMemo(() => steps.map(s => data[s.type] || 0), [steps, data]);
@@ -125,7 +114,6 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
         });
     }, [values]);
 
-    // Find the bottleneck (lowest rate > 0, or lowest rate if all are 0)
     const bottleneckIndex = useMemo(() => {
         let minRate = 101;
         let index = -1;
@@ -170,8 +158,8 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
     }, [bottleneckIndex, rates, steps]);
 
     return (
-        <div className="w-full flex flex-col items-center py-4">
-            <div className="w-full max-w-full flex flex-col items-stretch space-y-2">
+        <div className="w-full flex flex-col items-center py-4 px-2">
+            <div className="w-full max-w-[720px] flex flex-col items-stretch space-y-[-1.5px]">
                 {steps.map((step, i) => (
                     <FunnelStep
                         key={step.type}
@@ -181,7 +169,7 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
                         color={step.color}
                         width={step.width}
                         bottomWidth={step.bottom}
-                        delay={i * 0.15}
+                        delay={i * 0.1}
                         isBottleneck={i === bottleneckIndex && rates[i]! < 60}
                     />
                 ))}
@@ -193,7 +181,7 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`mt-4 w-full max-w-[720px] p-8 rounded-[3rem] border ${insight.color} shadow-2xl transition-all mx-4`}
+                        className={`mt-12 w-full max-w-[720px] p-8 rounded-[3rem] border ${insight.color} shadow-2xl transition-all`}
                     >
                         <div className="flex items-start gap-3">
                             <div className="mt-0.5">{insight.icon}</div>
