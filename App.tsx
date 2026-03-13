@@ -623,7 +623,7 @@ const AppContent = () => {
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
                     <span>My Sharing</span>
                     <span className="text-main-accent">Simulator</span>
-                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2">v1.2.84</span>
+                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2" style={{ color: 'var(--header-text)' }}>v1.2.84</span>
                     <img
                       src="/logo_v2_main.png"
                       alt="Logo"

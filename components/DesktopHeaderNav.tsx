@@ -24,11 +24,13 @@ export const DesktopHeaderNav: React.FC<DesktopHeaderNavProps> = ({
     const getButtonClass = (isActive: boolean) => `
         relative flex flex-col items-center justify-center h-full px-6 py-2
         transition-all duration-300 ease-out active:scale-95 group rounded-xl
-        ${isActive ? 'text-white bg-white/10 shadow-inner' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}
+        ${isActive 
+            ? 'bg-white/10 dark:bg-white/10 shadow-inner' 
+            : 'opacity-60 hover:opacity-100 hover:bg-white/5'}
     `;
 
     return (
-        <div className="hidden md:flex items-center justify-center p-1 rounded-[2rem] bg-slate-900/50 border border-slate-700/50 shadow-inner relative overflow-hidden mx-4">
+        <div className="hidden md:flex items-center justify-center p-1 rounded-[2rem] bg-black/20 dark:bg-slate-900/50 border border-white/10 dark:border-slate-700/50 shadow-inner relative overflow-hidden mx-4 [.theme-white-glass_&]:bg-white/20 [.theme-white-glass_&]:border-black/5" style={{ color: 'var(--header-text)' }}>
             {/* Glow effect */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50" />
 
@@ -68,8 +70,8 @@ export const DesktopHeaderNav: React.FC<DesktopHeaderNavProps> = ({
                 className={getButtonClass(viewMode === 'condo')}
             >
                 {!isPremium && <div className="absolute top-1 right-2 bg-red-500 text-white p-0.5 rounded-full z-20 shadow-sm"><Lock size={8} /></div>}
-                <CondoModeIcon className={`w-6 h-6 mb-1 transition-all ${viewMode !== 'condo' ? 'grayscale opacity-70' : ''}`} />
-                <span className="text-[10px] font-bold leading-none tracking-wide">{t('nav.admin')}</span>
+                <CondoModeIcon className={`w-6 h-6 mb-1 transition-all ${viewMode !== 'condo' ? 'grayscale opacity-70' : ''}`} style={{ color: viewMode === 'condo' ? 'var(--accent-main)' : 'inherit' }} />
+                <span className="text-[10px] font-bold leading-none tracking-wide" style={{ color: viewMode === 'condo' ? 'var(--accent-main)' : 'inherit' }}>{t('nav.admin')}</span>
             </button>
 
             <div className="w-px h-8 bg-slate-700/50 mx-1" />
@@ -79,8 +81,8 @@ export const DesktopHeaderNav: React.FC<DesktopHeaderNavProps> = ({
                 onClick={() => handleModeChange('family')}
                 className={getButtonClass(viewMode === 'family')}
             >
-                <FamilyModeIcon className={`w-6 h-6 mb-1 transition-all ${viewMode !== 'family' ? 'grayscale opacity-70' : ''}`} />
-                <span className="text-[10px] font-bold leading-none tracking-wide">{t('nav.partner')}</span>
+                <FamilyModeIcon className={`w-6 h-6 mb-1 transition-all ${viewMode !== 'family' ? 'grayscale opacity-70' : ''}`} style={{ color: viewMode === 'family' ? 'var(--accent-main)' : 'inherit' }} />
+                <span className="text-[10px] font-bold leading-none tracking-wide" style={{ color: viewMode === 'family' ? 'var(--accent-main)' : 'inherit' }}>{t('nav.partner')}</span>
             </button>
 
             <div className="w-px h-8 bg-slate-700/50 mx-1" />
@@ -90,8 +92,8 @@ export const DesktopHeaderNav: React.FC<DesktopHeaderNavProps> = ({
                 onClick={() => handleModeChange('client')}
                 className={getButtonClass(viewMode === 'client')}
             >
-                <ClientModeIcon className={`w-6 h-6 mb-1 transition-all ${viewMode !== 'client' ? 'grayscale opacity-70' : ''}`} />
-                <span className="text-[10px] font-bold leading-none tracking-wide">{t('nav.client')}</span>
+                <ClientModeIcon className={`w-6 h-6 mb-1 transition-all ${viewMode !== 'client' ? 'grayscale opacity-70' : ''}`} style={{ color: viewMode === 'client' ? 'var(--accent-main)' : 'inherit' }} />
+                <span className="text-[10px] font-bold leading-none tracking-wide" style={{ color: viewMode === 'client' ? 'var(--accent-main)' : 'inherit' }}>{t('nav.client')}</span>
             </button>
 
         </div>
