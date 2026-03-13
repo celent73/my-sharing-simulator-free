@@ -145,6 +145,9 @@ export interface DriveCredentials {
 
 export type SyncState = 'IDLE' | 'SYNCING' | 'LOADING' | 'SUCCESS' | 'ERROR';
 
+export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'commercial_monthly' | 'yearly' | 'custom';
+
+
 // Achievements System
 export enum AchievementId {
   STACANOVISTA_7_DAYS = 'STACANOVISTA_7_DAYS',

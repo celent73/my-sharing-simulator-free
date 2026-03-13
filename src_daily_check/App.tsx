@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification, Lead } from './types';
+import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification, Lead, ViewMode } from './types';
 import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates, deleteLogsInRange } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
 import { format } from 'date-fns';
@@ -127,6 +127,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   // States for Focus Recovery Mode
   const [recoveryFocusGoal, setRecoveryFocusGoal] = useState<string | undefined>(undefined);
   const [recoveryFocusTarget, setRecoveryFocusTarget] = useState<number | undefined>(undefined);
+  const [viewMode, setViewMode] = useState<ViewMode>('daily');
 
   const addNotification = useCallback((message: string, type: NotificationVariant) => {
     setNotifications(prev => [...prev, { id: Date.now(), message, type }]);
@@ -822,6 +823,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
                       onUpdateActivity={handleUpdateActivity}
                       compactView={true} initialTab="overview"
+                      viewMode={viewMode} setViewMode={setViewMode}
                     />
                     {settings.visionBoard?.enabled && settings.visionBoard?.targetAmount > 0 && (
                       <DreamTrackerWidget
@@ -845,6 +847,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       onOpenVoiceMode={() => setIsVoiceModeOpen(true)} onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
                       onOpenTeamChallenge={() => setIsTeamModalOpen(true)} isHubMode={true}
                       careerStatus={careerStatus}
+                      viewMode={viewMode} setViewMode={setViewMode}
+                      goals={effectiveGoals}
                     />
                   </motion.div>
                 )}
@@ -861,6 +865,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         onUpdateActivity={handleUpdateActivity}
                         onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
                         initialTab="stats"
+                        viewMode={viewMode} setViewMode={setViewMode}
                       />
                     </div>
                   </motion.div>

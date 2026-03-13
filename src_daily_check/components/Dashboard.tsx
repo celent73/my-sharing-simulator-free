@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 
 // Importazioni base
-import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead } from '../types';
+import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead, ViewMode } from '../types';
 import {
   getWeekIdentifier,
   getMonthIdentifier,
@@ -35,9 +35,10 @@ interface DashboardProps {
   initialTab?: 'overview' | 'stats';
   onOpenContractModal?: () => void;
   onUpdateActivity: (activity: ActivityType, change: number) => void;
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
 }
 
-type ViewMode = 'daily' | 'weekly' | 'monthly' | 'commercial_monthly' | 'yearly' | 'custom';
 type DashboardTab = 'overview' | 'stats';
 
 // --- ICONE ---
@@ -105,7 +106,7 @@ const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, icon
 };
 
 const Dashboard: React.FC<DashboardProps> = ({
-  activityLogs,
+  activityLogs = [],
   goals,
   userProfile,
   onOpenAchievements,
@@ -116,13 +117,14 @@ const Dashboard: React.FC<DashboardProps> = ({
   compactView = false,
   initialTab = 'overview',
   onOpenContractModal,
-  onUpdateActivity
+  onUpdateActivity,
+  viewMode,
+  setViewMode
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
   }
 
-  const [viewMode, setViewMode] = useState<ViewMode>(compactView ? 'daily' : 'commercial_monthly');
   const [currentTab, setCurrentTab] = useState<DashboardTab>(initialTab);
 
   // STATO PER LA DATA SELEZIONATA (usata dal DateNavigator)
@@ -375,11 +377,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               </select>
             </div>
 
-            <div className="flex items-center gap-1 p-1 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner min-w-[300px]">
-              <button onClick={() => setViewMode('daily')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Giorno</button>
-              <button onClick={() => setViewMode('weekly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Settimana</button>
-              <button onClick={() => setViewMode('monthly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Mese</button>
-            </div>
+            {/* View Mode Selector removed from here, now in ActivityInput */}
           </div>
         </div>
       )}

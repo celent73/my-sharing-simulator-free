@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType, Lead } from '../types';
+import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType, Lead, ViewMode, Goals } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
 import { format } from 'date-fns';
 import { formatItalianDate, getCommercialMonthString, getDaysUntilCommercialMonthEnd, getCommercialMonthProgress } from '../utils/dateUtils';
@@ -19,7 +19,8 @@ import {
     Star,
     Calculator,
     ListChecks,
-    Users
+    Users,
+    Target
 } from 'lucide-react';
 
 import { CareerStatusInfo } from '../utils/careerUtils';
@@ -53,6 +54,9 @@ interface ActivityInputProps {
     onEditLead?: (lead: Lead) => void;
     isHubMode?: boolean;
     careerStatus?: CareerStatusInfo;
+    viewMode: ViewMode;
+    setViewMode: (mode: ViewMode) => void;
+    goals: Goals;
 }
 
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
@@ -107,7 +111,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     onOpenLeadCapture,
     onEditLead,
     isHubMode = false,
-    careerStatus
+    careerStatus,
+    viewMode,
+    setViewMode,
+    goals
 }) => {
     const { user } = useAuth();
     const [isFooterVisible, setIsFooterVisible] = React.useState(true);
@@ -145,6 +152,80 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
         return () => scrollContainer.removeEventListener('scroll', handleScroll);
     }, []);
 
+    const selectedDateFormatted = formatItalianDate(selectedDate);
+    const commercialMonthStr = getCommercialMonthString(selectedDate, commercialMonthStartDay);
+    const daysRemaining = getDaysUntilCommercialMonthEnd(selectedDate, commercialMonthStartDay);
+    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+
+    // Utility per i calcoli dei progressi
+    const getPeriodTotals = useMemo(() => {
+        const totals: Record<ActivityType, number> = {
+            [ActivityType.CONTACTS]: 0,
+            [ActivityType.VIDEOS_SENT]: 0,
+            [ActivityType.APPOINTMENTS]: 0,
+            [ActivityType.NEW_CONTRACTS]: 0,
+            [ActivityType.NEW_FAMILY_UTILITY]: 0,
+        };
+
+        if (viewMode === 'daily') {
+            const todayLog = activityLogs.find(l => l.date === selectedDateStr);
+            if (todayLog) {
+                Object.values(ActivityType).forEach(type => {
+                    totals[type as ActivityType] = todayLog.counts[type as ActivityType] || 0;
+                });
+            }
+        } else if (viewMode === 'weekly') {
+            const { startOfWeek, endOfWeek } = (() => {
+                const now = new Date(selectedDate);
+                const day = now.getDay();
+                const diff = now.getDate() - day + (day === 0 ? -6 : 1); // lunedì
+                const start = new Date(now.setDate(diff));
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(start);
+                end.setDate(end.getDate() + 6);
+                end.setHours(23, 59, 59, 999);
+                return { startOfWeek: start, endOfWeek: end };
+            })();
+
+            activityLogs.forEach(log => {
+                const logDate = new Date(log.date);
+                if (logDate >= startOfWeek && logDate <= endOfWeek) {
+                    Object.values(ActivityType).forEach(type => {
+                        totals[type as ActivityType] += log.counts[type as ActivityType] || 0;
+                    });
+                }
+            });
+        } else if (viewMode === 'monthly' || viewMode === 'commercial_monthly') {
+            const { start, end } = (() => {
+                const now = new Date(selectedDate);
+                const month = now.getMonth();
+                const year = now.getFullYear();
+                
+                // Mese commerciale
+                let start = new Date(year, month, commercialMonthStartDay);
+                if (now.getDate() < commercialMonthStartDay) {
+                    start = new Date(year, month - 1, commercialMonthStartDay);
+                }
+                const end = new Date(start);
+                end.setMonth(end.getMonth() + 1);
+                end.setDate(end.getDate() - 1);
+                end.setHours(23, 59, 59, 999);
+                return { start, end };
+            })();
+
+            activityLogs.forEach(log => {
+                const logDate = new Date(log.date);
+                if (logDate >= start && logDate <= end) {
+                    Object.values(ActivityType).forEach(type => {
+                        totals[type as ActivityType] += log.counts[type as ActivityType] || 0;
+                    });
+                }
+            });
+        }
+
+        return totals;
+    }, [activityLogs, viewMode, selectedDate, selectedDateStr, commercialMonthStartDay]);
+
     const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ActivityType | null>(null);
     const [targetDates, setTargetDates] = useState<Record<string, string>>({});
     const [isAppointmentsOverviewOpen, setIsAppointmentsOverviewOpen] = useState(false);
@@ -166,11 +247,6 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
         window.addEventListener('careerDatesUpdated', loadDates);
         return () => window.removeEventListener('careerDatesUpdated', loadDates);
     }, [isHubMode]);
-
-    const selectedDateFormatted = formatItalianDate(selectedDate);
-    const commercialMonthStr = getCommercialMonthString(selectedDate, commercialMonthStartDay);
-    const daysRemaining = getDaysUntilCommercialMonthEnd(selectedDate, commercialMonthStartDay);
-    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
 
     const changeDate = (days: number) => {
         const newDate = new Date(selectedDate);
@@ -312,10 +388,36 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 )}
 
                 {/* ACTIVITY GRID */}
-                <div className="w-full mb-6 text-center">
-                    <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-2">
-                        inserisci le tue azioni quotidiane
-                    </h2>
+                <div className="w-full mb-6 text-center space-y-6">
+                    <div>
+                        <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-4">
+                            inserisci le tue azioni quotidiane
+                        </h2>
+                        
+                        {/* Period Selector Pill */}
+                        <div className="flex justify-center">
+                            <div className="inline-flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-800/80 rounded-[1.25rem] border border-slate-300 dark:border-slate-700 shadow-inner">
+                                <button 
+                                    onClick={() => setViewMode('daily')} 
+                                    className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                                >
+                                    Giorno
+                                </button>
+                                <button 
+                                    onClick={() => setViewMode('weekly')} 
+                                    className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                                >
+                                    Settimana
+                                </button>
+                                <button 
+                                    onClick={() => setViewMode('monthly')} 
+                                    className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                                >
+                                    Mese
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
                     {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
@@ -367,23 +469,53 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                         <h3 className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
                                         <div className="flex items-baseline gap-2">
                                             <span className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}>
-                                                {count}
+                                                {getPeriodTotals[activity]}
                                             </span>
                                         </div>
+                                        
+                                        {/* Goal Progress Text */}
+                                        {(() => {
+                                            const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
+                                                              viewMode === 'weekly' ? goals.weekly[activity] : 
+                                                              goals.monthly[activity];
+                                            
+                                            if (!goalValue || goalValue === 0) return null;
+                                            
+                                            const current = getPeriodTotals[activity];
+                                            const remaining = Math.max(0, goalValue - current);
+                                            
+                                            return (
+                                                <div className="mt-2 flex items-center gap-1.5">
+                                                    <Target className={`w-3 h-3 ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
+                                                    <span className={`text-[10px] font-black uppercase tracking-tight ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                        {remaining === 0 ? 'Target Raggiunto!' : `Mancano ${remaining} per l'obiettivo`}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
 
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
                                             className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
-                                            disabled={count === 0}
+                                            disabled={(todayCounts[activity] || 0) === 0}
                                         >
                                             <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
                                         </button>
                                         <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
-                                                style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
+                                                style={{ 
+                                                    width: (() => {
+                                                        const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
+                                                                          viewMode === 'weekly' ? goals.weekly[activity] : 
+                                                                          goals.monthly[activity];
+                                                        const current = getPeriodTotals[activity];
+                                                        if (!goalValue || goalValue === 0) return `${Math.min((current / 10) * 100, 100)}%`;
+                                                        return `${Math.min((current / goalValue) * 100, 100)}%`;
+                                                    })()
+                                                }}
                                             />
                                         </div>
                                     </div>
