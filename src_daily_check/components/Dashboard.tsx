@@ -446,14 +446,14 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Tab Statistiche */}
       {currentTab === 'stats' && (
-        <div className="animate-fade-in relative z-10 w-full px-4 flex flex-col items-center">
-          <div className="w-full max-w-5xl">
-            <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3">
+        <div className="animate-fade-in relative z-10 w-full px-0 flex flex-col items-center">
+          <div className="w-full max-w-full">
+            <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3 px-6">
               <span className="w-1.5 h-8 bg-blue-500 rounded-full"></span>
               IMBUTO DI CONVERSIONE
             </h3>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-0 shadow-xl mb-10 overflow-hidden">
+            <div className="mb-10 overflow-hidden">
               <ConversionFunnel data={totals} customLabels={customLabels} />
             </div>
 
