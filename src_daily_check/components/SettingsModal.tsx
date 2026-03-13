@@ -406,33 +406,39 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </button>
 
                                 <div className="space-y-3">
-                                    {Object.values(ActivityType).map((activity) => {
-                                        const val = settings.goals?.[activeGoalTab]?.[activity] || 0;
-                                        // Uses specific labels for Goals tab: "Target ..."
-                                        const label = SETTINGS_ACTIVITY_LABELS[activity];
-                                        const color = ACTIVITY_COLORS[activity];
+                                    {Object.values(ActivityType)
+                                        .filter(activity => {
+                                            if (activeGoalTab === 'daily') {
+                                                return activity !== ActivityType.NEW_CONTRACTS && activity !== ActivityType.NEW_FAMILY_UTILITY;
+                                            }
+                                            return true;
+                                        })
+                                        .map((activity) => {
+                                            const val = settings.goals?.[activeGoalTab]?.[activity] || 0;
+                                            const label = SETTINGS_ACTIVITY_LABELS[activity];
+                                            const color = ACTIVITY_COLORS[activity];
 
-                                        return (
-                                            <div key={activity} className="bg-white dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 flex justify-between items-center">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: color }}>
-                                                        {activityIcons[activity]}
+                                            return (
+                                                <div key={activity} className="bg-white dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 flex justify-between items-center">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: color }}>
+                                                            {activityIcons[activity]}
+                                                        </div>
+                                                        <span className="font-bold text-sm text-slate-700 dark:text-white">{label}</span>
                                                     </div>
-                                                    <span className="font-bold text-sm text-slate-700 dark:text-white">{label}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, -1)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-slate-500 hover:bg-slate-200"><MinusIcon /></button>
+                                                        <input
+                                                            type="number"
+                                                            className="w-16 text-center font-bold bg-transparent dark:text-white outline-none border-b border-transparent focus:border-blue-500"
+                                                            value={val}
+                                                            onChange={(e) => handleGoalChange(activeGoalTab, activity, e.target.value)}
+                                                        />
+                                                        <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, 1)} className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 hover:bg-blue-200"><PlusIcon /></button>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, -1)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-slate-500 hover:bg-slate-200"><MinusIcon /></button>
-                                                    <input
-                                                        type="number"
-                                                        className="w-16 text-center font-bold bg-transparent dark:text-white outline-none border-b border-transparent focus:border-blue-500"
-                                                        value={val}
-                                                        onChange={(e) => handleGoalChange(activeGoalTab, activity, e.target.value)}
-                                                    />
-                                                    <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, 1)} className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 hover:bg-blue-200"><PlusIcon /></button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
                                 </div>
                             </div>
                         </div>

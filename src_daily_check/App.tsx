@@ -277,7 +277,17 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const [remainingTrialDays] = useState<number | null>(null);
 
   const effectiveCustomLabels = (settings.enableCustomLabels ?? true) ? (settings.customLabels || ACTIVITY_LABELS) : ACTIVITY_LABELS;
-  const effectiveGoals = (settings.enableGoals ?? true) ? settings.goals : { daily: {}, weekly: {}, monthly: {} };
+  const effectiveGoals = useMemo(() => {
+    const goals = (settings.enableGoals ?? true) ? settings.goals : { daily: {}, weekly: {}, monthly: {} };
+    return {
+      ...goals,
+      daily: {
+        ...goals.daily,
+        [ActivityType.NEW_CONTRACTS]: 0,
+        [ActivityType.NEW_FAMILY_UTILITY]: 0
+      }
+    };
+  }, [settings.enableGoals, settings.goals]);
 
   const handleFinalizeSession = () => {
     if (userId) {
