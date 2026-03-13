@@ -453,7 +453,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               IMBUTO DI CONVERSIONE
             </h3>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-6 lg:p-10 shadow-xl mb-10 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-0 shadow-xl mb-10 overflow-hidden">
               <ConversionFunnel data={totals} customLabels={customLabels} />
             </div>
 
