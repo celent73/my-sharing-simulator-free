@@ -28,10 +28,10 @@ const FunnelStep: React.FC<{
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.6 }}
-            className="relative flex flex-col items-center mb-0.5 group cursor-pointer w-full"
+            className="relative flex flex-col items-center mb-[-10px] group cursor-pointer w-full"
         >
             {/* Step Label & Value */}
-            <div className="flex justify-between w-full max-w-[700px] px-2 mb-2">
+            <div className="flex justify-between w-full max-w-[720px] px-2 mb-1">
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{label}</span>
                     {isBottleneck && (
@@ -47,8 +47,8 @@ const FunnelStep: React.FC<{
             </div>
 
             {/* Funnel Segment SVG with Neon & Glass effect */}
-            <div className="relative w-full flex justify-center h-40">
-                <svg width="100%" height="160" viewBox="0 0 720 160" preserveAspectRatio="xMidYMid meet" className="max-w-[720px] overflow-visible">
+            <div className="relative w-full flex justify-center h-48">
+                <svg width="100%" height="200" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" className="max-w-[720px] overflow-visible">
                     <defs>
                         <linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stopColor={color} stopOpacity="0.8" />
@@ -62,7 +62,7 @@ const FunnelStep: React.FC<{
                     
                     {/* Background Segment (Glass) */}
                     <path
-                        d={`M ${360 - width / 2} 4 L ${360 + width / 2} 4 L ${360 + bottomWidth / 2} 156 L ${360 - bottomWidth / 2} 156 Z`}
+                        d={`M ${360 - width / 2} 4 L ${360 + width / 2} 4 L ${360 + bottomWidth / 2} 196 L ${360 - bottomWidth / 2} 196 Z`}
                         fill="currentColor"
                         className="text-slate-200/20 dark:text-slate-700/20 backdrop-blur-md"
                     />
@@ -72,7 +72,7 @@ const FunnelStep: React.FC<{
                         initial={{ pathLength: 0, opacity: 0 }}
                         animate={{ pathLength: 1, opacity: 1 }}
                         transition={{ delay: delay + 0.3, duration: 1.2, ease: "easeOut" }}
-                        d={`M ${360 - width / 2} 4 L ${360 + width / 2} 4 L ${360 + bottomWidth / 2} 156 L ${360 - bottomWidth / 2} 156 Z`}
+                        d={`M ${360 - width / 2} 4 L ${360 + width / 2} 4 L ${360 + bottomWidth / 2} 196 L ${360 - bottomWidth / 2} 196 Z`}
                         fill={`url(#grad-${color})`}
                         stroke={color}
                         strokeWidth="1.5"
@@ -87,7 +87,7 @@ const FunnelStep: React.FC<{
                         initial={{ scale: 0, opacity: 0, x: 20 }}
                         animate={{ scale: 1, opacity: 1, x: 0 }}
                         transition={{ delay: delay + 0.6, type: "spring", stiffness: 200 }}
-                        className={`absolute top-1/2 right-[1%] sm:right-[5%] -translate-y-1/2 rounded-2xl p-[1px] shadow-2xl z-20 overflow-hidden
+                        className={`absolute top-1/2 right-[1%] sm:right-[3%] -translate-y-1/2 rounded-2xl p-[1px] shadow-2xl z-20 overflow-hidden
                             ${isBottleneck 
                                 ? 'bg-gradient-to-tr from-red-500 to-orange-400' 
                                 : 'bg-gradient-to-tr from-slate-200 to-white dark:from-slate-700 dark:to-slate-600'}`}
@@ -109,10 +109,10 @@ const FunnelStep: React.FC<{
 
 const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels }) => {
     const steps = useMemo(() => [
-        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 700, bottom: 620, label: customLabels?.CONTACTS || 'Contatti' },
-        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 620, bottom: 540, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
-        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 540, bottom: 460, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
-        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 460, bottom: 380, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
+        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 720, bottom: 640, label: customLabels?.CONTACTS || 'Contatti' },
+        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 640, bottom: 560, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
+        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 560, bottom: 480, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
+        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 480, bottom: 400, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
     ], [customLabels]);
 
     const values = useMemo(() => steps.map(s => data[s.type] || 0), [steps, data]);
@@ -171,7 +171,7 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
 
     return (
         <div className="w-full flex flex-col items-center py-4">
-            <div className="w-full max-w-full flex flex-col items-stretch space-y-6">
+            <div className="w-full max-w-full flex flex-col items-stretch space-y-2">
                 {steps.map((step, i) => (
                     <FunnelStep
                         key={step.type}
@@ -193,7 +193,7 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`mt-16 w-full max-w-[700px] p-8 rounded-[3rem] border ${insight.color} shadow-2xl transition-all mx-4`}
+                        className={`mt-4 w-full max-w-[720px] p-8 rounded-[3rem] border ${insight.color} shadow-2xl transition-all mx-4`}
                     >
                         <div className="flex items-start gap-3">
                             <div className="mt-0.5">{insight.icon}</div>
