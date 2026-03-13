@@ -28,10 +28,10 @@ const FunnelStep: React.FC<{
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.6 }}
-            className="relative flex flex-col items-center mb-0.5 group cursor-pointer"
+            className="relative flex flex-col items-center mb-0.5 group cursor-pointer w-full"
         >
             {/* Step Label & Value */}
-            <div className="flex justify-between w-full max-w-[460px] px-6 mb-2">
+            <div className="flex justify-between w-full max-w-[400px] px-8 mb-2">
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{label}</span>
                     {isBottleneck && (
@@ -47,8 +47,8 @@ const FunnelStep: React.FC<{
             </div>
 
             {/* Funnel Segment SVG with Neon & Glass effect */}
-            <div className="relative w-full flex justify-center h-24">
-                <svg width="460" height="96" viewBox="0 0 460 96" preserveAspectRatio="none" className="overflow-visible">
+            <div className="relative w-full flex justify-center h-24 px-4">
+                <svg width="100%" height="96" viewBox="0 0 460 96" preserveAspectRatio="xMidYMid meet" className="max-w-[400px] overflow-visible">
                     <defs>
                         <linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stopColor={color} stopOpacity="0.8" />
@@ -87,7 +87,7 @@ const FunnelStep: React.FC<{
                         initial={{ scale: 0, opacity: 0, x: 20 }}
                         animate={{ scale: 1, opacity: 1, x: 0 }}
                         transition={{ delay: delay + 0.6, type: "spring", stiffness: 200 }}
-                        className={`absolute top-1/2 left-[calc(50%+130px)] -translate-y-1/2 rounded-2xl p-[1px] shadow-2xl z-20 overflow-hidden
+                        className={`absolute top-1/2 left-[calc(50%+85px)] sm:left-[calc(50%+110px)] -translate-y-1/2 rounded-2xl p-[1px] shadow-2xl z-20 overflow-hidden
                             ${isBottleneck 
                                 ? 'bg-gradient-to-tr from-red-500 to-orange-400' 
                                 : 'bg-gradient-to-tr from-slate-200 to-white dark:from-slate-700 dark:to-slate-600'}`}
@@ -109,10 +109,10 @@ const FunnelStep: React.FC<{
 
 const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels }) => {
     const steps = useMemo(() => [
-        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 340, bottom: 280, label: customLabels?.CONTACTS || 'Contatti' },
-        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 280, bottom: 220, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
-        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 220, bottom: 160, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
-        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 160, bottom: 100, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
+        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 300, bottom: 250, label: customLabels?.CONTACTS || 'Contatti' },
+        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 250, bottom: 200, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
+        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 200, bottom: 150, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
+        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 150, bottom: 100, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
     ], [customLabels]);
 
     const values = useMemo(() => steps.map(s => data[s.type] || 0), [steps, data]);
