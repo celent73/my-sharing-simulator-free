@@ -372,13 +372,18 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
         dateLog.leads!.push(newLead);
 
-        // Se creato direttamente come 'won' (raro ma possibile)
+        // Se creato direttamente come 'won'
         if (newLead.status === 'won') {
           const targetActivity = leadData.type || ActivityType.NEW_CONTRACTS;
           dateLog.counts[targetActivity] = (dateLog.counts[targetActivity] || 0) + 1;
         } else {
-          // Incremento normale del contatore (contatto o appuntamento)
+          // Incremento normale del contatore principale
           dateLog.counts[leadCaptureType] = (dateLog.counts[leadCaptureType] || 0) + 1;
+
+          // SE è un contatto con appuntamento collegato, incrementiamo anche APPOINTMENTS
+          if (leadCaptureType === ActivityType.CONTACTS && (leadData as any).linkedAppointment) {
+            dateLog.counts[ActivityType.APPOINTMENTS] = (dateLog.counts[ActivityType.APPOINTMENTS] || 0) + 1;
+          }
         }
 
         updatedLog = dateLog;

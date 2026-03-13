@@ -87,6 +87,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
     const [locationType, setLocationType] = useState<'physical' | 'online'>('online');
     const [address, setAddress] = useState('');
     const [platform, setPlatform] = useState('zoom');
+    const [isLinkedAppointment, setIsLinkedAppointment] = useState(false);
 
     const [wonType, setWonType] = useState<'contract' | 'partner'>('contract');
 
@@ -112,6 +113,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                 setPlatform('zoom');
                 setTemperature(undefined);
                 setWonType('contract');
+                setIsLinkedAppointment(false);
             }
         }
     }, [isOpen, initialData]);
@@ -139,7 +141,8 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
             type: finalType,
             followUpDate: followUpDate || undefined,
             temperature,
-            ...(isAppointment && {
+            linkedAppointment: isLinkedAppointment,
+            ...((isAppointment || isLinkedAppointment) && {
                 appointmentDate,
                 locationType,
                 address: locationType === 'physical' ? address : undefined,
@@ -298,8 +301,30 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                         </div>
                     </div>
 
+                    {/* Inserimento contemporaneo Appuntamento (se è un nuovo contatto) */}
+                    {!isAppointment && !initialData && (
+                        <div className="bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-3xl border border-blue-100 dark:border-blue-900/20">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">📅</span>
+                                    <label className="text-xs font-black uppercase text-blue-600 dark:text-blue-400">Fissato anche appuntamento?</label>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLinkedAppointment(!isLinkedAppointment)}
+                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isLinkedAppointment ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                >
+                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isLinkedAppointment ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                                Se attivo, verranno incrementati sia il contatore dei "Contatti" che quello degli "Appuntamenti".
+                            </p>
+                        </div>
+                    )}
+
                     {/* ─── APPOINTMENT SPECIFIC ─── */}
-                    {isAppointment && (
+                    {(isAppointment || isLinkedAppointment) && (
                         <>
                             {/* Data e ora */}
                             <div>
