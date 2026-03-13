@@ -311,6 +311,11 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 )}
 
                 {/* ACTIVITY GRID */}
+                <div className="w-full mb-6">
+                    <h2 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mb-2">
+                        inserisci le tue azioni quotidiane
+                    </h2>
+                </div>
                 <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
                     {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
                         const count = todayCounts[activity] || 0;
