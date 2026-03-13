@@ -357,31 +357,32 @@ const Dashboard: React.FC<DashboardProps> = ({
         );
       })()}
 
-      {/* Header e Selezione Vista */}
-      <div className="relative z-10 flex flex-col items-start mb-10">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-6">
-          <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-700">
-            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.1em]">QUALIFICA:</span>
-            <select
-              className="bg-transparent text-sm font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
-              value={userProfile.currentQualification || ''}
-              onChange={(e) => onUpdateQualification(e.target.value as Qualification)}
-            >
-              <option value="" disabled>Seleziona...</option>
-              {Object.values(Qualification).map(q => (
-                <option key={q} value={q}>{q}</option>
-              ))}
-            </select>
-          </div>
+      {/* Header e Selezione Vista - HIDDEN IN STATS MODE */}
+      {currentTab !== 'stats' && (
+        <div className="relative z-10 flex flex-col items-start mb-10">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-6">
+            <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-700">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.1em]">QUALIFICA:</span>
+              <select
+                className="bg-transparent text-sm font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
+                value={userProfile.currentQualification || ''}
+                onChange={(e) => onUpdateQualification(e.target.value as Qualification)}
+              >
+                <option value="" disabled>Seleziona...</option>
+                {Object.values(Qualification).map(q => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
+            </div>
 
-          <div className="flex items-center gap-1 p-1 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner min-w-[300px]">
-            <button onClick={() => setViewMode('daily')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Giorno</button>
-            <button onClick={() => setViewMode('weekly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Settimana</button>
-            <button onClick={() => setViewMode('monthly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Mese</button>
+            <div className="flex items-center gap-1 p-1 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner min-w-[300px]">
+              <button onClick={() => setViewMode('daily')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Giorno</button>
+              <button onClick={() => setViewMode('weekly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Settimana</button>
+              <button onClick={() => setViewMode('monthly')} className={`flex-1 py-3 text-sm font-extrabold rounded-2xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-[#007aff] text-white shadow-md' : 'text-[#8e8e93] hover:text-[#1c1c1e]'}`}>Mese</button>
+            </div>
           </div>
         </div>
-      </div>
-
+      )}
       {/* --- QUI ABBIAMO INSERITO IL DATE NAVIGATOR --- */}
       {/* Appare SOLO se la modalità è 'daily' e NON siamo in compactView */}
       {viewMode === 'daily' && !compactView && (
@@ -391,18 +392,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         />
       )}
 
-      {/* Controlli Tabs - Nascosti in compactView */}
-      {!compactView && (
-        <div className="mb-10 relative z-10 flex justify-center w-full px-2 sm:px-0">
-          <div className="grid grid-cols-3 p-1.5 bg-[#e5e5ea] dark:bg-slate-800/80 rounded-[1.25rem] border border-transparent shadow-inner w-full sm:w-auto sm:min-w-[420px]">
-            <TabButton tab="overview" icon={<ChartBarIcon />} children="Riepilogo" />
-            <TabButton tab="stats" icon={<ChartPieIcon />} children="Statistiche" />
-            <button onClick={onOpenAchievements} className="w-full flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-5 py-3 text-[13px] sm:text-[15px] font-extrabold rounded-2xl text-[#8e8e93] hover:text-[#1c1c1e] transition-colors" title="Traguardi">
-              <TrophyIcon />
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Tab Riepilogo */}
       {currentTab === 'overview' && (

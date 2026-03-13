@@ -35,7 +35,6 @@ import { calculateDailySessionStats } from './utils/sessionUtils';
 import VoiceSpeedMode from './components/VoiceSpeedMode';
 import TeamLeaderboardModal from './components/TeamLeaderboardModal';
 import CareerPathModal from './components/CareerPathModal';
-import CareerDeadlineBanner from './components/CareerDeadlineBanner';
 import FollowUpBanner from './components/FollowUpBanner';
 import AppointmentsOverviewModal from './components/AppointmentsOverviewModal';
 import { FocusNavigation, ActiveView } from './components/FocusNavigation';
@@ -777,7 +776,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
             {(activeView === 'today' || activeView === 'stats') && (
               <div className="flex flex-col gap-8 max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 pt-12">
                 <div className="relative z-10 flex flex-col items-start mb-2">
-                  <h2 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">Dashboard</h2>
+                  <h2 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">
+                    {activeView === 'today' ? 'DASHBOARD' : 'STATISTICHE'}
+                  </h2>
                   <p className="text-base sm:text-lg font-medium text-slate-500 dark:text-slate-400">
                     Analisi per{' '}
                     {(settings.userProfile.firstName || settings.userProfile.lastName) && (
@@ -800,12 +801,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                     }}
                   />
                 )}
-                <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
-                <CareerDeadlineBanner
-                  careerStatus={careerStatus}
-                  targetDates={careerDates}
-                  onOpenCareerPath={() => setActiveView('career')}
-                />
+                {activeView === 'today' && (
+                  <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
+                )}
               </div>
             )}
             {/* Animated Background Mesh removed from here, now global */}

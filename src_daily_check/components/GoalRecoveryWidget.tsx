@@ -27,18 +27,18 @@ const GoalRecoveryWidget: React.FC<GoalRecoveryWidgetProps> = ({ commercialMonth
             {/* Background Accent */}
             <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-10 -mr-16 -mt-16 rounded-full ${isOverallBehind ? 'bg-orange-500' : 'bg-emerald-500'}`} />
 
-            <div className="flex justify-between items-start mb-6">
-                <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="flex justify-between items-start mb-6 gap-4">
+                <div className="min-w-0">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
                         <Target className={isOverallBehind ? "text-orange-500" : "text-emerald-500"} size={24} />
                         Tabella di Marcia
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 truncate">
                         Mese commerciale: {commercialMonth.start.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} - {commercialMonth.end.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
                     </p>
                 </div>
-                <div className="text-right">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isOverallBehind ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                <div className="flex-shrink-0">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${isOverallBehind ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
                         {isOverallBehind ? 'In Recupero' : 'In Corso'}
                     </span>
                 </div>
