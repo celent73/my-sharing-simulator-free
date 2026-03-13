@@ -619,9 +619,9 @@ const AppContent = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
               <div className="w-full md:w-auto flex justify-center md:justify-start">
                 <div className="flex items-center gap-3">
-                  <h1 onClick={handleTitleClick} className="text-2xl sm:text-4xl font-extrabold text-white drop-shadow-sm select-none cursor-pointer active:scale-95 transition-transform flex items-center gap-3 flex-wrap justify-center md:justify-start">
+                  <h1 onClick={handleTitleClick} className="text-2xl sm:text-4xl font-extrabold drop-shadow-sm select-none cursor-pointer active:scale-95 transition-transform flex items-center gap-3 flex-wrap justify-center md:justify-start" style={{ color: 'var(--header-text)' }}>
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
-                    <span className="text-white">My Sharing</span>
+                    <span>My Sharing</span>
                     <span className="text-main-accent">Simulator</span>
                     <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2">v1.2.84</span>
                     <img
@@ -652,7 +652,8 @@ const AppContent = () => {
                 {/* 1. THEME TOGGLE */}
                 <button
                   onClick={toggleTheme}
-                  className="p-3 rounded-2xl bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all border border-white/10 shadow-lg active:scale-90 [.theme-union-colors_&]:!bg-white [.theme-union-colors_&]:!text-[#0077c8] [.theme-union-colors_&]:!border-white"
+                  className="p-3 rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all border border-white/10 shadow-lg active:scale-90 [.theme-union-colors_&]:!bg-white [.theme-union-colors_&]:!text-[#0077c8] [.theme-union-colors_&]:!border-white"
+                  style={{ color: 'var(--header-text)' }}
                   title="Cambia Tema"
                 >
                   <div className="scale-90 opacity-80">{isDarkMode ? <SunIcon /> : <MoonIcon />}</div>
@@ -703,7 +704,7 @@ const AppContent = () => {
                 />
               </div>
             </div>
-            <p className="text-blue-100 font-medium text-[10px] sm:text-sm md:text-base -mt-2 pl-1 relative z-10 opacity-90 text-center md:text-left max-w-xs md:max-w-none mx-auto md:mx-0 leading-tight">{t('app.subtitle')}</p>
+            <p className="font-medium text-[10px] sm:text-sm md:text-base -mt-2 pl-1 relative z-10 opacity-90 text-center md:text-left max-w-xs md:max-w-none mx-auto md:mx-0 leading-tight" style={{ color: 'var(--header-text)' }}>{t('app.subtitle')}</p>
           </header>
         )}
 

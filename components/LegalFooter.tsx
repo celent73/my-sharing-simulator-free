@@ -9,14 +9,14 @@ const LegalFooter: React.FC<LegalFooterProps> = ({ onOpenLegal }) => {
     <footer className="w-full py-12 px-6 bg-footer-dynamic border-t border-slate-800 flex flex-col items-center justify-center text-center">
       <div className="max-w-4xl opacity-80">
         <div className="flex flex-wrap justify-center gap-6 mb-6">
-          <button onClick={() => onOpenLegal('terms')} className="text-[10px] text-white/40 hover:text-white/70 uppercase tracking-widest font-bold transition-colors">Termini</button>
-          <button onClick={() => onOpenLegal('privacy')} className="text-[10px] text-white/40 hover:text-white/70 uppercase tracking-widest font-bold transition-colors">Privacy</button>
-          <button onClick={() => onOpenLegal('cookie')} className="text-[10px] text-white/40 hover:text-white/70 uppercase tracking-widest font-bold transition-colors">Cookie</button>
+          <button onClick={() => onOpenLegal('terms')} className="text-[10px] uppercase tracking-widest font-bold transition-colors opacity-40 hover:opacity-70" style={{ color: 'var(--footer-text)' }}>Termini</button>
+          <button onClick={() => onOpenLegal('privacy')} className="text-[10px] uppercase tracking-widest font-bold transition-colors opacity-40 hover:opacity-70" style={{ color: 'var(--footer-text)' }}>Privacy</button>
+          <button onClick={() => onOpenLegal('cookie')} className="text-[10px] uppercase tracking-widest font-bold transition-colors opacity-40 hover:opacity-70" style={{ color: 'var(--footer-text)' }}>Cookie</button>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Copyright e Versione */}
           <div className="text-left">
-            <p className="font-semibold text-white">
+            <p className="font-semibold" style={{ color: 'var(--footer-text)' }}>
               Tutti i diritti riservati © {new Date().getFullYear()} - My Sharing Simulator v1.2.84
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">

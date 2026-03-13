@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
-export type AccentColor = 'original' | 'titan' | 'night-blue' | 'union-orange' | 'union-colors' | 'verdone-scuro';
+export type AccentColor = 'original' | 'titan' | 'night-blue' | 'union-orange' | 'union-colors' | 'verdone-scuro' | 'white-glass';
 
 interface ThemeContextType {
     theme: Theme;
@@ -43,7 +43,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     useEffect(() => {
         const root = window.document.documentElement;
         // Remove old classes
-        root.classList.remove('theme-orange', 'theme-blue', 'theme-green', 'theme-purple', 'theme-original', 'theme-titan', 'theme-night-blue', 'theme-union-orange', 'theme-union-colors', 'theme-verdone-scuro');
+        root.classList.remove('theme-orange', 'theme-blue', 'theme-green', 'theme-purple', 'theme-original', 'theme-titan', 'theme-night-blue', 'theme-union-orange', 'theme-union-colors', 'theme-verdone-scuro', 'theme-white-glass');
         // Add new class
         root.classList.add(`theme-${accentColor}`);
         localStorage.setItem('accentColor', accentColor);
