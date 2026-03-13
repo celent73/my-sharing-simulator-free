@@ -23,7 +23,8 @@ import {
   Info,
   Network,
   Calculator,
-  Sun
+  Sun,
+  Target
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import SharyTrigger from './SharyTrigger';
@@ -441,26 +442,42 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const { stats, loading: statsLoading } = useDailyStats();
   const [useRealData, setUseRealData] = useState(false);
   const [plannedMonthlyActivity, setPlannedMonthlyActivity] = useState(20);
+  const [bridgePeriod, setBridgePeriod] = useState<'30days' | 'commercial'>('30days');
+
+  // Selezione delle statistiche in base al periodo scelto
+  const activeStats = bridgePeriod === 'commercial' && stats.commercialMonthStats 
+    ? stats.commercialMonthStats 
+    : stats;
+
+  const handleApplyNow = () => {
+    if (activeStats.contactToContractRate > 0) {
+      const units = Math.round(plannedMonthlyActivity * activeStats.contactToContractRate);
+      onInputChange('myPersonalUnitsGreen', units);
+      onInputChange('myPersonalUnitsLight', 0);
+    }
+    if (activeStats.newFamilyUtilityTotal > 0) {
+      onInputChange('directRecruits', Math.round(activeStats.newFamilyUtilityTotal));
+    }
+    // Mostra un feedback visivo se necessario o semplicemente una notifica
+  };
 
   // Sincronizzazione automatica se il ponte è attivo
   React.useEffect(() => {
     // Il ponte funziona solo se siamo in modalità Family Utility
     if (useRealData && viewMode === 'family') {
       // 1. Sincronizzazione Utenze Personali
-      if (stats.contactToContractRate > 0) {
-        const totalUnitsThreshold = Math.round(plannedMonthlyActivity * stats.contactToContractRate);
+      if (activeStats.contactToContractRate > 0) {
+        const totalUnitsThreshold = Math.round(plannedMonthlyActivity * activeStats.contactToContractRate);
         onInputChange('myPersonalUnitsGreen', totalUnitsThreshold);
         onInputChange('myPersonalUnitsLight', 0);
       }
 
       // 2. Sincronizzazione Reclutamento (Secondo Ponte)
-      // Se abbiamo reclutato partner nel periodo, impostiamo il target del simulatore
-      if (stats.newFamilyUtilityTotal > 0) {
-        // stats.newFamilyUtilityTotal è il totale degli ultimi 30 giorni (circa un mese)
-        onInputChange('directRecruits', Math.round(stats.newFamilyUtilityTotal));
+      if (activeStats.newFamilyUtilityTotal > 0) {
+        onInputChange('directRecruits', Math.round(activeStats.newFamilyUtilityTotal));
       }
     }
-  }, [useRealData, viewMode, plannedMonthlyActivity, stats.contactToContractRate, stats.newFamilyUtilityTotal]);
+  }, [useRealData, viewMode, plannedMonthlyActivity, activeStats.contactToContractRate, activeStats.newFamilyUtilityTotal]);
 
   // Reset ponte se cambiamo modalità (opzionale, ma consigliato per chiarezza)
   React.useEffect(() => {
@@ -610,9 +627,30 @@ const InputPanel: React.FC<InputPanelProps> = ({
                     <div className="flex justify-between items-center px-1">
                       <div className="flex items-center gap-2 text-blue-600">
                         <Zap size={14} className="animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Periodo Rif:</span>
+                      </div>
+                      <div className="flex bg-blue-100 dark:bg-blue-900/40 rounded-lg p-0.5 border border-blue-200/50">
+                        <button 
+                          onClick={() => setBridgePeriod('30days')}
+                          className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-all ${bridgePeriod === '30days' ? 'bg-blue-600 text-white shadow-sm' : 'text-blue-600/60'}`}
+                        >
+                          30 GG
+                        </button>
+                        <button 
+                          onClick={() => setBridgePeriod('commercial')}
+                          className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-all ${bridgePeriod === 'commercial' ? 'bg-blue-600 text-white shadow-sm' : 'text-blue-600/60'}`}
+                        >
+                          MESE
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center px-1">
+                      <div className="flex items-center gap-2 text-blue-600">
+                        <Target size={14} />
                         <span className="text-[10px] font-black uppercase tracking-widest">Efficienza Vendita:</span>
                       </div>
-                      <span className="text-sm font-black text-blue-600">{(stats.contactToContractRate * 100).toFixed(1)}%</span>
+                      <span className="text-sm font-black text-blue-600">{(activeStats.contactToContractRate * 100).toFixed(1)}%</span>
                     </div>
 
                     <div className="space-y-2">
@@ -640,8 +678,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                         <span className="text-[10px] font-black uppercase tracking-widest">Bravura Reclutamento:</span>
                       </div>
                       <span className="text-sm font-black text-purple-600">
-                        {/* Calcolo semplificato: partner reclutati / appuntamenti totali * 100 */}
-                        {stats.appointmentsTotal > 0 ? ((stats.newFamilyUtilityTotal / stats.appointmentsTotal) * 100).toFixed(1) : '0.0'}%
+                        {activeStats.appointmentsTotal > 0 ? ((activeStats.newFamilyUtilityTotal / activeStats.appointmentsTotal) * 100).toFixed(1) : '0.0'}%
                       </span>
                     </div>
 
@@ -662,10 +699,18 @@ const InputPanel: React.FC<InputPanelProps> = ({
                     </div>
                   </div>
 
-                  <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-blue-500/10 text-center">
+                  <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-blue-500/10 text-center space-y-3">
                     <p className="text-[10px] lg:text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
-                      Con questo ritmo produrrai <span className="text-blue-600 dark:text-blue-400 font-black text-sm">{Math.round(plannedMonthlyActivity * stats.contactToContractRate)}</span> utenze e recluterai <span className="text-purple-600 dark:text-purple-400 font-black text-sm">{inputs.directRecruits}</span> partner (FU) ogni mese.
+                      Con questo ritmo produrrai <span className="text-blue-600 dark:text-blue-400 font-black text-sm">{Math.round(plannedMonthlyActivity * activeStats.contactToContractRate)}</span> utenze e recluterai <span className="text-purple-600 dark:text-purple-400 font-black text-sm">{Math.round(activeStats.newFamilyUtilityTotal)}</span> partner (FU) ogni mese.
                     </p>
+                    
+                    <button 
+                      onClick={handleApplyNow}
+                      className="w-full py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                    >
+                      <RefreshCcw size={12} />
+                      Applica Snapshot Ora
+                    </button>
                   </div>
                 </motion.div>
               )}

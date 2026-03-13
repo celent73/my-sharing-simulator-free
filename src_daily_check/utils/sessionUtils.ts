@@ -76,7 +76,7 @@ export const calculateDailySessionStats = (todayLog: ActivityLog | undefined, go
     };
 };
 
-export const calculateAggregateStats = (logs: ActivityLog[]): {
+export const calculateAggregateStats = (logs: ActivityLog[], days: number = 30): {
     contactToContractRate: number;
     avgMonthlyContracts: number;
     newFamilyUtilityTotal: number;
@@ -86,10 +86,10 @@ export const calculateAggregateStats = (logs: ActivityLog[]): {
         return { contactToContractRate: 0, avgMonthlyContracts: 0, newFamilyUtilityTotal: 0, appointmentsTotal: 0 };
     }
 
-    // Prendiamo i log degli ultimi 30 giorni per una media recente
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentLogs = logs.filter(log => new Date(log.date) >= thirtyDaysAgo);
+    // Prendiamo i log dell'intervallo specificato (es. 30 giorni) per una media recente
+    const filterDate = new Date();
+    filterDate.setDate(filterDate.getDate() - days);
+    const recentLogs = logs.filter(log => new Date(log.date) >= filterDate);
 
     let totalContacts = 0;
     let totalContracts = 0;
