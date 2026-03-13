@@ -312,7 +312,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
                 {/* ACTIVITY GRID */}
                 <div className="w-full mb-6 text-center">
-                    <h2 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-2">
+                    <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-2">
                         inserisci le tue azioni quotidiane
                     </h2>
                 </div>
