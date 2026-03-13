@@ -27,8 +27,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
 
         try {
             if (isResetMode) {
+                const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin,
+                    redirectTo: siteUrl,
                 });
                 if (error) throw error;
                 setSuccessMsg('Email di recupero inviata! Controlla la tua casella di posta.');

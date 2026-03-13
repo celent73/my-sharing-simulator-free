@@ -18,7 +18,8 @@ import {
     ShieldCheck,
     Star,
     Calculator,
-    ListChecks
+    ListChecks,
+    Users
 } from 'lucide-react';
 
 import { CareerStatusInfo } from '../utils/careerUtils';
@@ -338,10 +339,19 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                             {activity === ActivityType.APPOINTMENTS && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setIsAppointmentsOverviewOpen(true); }}
-                                                    className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-slate-500 hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 shadow-md hover:shadow-lg transition-all active:scale-90`}
+                                                    className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
                                                     title="Vedi appuntamenti"
                                                 >
-                                                    <ListChecks className="w-6 h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
+                                                    <ListChecks className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                                                </button>
+                                            )}
+                                            {activity === ActivityType.CONTACTS && (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setSelectedActivityForDetails(ActivityType.CONTACTS); }}
+                                                    className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
+                                                    title="Vedi contatti"
+                                                >
+                                                    <Users className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
                                                 </button>
                                             )}
                                             <button

@@ -735,7 +735,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       <AppointmentsOverviewModal
         isOpen={isGlobalAppointmentsOpen}
         onClose={() => { setIsGlobalAppointmentsOpen(false); setGlobalAppointmentsFilterDate(null); }}
-        onEdit={(lead) => { setIsGlobalAppointmentsOpen(false); setGlobalAppointmentsFilterDate(null); setEditingLead(lead); }}
+        onEdit={(lead) => handleOpenLeadCapture(lead.type || ActivityType.APPOINTMENTS, lead)}
         activityLogs={activityLogs}
         filterDate={globalAppointmentsFilterDate}
       />

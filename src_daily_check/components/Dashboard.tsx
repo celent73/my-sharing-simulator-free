@@ -446,8 +446,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Tab Statistiche */}
       {currentTab === 'stats' && (
-        <div className="animate-fade-in relative z-10 w-full px-0 flex flex-col items-center">
-          <div className="w-full max-w-full">
+        <div className="animate-fade-in relative z-10 w-full px-6 sm:px-12 lg:px-16 flex flex-col items-center">
+          <div className="w-full max-w-6xl">
             <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3 px-6">
               <span className="w-1.5 h-8 bg-blue-500 rounded-full"></span>
               IMBUTO DI CONVERSIONE

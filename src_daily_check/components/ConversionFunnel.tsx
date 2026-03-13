@@ -32,12 +32,14 @@ const FunnelStep: React.FC<{
         >
             <div className="relative w-full flex justify-center h-48 sm:h-56">
                 {/* Step Label & Value - Absolute inside the segment area */}
-                <div className="absolute top-4 left-0 right-0 z-30 px-6 flex justify-between w-full max-w-[1000px] pointer-events-none">
-                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-400/80 dark:text-slate-500/80 drop-shadow-sm">{label}</span>
-                    <span className="text-2xl font-black text-slate-800 dark:text-white drop-shadow-md">{value}</span>
+                <div className="absolute top-2 left-0 right-0 z-30 px-6 flex justify-between w-full pointer-events-none">
+                    <div className="bg-white/40 dark:bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20">
+                        <span className="text-[13px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-100 drop-shadow-sm">{label}</span>
+                    </div>
+                    <span className="text-3xl font-black text-slate-900 dark:text-white drop-shadow-xl">{value}</span>
                 </div>
 
-                <svg width="100%" height="100%" viewBox="0 0 1000 220" preserveAspectRatio="none" className="max-w-[1000px] overflow-visible">
+                <svg width="100%" height="100%" viewBox="0 0 1000 220" preserveAspectRatio="none" className="overflow-visible">
                     <defs>
                         <linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stopColor={color} stopOpacity="0.85" />
@@ -98,10 +100,10 @@ const FunnelStep: React.FC<{
 
 const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels }) => {
     const steps = useMemo(() => [
-        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 1000, bottom: 850, label: customLabels?.CONTACTS || 'Contatti' },
-        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 850, bottom: 700, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
-        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 700, bottom: 550, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
-        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 550, bottom: 400, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
+        { type: ActivityType.CONTACTS, color: '#3b82f6', width: 1000, bottom: 920, label: customLabels?.CONTACTS || 'Contatti' },
+        { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 920, bottom: 840, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
+        { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 840, bottom: 760, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
+        { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 760, bottom: 680, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
     ], [customLabels]);
 
     const values = useMemo(() => steps.map(s => data[s.type] || 0), [steps, data]);
@@ -159,7 +161,7 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
 
     return (
         <div className="w-full flex flex-col items-center py-4">
-            <div className="w-full flex flex-col items-stretch space-y-2">
+            <div className="w-full flex flex-col items-stretch space-y-12">
                 {steps.map((step, i) => (
                     <FunnelStep
                         key={step.type}
