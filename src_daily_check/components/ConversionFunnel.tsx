@@ -159,7 +159,7 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
 
     return (
         <div className="w-full flex flex-col items-center py-4">
-            <div className="w-full flex flex-col items-stretch space-y-[-2px]">
+            <div className="w-full flex flex-col items-stretch space-y-2">
                 {steps.map((step, i) => (
                     <FunnelStep
                         key={step.type}
