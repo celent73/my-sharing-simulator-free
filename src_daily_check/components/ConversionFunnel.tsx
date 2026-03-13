@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityType } from '../types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertCircle, TrendingUp, CheckCircle2, Target } from 'lucide-react';
 
 interface ConversionFunnelProps {
     data: {
@@ -16,79 +17,161 @@ const FunnelStep: React.FC<{
     color: string,
     width: number,
     bottomWidth: number,
-    delay: number
-}> = ({ label, value, prevValue, color, width, bottomWidth, delay }) => {
-    const rate = prevValue && prevValue > 0 ? ((value / prevValue) * 100).toFixed(1) : null;
+    delay: number,
+    isBottleneck?: boolean
+}> = ({ label, value, prevValue, color, width, bottomWidth, delay, isBottleneck }) => {
+    const rate = prevValue && prevValue > 0 ? (value / prevValue) * 100 : null;
+    const formattedRate = rate?.toFixed(1);
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay, duration: 0.8 }}
-            className="relative flex flex-col items-center mb-1 group"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay, duration: 0.6 }}
+            className="relative flex flex-col items-center mb-0.5 group"
         >
             {/* Step Label & Value */}
-            <div className="flex justify-between w-full max-w-[400px] px-4 mb-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{label}</span>
+            <div className="flex justify-between w-full max-w-[420px] px-6 mb-2">
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{label}</span>
+                    {isBottleneck && (
+                        <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                        >
+                            <AlertCircle size={12} className="text-red-500" />
+                        </motion.div>
+                    )}
+                </div>
                 <span className="text-sm font-black text-slate-800 dark:text-white">{value}</span>
             </div>
 
-            {/* Funnel Segment SVG */}
-            <div className="relative w-full flex justify-center h-20">
-                <svg width="400" height="80" viewBox="0 0 400 80" preserveAspectRatio="none" className="drop-shadow-lg overflow-visible">
+            {/* Funnel Segment SVG with Neon & Glass effect */}
+            <div className="relative w-full flex justify-center h-24">
+                <svg width="420" height="96" viewBox="0 0 420 96" preserveAspectRatio="none" className="overflow-visible">
                     <defs>
                         <linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor={color} stopOpacity="0.9" />
-                            <stop offset="100%" stopColor={color} stopOpacity="0.7" />
+                            <stop offset="0%" stopColor={color} stopOpacity="0.8" />
+                            <stop offset="100%" stopColor={color} stopOpacity="0.4" />
                         </linearGradient>
+                        <filter id={`glow-${color.replace('#', '')}`} x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="4" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
                     </defs>
+                    
+                    {/* Background Segment (Glass) */}
+                    <path
+                        d={`M ${210 - width / 2} 4 L ${210 + width / 2} 4 L ${210 + bottomWidth / 2} 92 L ${210 - bottomWidth / 2} 92 Z text-slate-900`}
+                        fill="currentColor"
+                        className="text-slate-200/20 dark:text-slate-700/20 backdrop-blur-md"
+                    />
+
+                    {/* Animated Fill Segment */}
                     <motion.path
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ delay: delay + 0.2, duration: 1 }}
-                        d={`M ${200 - width / 2} 0 L ${200 + width / 2} 0 L ${200 + bottomWidth / 2} 80 L ${200 - bottomWidth / 2} 80 Z`}
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        animate={{ pathLength: 1, opacity: 1 }}
+                        transition={{ delay: delay + 0.3, duration: 1.2, ease: "easeOut" }}
+                        d={`M ${210 - width / 2} 4 L ${210 + width / 2} 4 L ${210 + bottomWidth / 2} 92 L ${210 - bottomWidth / 2} 92 Z`}
                         fill={`url(#grad-${color})`}
-                        stroke="white"
-                        strokeWidth="1"
-                        strokeOpacity="0.1"
+                        stroke={color}
+                        strokeWidth="1.5"
+                        filter={`url(#glow-${color.replace('#', '')})`}
+                        className={isBottleneck ? "animate-pulse" : ""}
                     />
                 </svg>
 
                 {/* Conversion Rate Badge */}
                 {rate !== null && (
                     <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: delay + 0.5 }}
-                        className="absolute top-1/2 left-[calc(50%+100px)] -translate-y-1/2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-3 py-1.5 rounded-2xl shadow-xl z-20"
+                        initial={{ scale: 0, opacity: 0, x: 20 }}
+                        animate={{ scale: 1, opacity: 1, x: 0 }}
+                        transition={{ delay: delay + 0.6, type: "spring", stiffness: 200 }}
+                        className={`absolute top-1/2 left-[calc(50%+110px)] -translate-y-1/2 rounded-2xl p-[1px] shadow-2xl z-20 overflow-hidden
+                            ${isBottleneck 
+                                ? 'bg-gradient-to-tr from-red-500 to-orange-400' 
+                                : 'bg-gradient-to-tr from-slate-200 to-white dark:from-slate-700 dark:to-slate-600'}`}
                     >
-                        <div className="flex flex-col items-center">
-                            <span className="text-[9px] font-black text-slate-400 uppercase leading-none mb-0.5">Conv.</span>
-                            <span className="text-xs font-black text-blue-500 leading-none">{rate}%</span>
+                        <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-[15px] flex flex-col items-center">
+                            <span className={`text-[8px] font-black uppercase leading-none mb-0.5 ${isBottleneck ? 'text-red-500' : 'text-slate-400'}`}>
+                                {isBottleneck ? 'Strozzatura' : 'Conv.'}
+                            </span>
+                            <span className={`text-xs font-black leading-none ${isBottleneck ? 'text-red-600' : 'text-blue-500'}`}>
+                                {formattedRate}%
+                            </span>
                         </div>
                     </motion.div>
                 )}
             </div>
-
-            {/* Micro-glow effect */}
-            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none opacity-0 group-hover:opacity-20 transition-opacity bg-gradient-to-b from-transparent via-white to-transparent`}></div>
         </motion.div>
     );
 };
 
 const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels }) => {
-    const steps = [
+    const steps = useMemo(() => [
         { type: ActivityType.CONTACTS, color: '#3b82f6', width: 340, bottom: 280, label: customLabels?.CONTACTS || 'Contatti' },
         { type: ActivityType.VIDEOS_SENT, color: '#8b5cf6', width: 280, bottom: 220, label: customLabels?.VIDEOS_SENT || 'Video Inviati' },
         { type: ActivityType.APPOINTMENTS, color: '#10b981', width: 220, bottom: 160, label: customLabels?.APPOINTMENTS || 'Appuntamenti' },
         { type: ActivityType.NEW_CONTRACTS, color: '#f97316', width: 160, bottom: 100, label: customLabels?.NEW_CONTRACTS || 'Contratti' },
-    ];
+    ], [customLabels]);
 
-    const values = steps.map(s => data[s.type] || 0);
+    const values = useMemo(() => steps.map(s => data[s.type] || 0), [steps, data]);
+
+    const rates = useMemo(() => {
+        return values.map((val, i) => {
+            if (i === 0) return null;
+            const prev = values[i - 1];
+            return prev > 0 ? (val / prev) * 100 : 0;
+        });
+    }, [values]);
+
+    // Find the bottleneck (lowest rate > 0, or lowest rate if all are 0)
+    const bottleneckIndex = useMemo(() => {
+        let minRate = 101;
+        let index = -1;
+        rates.forEach((rate, i) => {
+            if (rate !== null && rate < minRate) {
+                minRate = rate;
+                index = i;
+            }
+        });
+        return index;
+    }, [rates]);
+
+    const insight = useMemo(() => {
+        if (bottleneckIndex === -1) return null;
+        const bottleneckStep = steps[bottleneckIndex];
+        const rate = rates[bottleneckIndex];
+
+        if (rate === null) return null;
+
+        if (rate < 30) {
+            return {
+                icon: <AlertCircle size={18} className="text-red-500" />,
+                title: "Criticità rilevata",
+                text: `Stai perdendo molti contatti nella fase "${bottleneckStep.label}". Dovresti rivedere lo script o la tecnica in questo punto.`,
+                color: "border-red-500 bg-red-50 dark:bg-red-900/10"
+            };
+        } else if (rate < 60) {
+            return {
+                icon: <Target size={18} className="text-orange-500" />,
+                title: "Margine di miglioramento",
+                text: `Il passaggio a "${bottleneckStep.label}" è il tuo punto debole attuale. Con un piccolo sforzo qui, i tuoi risultati finali esploderanno.`,
+                color: "border-orange-500 bg-orange-50 dark:bg-orange-900/10"
+            };
+        } else {
+            return {
+                icon: <TrendingUp size={18} className="text-emerald-500" />,
+                title: "Flusso equilibrato",
+                text: "Il tuo imbuto è sano! Continua così e punta ad aumentare il volume dei contatti per scalare la produzione.",
+                color: "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10"
+            };
+        }
+    }, [bottleneckIndex, rates, steps]);
 
     return (
-        <div className="w-full flex flex-col items-center py-8">
-            <div className="w-full max-w-[500px] flex flex-col items-stretch">
+        <div className="w-full flex flex-col items-center py-4">
+            <div className="w-full max-w-[500px] flex flex-col items-stretch space-y-2">
                 {steps.map((step, i) => (
                     <FunnelStep
                         key={step.type}
@@ -98,14 +181,38 @@ const ConversionFunnel: React.FC<ConversionFunnelProps> = ({ data, customLabels 
                         color={step.color}
                         width={step.width}
                         bottomWidth={step.bottom}
-                        delay={i * 0.2}
+                        delay={i * 0.15}
+                        isBottleneck={i === bottleneckIndex && rates[i]! < 60}
                     />
                 ))}
             </div>
 
+            {/* Strategic Insights Section */}
+            <AnimatePresence>
+                {insight && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`mt-12 w-full max-w-[420px] p-4 rounded-3xl border ${insight.color} shadow-lg transition-all`}
+                    >
+                        <div className="flex items-start gap-3">
+                            <div className="mt-0.5">{insight.icon}</div>
+                            <div>
+                                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white mb-1">
+                                    {insight.title}
+                                </h4>
+                                <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    {insight.text}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="mt-8 flex flex-col items-center gap-2">
                 <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent rounded-full"></div>
-                <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Visual Pipeline</p>
+                <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Visual Pipeline AI powered</p>
             </div>
         </div>
     );
