@@ -32,8 +32,7 @@ const HeaderMenu: React.FC<HeaderMenuProps> = (props) => {
 
             <button
                 onClick={handleOpenMenu}
-                className="flex p-2 sm:p-2.5 rounded-xl bg-white/10 dark:bg-gray-800/40 hover:bg-white/20 dark:hover:bg-gray-700/60 transition-all shadow-lg border-x border-slate-100 dark:border-white/5 hover:scale-105 active:scale-95 items-center justify-center [.theme-white-glass_&]:bg-black/5 [.theme-white-glass_&]:border-black/5"
-                style={{ color: 'var(--header-text)' }}
+                className="flex p-2 sm:p-2.5 rounded-xl bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-lg border-x border-slate-100 hover:scale-105 active:scale-95 items-center justify-center"
                 title="Apri Menu"
             >
                 <LayoutGrid size={18} className="sm:w-[20px] sm:h-[20px]" />
