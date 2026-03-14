@@ -55,27 +55,6 @@ const ChartBarIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h
 const ChartPieIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>);
 const TrophyIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.586l-1.293-1.293a1 1 0 00-1.414 1.414L7.586 6H6a2 2 0 00-2 2v6a2 2 0 002 2h8a2 2 0 002-2V8a2 2 0 00-2-2h-1.586l1.293-1.293a1 1 0 00-1.414-1.414L11 4.586V3zM4 10a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z" /></svg>);
 
-const GoalStatusReminder: React.FC<{
-  current: number,
-  goal: number,
-  timeProgress: number,
-  periodLabel: string
-}> = ({ current, goal, timeProgress, periodLabel }) => {
-  if (!goal || goal <= 0) return null;
-
-  const goalProgress = (current / goal) * 100;
-
-  if (goalProgress >= 100) {
-    return (
-      <div className="flex items-center bg-emerald-100/50 dark:bg-emerald-900/30 border-2 border-emerald-100 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm font-medium px-4 py-3 rounded-xl mb-4" role="alert">
-        <InfoIcon />
-        <p>Congratulazioni! Obiettivo raggiunto.</p>
-      </div>
-    );
-  }
-  return null;
-};
-
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
   [ActivityType.CONTACTS]: {
     gradient: 'from-blue-500 to-blue-600',
@@ -433,7 +412,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             }}
           />
 
-          {!compactView && <GoalStatusReminder current={totalCurrent} goal={totalGoal} timeProgress={timeProgress} periodLabel={viewMode} />}
 
 
 
