@@ -32,7 +32,7 @@ const HeaderMenu: React.FC<HeaderMenuProps> = (props) => {
 
             <button
                 onClick={handleOpenMenu}
-                className="flex p-2 sm:p-2.5 rounded-xl bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-lg border-x border-slate-100 hover:scale-105 active:scale-95 items-center justify-center"
+                className="flex p-2 sm:p-2.5 rounded-xl !bg-white !text-slate-900 hover:bg-gray-100 transition-all shadow-xl border border-slate-200 hover:scale-105 active:scale-95 items-center justify-center"
                 title="Apri Menu"
             >
                 <LayoutGrid size={18} className="sm:w-[20px] sm:h-[20px]" />
