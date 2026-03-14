@@ -16,11 +16,13 @@ interface ActivityFocusProps {
 
 const ActivityFocus: React.FC<ActivityFocusProps> = ({ totals, goals, timeProgress, viewMode, customLabels }) => {
   // Logic to process totals and goals into chart data
-  const data = Object.values(ActivityType).map(activity => ({
-    name: activity,
-    current: totals[activity] || 0,
-    goal: goals[activity] || 0
-  }));
+  const data = Object.values(ActivityType)
+    .filter(activity => activity !== ActivityType.NEW_CONTRACTS && activity !== ActivityType.NEW_FAMILY_UTILITY)
+    .map(activity => ({
+      name: activity,
+      current: totals[activity] || 0,
+      goal: goals[activity] || 0
+    }));
 
   const getLabel = (type: ActivityType) => {
     return customLabels?.[type] || ACTIVITY_LABELS[type];

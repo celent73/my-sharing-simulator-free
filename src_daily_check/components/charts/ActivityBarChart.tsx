@@ -73,17 +73,18 @@ const ActivityBarChart: React.FC<ActivityBarChartProps> = ({ data, customLabels 
         />
         <Legend wrapperStyle={{ paddingTop: '20px' }} />
 
-        {/* Genera le barre dinamicamente per ogni tipo di attività */}
-        {Object.values(ActivityType).map((activity) => (
-          <Bar
-            key={activity}
-            dataKey={activity}
-            name={customLabels?.[activity] || ACTIVITY_LABELS[activity]}
-            fill={CHART_COLORS[activity]}
-            radius={[4, 4, 0, 0]}
-            maxBarSize={50}
-          />
-        ))}
+        {Object.values(ActivityType)
+          .filter(activity => activity !== ActivityType.NEW_CONTRACTS && activity !== ActivityType.NEW_FAMILY_UTILITY)
+          .map((activity) => (
+            <Bar
+              key={activity}
+              dataKey={activity}
+              name={customLabels?.[activity] || ACTIVITY_LABELS[activity]}
+              fill={CHART_COLORS[activity]}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={50}
+            />
+          ))}
       </BarChart>
     </ResponsiveContainer>
   );
