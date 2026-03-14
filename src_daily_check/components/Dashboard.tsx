@@ -380,24 +380,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         );
       })()}
 
-      {/* Header e Selezione Vista - HIDDEN IN STATS MODE */}
+      {/* Header e Selezione Vista - RIMOSSO SELETTORE QUALIFICA RIDONDANTE */}
       {currentTab !== 'stats' && (
         <div className="relative z-10 flex flex-col items-start mb-10">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-6">
-            <div className="flex items-center gap-3 bg-white dark:bg-slate-800/50 p-3 px-5 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-700">
-              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.1em]">QUALIFICA:</span>
-              <select
-                className="bg-transparent text-sm font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
-                value={userProfile.currentQualification || ''}
-                onChange={(e) => onUpdateQualification(e.target.value as Qualification)}
-              >
-                <option value="" disabled>Seleziona...</option>
-                {Object.values(Qualification).map(q => (
-                  <option key={q} value={q}>{q}</option>
-                ))}
-              </select>
-            </div>
-
             {/* View Mode Selector removed from here, now in ActivityInput */}
           </div>
         </div>
