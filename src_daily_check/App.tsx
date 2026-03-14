@@ -818,6 +818,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       </span>
                     )}
                   </p>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400/80 mt-1 flex items-center gap-2 opacity-90">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                    {careerStatus.currentLevel.name}
+                  </div>
                 </div>
 
                 {activeView === 'today' && (
