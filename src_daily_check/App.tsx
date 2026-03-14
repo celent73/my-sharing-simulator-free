@@ -136,16 +136,16 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   }, []);
 
   const CAREER_STAGES = useMemo(() => [
-    { name: "Family pro", color: "#ec4899" }, // Vibrant Pink (from-pink-500)
+    { name: "Family Pro", color: "#ec4899" }, // Vibrant Pink (from-pink-500)
     { name: "Family pro 3x3", color: "#815545" },
-    { name: "Family 3s", color: "#8000ff" },
-    { name: "Family 5s", color: "#1147e6" },
+    { name: "Family 3S", color: "#8000ff" },
+    { name: "Family 5S", color: "#1147e6" },
     { name: "Top family", color: "#00c3eb" },
-    { name: "Pro manager", color: "#54cdb4" },
-    { name: "Regional manager", color: "#00b21a" },
-    { name: "National manager", color: "#8fff33" },
+    { name: "Pro Manager", color: "#54cdb4" },
+    { name: "Regional Manager", color: "#00b21a" },
+    { name: "National Manager", color: "#8fff33" },
     { name: "Director", color: "#e6e600" },
-    { name: "Director pro", color: "#c88536" },
+    { name: "Director Pro", color: "#c88536" },
     { name: "Ambassador", color: "#b3b3b3" },
     { name: "President", color: "#c8b335" }
   ], []);
@@ -735,7 +735,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   }, [activityLogs, selectedInputDate, settings.commercialMonthStartDay]);
 
   const selectedDateLog = activityLogs.find(log => log.date === format(selectedInputDate, 'yyyy-MM-dd'));
-  const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification), [activityLogs, settings.userProfile.currentQualification]);
+  const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification, careerDates), [activityLogs, settings.userProfile.currentQualification, careerDates]);
   const streak = useMemo(() => calculateCurrentStreak(activityLogs), [activityLogs]);
 
   const sessionStats = useMemo(() => calculateDailySessionStats(selectedDateLog, settings.goals), [selectedDateLog, settings.goals]);
@@ -803,7 +803,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                 onCloseApp={onClose}
               />
             )}
-
             {(activeView === 'today' || activeView === 'stats') && (
               <div className="flex flex-col gap-8 max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 pt-12">
                 <div className="relative z-10 flex flex-col items-start mb-2">
@@ -818,24 +817,21 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                       </span>
                     )}
                   </p>
-                  <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400/80 mt-1 flex items-center gap-2 opacity-90">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                  <div 
+                    className="text-[11px] font-bold uppercase tracking-[0.2em] mt-1 flex items-center gap-2 opacity-90 transition-colors duration-500"
+                    style={{ color: careerStatus.currentLevel.color || 'var(--accent-main)' }}
+                  >
+                    <div 
+                      className="w-1.5 h-1.5 rounded-full animate-pulse shadow-lg" 
+                      style={{ 
+                        backgroundColor: careerStatus.currentLevel.color || 'var(--accent-main)',
+                        boxShadow: `0 0 8px ${careerStatus.currentLevel.color || 'var(--accent-main)'}80` 
+                      }} 
+                    />
                     {careerStatus.currentLevel.name}
                   </div>
                 </div>
 
-                {activeView === 'today' && (
-                  <GoalRecoveryWidget 
-                    commercialMonth={commercialMonth} 
-                    recoveryStats={(recoveryStats || []).filter(s => s && s.target > 0)} 
-                    loading={statsLoading} 
-                    onActivateFocus={(goal, target) => {
-                      setRecoveryFocusGoal(goal);
-                      setRecoveryFocusTarget(target);
-                      setActiveView('focus');
-                    }}
-                  />
-                )}
                 {activeView === 'today' && (
                   <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
                 )}
@@ -849,16 +845,35 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                   <motion.div key="today" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
                     className="flex flex-col gap-6 max-w-screen-2xl mx-auto py-6 lg:py-12 px-4 sm:px-8 lg:px-12 pb-32 md:pb-12"
                   >
-                    
-                    <Dashboard activityLogs={activityLogs} goals={settings.goals} userProfile={settings.userProfile}
-                      onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
-                      customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
+                    <GoalRecoveryWidget 
+                      commercialMonth={commercialMonth}
+                      recoveryStats={recoveryStats}
+                      loading={statsLoading}
+                      onActivateFocus={(goal, target) => {
+                        setRecoveryFocusGoal(goal);
+                        setRecoveryFocusTarget(target);
+                        setActiveView('focus');
+                      }}
+                    />
+                    <Dashboard
+                      activityLogs={activityLogs}
+                      goals={effectiveGoals}
+                      userProfile={settings.userProfile}
+                      onOpenAchievements={() => setAchievementsModalOpen(true)}
                       onEditLead={handleOpenLeadCapture}
+                      commercialMonthStartDay={settings.commercialMonthStartDay || 16}
+                      customLabels={effectiveCustomLabels}
+                      onUpdateQualification={(q) => {
+                        setSettings(prev => ({ ...prev, userProfile: { ...prev.userProfile, currentQualification: q } }));
+                        addNotification(`Qualifica aggiornata a ${q}`, 'info');
+                      }}
+                      viewMode={viewMode}
+                      setViewMode={setViewMode}
                       onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
                       onUpdateActivity={handleUpdateActivity}
-                      compactView={true} initialTab="overview"
-                      viewMode={viewMode} setViewMode={setViewMode}
-                      selectedDate={selectedInputDate} onDateChange={setSelectedInputDate}
+                      selectedDate={selectedInputDate}
+                      onDateChange={setSelectedInputDate}
+                      careerDates={careerDates}
                     />
                     {settings.visionBoard?.enabled && settings.visionBoard?.targetAmount > 0 && (
                       <DreamTrackerWidget

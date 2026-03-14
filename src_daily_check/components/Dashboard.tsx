@@ -40,6 +40,7 @@ interface DashboardProps {
   setViewMode: (mode: ViewMode) => void;
   selectedDate?: Date;
   onDateChange?: (date: Date) => void;
+  careerDates?: Record<string, string>;
 }
 
 type DashboardTab = 'overview' | 'stats';
@@ -124,7 +125,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   viewMode,
   setViewMode,
   selectedDate: propSelectedDate,
-  onDateChange: propOnDateChange
+  onDateChange: propOnDateChange,
+  careerDates
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
@@ -351,14 +353,25 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div className={`bg-[#f2f2f7] dark:bg-slate-900/40 ${compactView ? '' : 'min-h-screen'} ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:p-10'} rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans`}>
       {/* Calcolo status carriera per l'header */}
       {(() => {
-        const careerStatus = calculateCareerStatus(activityLogs, userProfile.currentQualification);
+        const careerStatus = calculateCareerStatus(activityLogs, userProfile.currentQualification, careerDates);
         return (
-          <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-2 pl-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-2 pl-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-500">
             <div className="flex flex-col items-end">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">LIVELLO</span>
-              <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-tight">{careerStatus.currentLevel.name}</span>
+              <span 
+                className="text-xs font-bold uppercase tracking-tight transition-colors duration-500"
+                style={{ color: careerStatus.currentLevel.color || 'inherit' }}
+              >
+                {careerStatus.currentLevel.name}
+              </span>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-sm">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-500"
+              style={{ 
+                backgroundColor: careerStatus.currentLevel.color || '#3b82f6',
+                boxShadow: `0 4px 12px ${careerStatus.currentLevel.color || '#3b82f6'}40`
+              }}
+            >
                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
