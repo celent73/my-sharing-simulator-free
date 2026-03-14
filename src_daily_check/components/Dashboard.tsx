@@ -453,12 +453,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
 
           {!compactView && (
-            <>
-              <ActivityFocus totals={totals} goals={relevantGoals} timeProgress={timeProgress} viewMode={viewMode} customLabels={customLabels} />
-              <div className="h-80 mt-10 bg-white/50 dark:bg-slate-900 p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800">
-                <ActivityBarChart data={processedData} customLabels={customLabels} />
-              </div>
-            </>
+            <div className="h-6 mt-10" />
           )}
         </div>
       )}
