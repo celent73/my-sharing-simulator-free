@@ -350,7 +350,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className={`bg-[#f2f2f7] dark:bg-slate-900/40 ${compactView ? '' : 'min-h-screen'} ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:p-10'} rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans`}>
+    <div className={`bg-[#f2f2f7] dark:bg-slate-900/40 ${compactView ? '' : ''} ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:pb-2 sm:pt-10 sm:px-10'} rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans`}>
       {/* Calcolo status carriera per l'header */}
       {(() => {
         const careerStatus = calculateCareerStatus(activityLogs, userProfile.currentQualification, careerDates);
@@ -439,7 +439,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
 
           {!compactView && (
-            <div className="h-6 mt-10" />
+            <div className="mb-2" />
           )}
         </div>
       )}
