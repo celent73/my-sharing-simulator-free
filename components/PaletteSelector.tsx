@@ -10,7 +10,6 @@ const PALETTES: { id: AccentColor; color: string; label: string }[] = [
     { id: 'union-orange', color: '#2b0f07', label: 'Orange Union' },
     { id: 'union-colors', color: '#0077c8', label: 'Union Colors' },
     { id: 'verdone-scuro', color: '#05140a', label: 'Verdone Scuro' },
-    { id: 'white-glass', color: '#ffffff', label: 'White Glass' },
 ];
 
 const PaletteSelector: React.FC = () => {
