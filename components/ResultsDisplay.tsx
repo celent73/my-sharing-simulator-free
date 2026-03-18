@@ -349,7 +349,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ planResult, viewMode = 
           }
         `}>
           <div className="flex justify-between items-center mb-8 shrink-0">
-            <h2 className={`font-black text-gray-900 dark:text-white flex items-center gap-4 ${isFullScreen ? 'text-4xl' : 'text-2xl'} tracking-tight`}>
+            <h2 className={`font-black text-gray-900 dark:text-white flex items-center gap-4 ${isFullScreen ? 'text-4xl' : 'text-2xl'} tracking-tight px-4`}>
               <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-sm">📊</div>
               {t('results.table_title')}
               {isFullScreen && (
@@ -387,7 +387,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ planResult, viewMode = 
             </div>
           </div>
 
-          <div className={`rounded-[2.5rem] border-2 border-slate-100 dark:border-white/5 bg-[#F2F2F7] dark:bg-slate-950 p-2 ${isFullScreen ? 'flex-1 overflow-auto' : 'overflow-x-auto'}`}>
+          <div className={`rounded-[2.5rem] border-2 border-slate-100 dark:border-white/5 bg-[#F2F2F7] dark:bg-slate-950 p-1 sm:p-2 ${isFullScreen ? 'flex-1 overflow-auto' : 'overflow-x-auto'}`}>
             <table ref={tableRef} className="min-w-full divide-y divide-slate-100 dark:divide-white/5 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] overflow-hidden">
               <thead>
                 <tr className="bg-white/40 dark:bg-slate-800/40">
@@ -642,7 +642,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ planResult, viewMode = 
 
         </div>
       ) : (
-        <div className="animate-in slide-in-from-bottom-10 duration-700 space-y-12 p-8 rounded-[3rem] bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="animate-in slide-in-from-bottom-10 duration-700 space-y-12 p-2 sm:p-8 rounded-[3rem] bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden">
           {/* Ambient Background for Wow Section */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[120px] pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none" />

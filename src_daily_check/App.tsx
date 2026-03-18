@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification, Lead, ViewMode } from './types';
 import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates, deleteLogsInRange } from './services/storageService';
-import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange } from './utils/dateUtils';
+import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange, getMonthIdentifier, getWeekIdentifier } from './utils/dateUtils';
 import { format } from 'date-fns';
 import Header from './components/Header';
 import ActivityInput from './components/ActivityInput';
@@ -9,7 +9,7 @@ import Dashboard from './components/Dashboard';
 import SettingsModal from './components/SettingsModal';
 import DeleteDataModal from './components/ConfirmationModal';
 import CareerStatus from './components/CareerStatus';
-import { ACTIVITY_LABELS } from './constants';
+import { ACTIVITY_LABELS, activityIcons } from './constants';
 import { calculateCareerStatus } from './utils/careerUtils';
 import { calculateCurrentStreak } from './utils/gamificationUtils';
 import { checkAndUnlockAchievements } from './utils/achievements';
@@ -40,6 +40,7 @@ import AppointmentsOverviewModal from './components/AppointmentsOverviewModal';
 import CareerDeadlineAlertModal from './components/CareerDeadlineAlertModal';
 import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
+import GoalReminderModal, { ReminderType } from './components/GoalReminderModal';
 import { ChevronRight, Calendar, User, ArrowUp, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, Target, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon
 } from 'lucide-react';
 
@@ -51,6 +52,13 @@ import BackgroundMesh from '../components/BackgroundMesh';
 import { FocusModeModal } from '../components/FocusModeModal';
 import { useDailyStats } from '../hooks/useDailyStats';
 import GoalRecoveryWidget from './components/GoalRecoveryWidget';
+import ConversionFunnel from './components/ConversionFunnel';
+import StatCard from './components/StatCard';
+const APP_VERSION = "v1.3.1";
+
+// Helper per normalizzazione dati (Deduplicazione robusta)
+const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
+const normalizePhone = (phone: string) => (phone || '').replace(/\D/g, '').replace(/^39/, '');
 
 const DEFAULT_SETTINGS: AppSettings = {
   userProfile: {
@@ -86,7 +94,8 @@ const NotificationItem: React.FC<{ notification: Notification; onClose: () => vo
       onClose();
     }, 5000);
     return () => clearTimeout(timer);
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const typeStyles = {
     success: { bg: 'bg-green-100 dark:bg-green-900', text: 'text-green-800 dark:text-green-100', icon: <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" /></svg> },
@@ -98,7 +107,7 @@ const NotificationItem: React.FC<{ notification: Notification; onClose: () => vo
       <div className="flex items-center gap-3">
         <div className={`inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl bg-white/20`}>{styles.icon}</div>
         <div className="text-sm font-bold">{notification.message}</div>
-        <button type="button" onClick={onClose} className="ms-auto -mx-1 -my-1 text-current opacity-70 hover:opacity-100 rounded-lg p-1.5 inline-flex items-center justify-center h-6 w-6" aria-label="Close"><svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" /></svg></button>
+        <button type="button" onClick={onClose} className="ms-auto -mx-2 -my-2 text-current opacity-70 hover:opacity-100 rounded-lg p-3 inline-flex items-center justify-center h-10 w-10 active:scale-90 transition-all cursor-pointer" aria-label="Close"><svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" /></svg></button>
       </div>
     </div>
   );
@@ -128,8 +137,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   // States for Focus Recovery Mode
   const [recoveryFocusGoal, setRecoveryFocusGoal] = useState<string | undefined>(undefined);
   const [recoveryFocusTarget, setRecoveryFocusTarget] = useState<number | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<'inserimento' | 'risultati'>('inserimento');
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [deadlineAlert, setDeadlineAlert] = useState<{ stageName: string; date: string } | null>(null);
+  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [reminderType, setReminderType] = useState<ReminderType>('DAILY_MISSING');
+  const [lastReminderShownDate, setLastReminderShownDate] = useState<string | null>(null);
+  const [lastWeeklyReminderShownWeek, setLastWeeklyReminderShownWeek] = useState<string | null>(null);
+  const [lastMorningReminderShownDate, setLastMorningReminderShownDate] = useState<string | null>(null);
 
   const addNotification = useCallback((message: string, type: NotificationVariant) => {
     setNotifications(prev => [...prev, { id: Date.now(), message, type }]);
@@ -205,13 +221,24 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
             
             // Se la data è oggi o passata
             if (deadlineStr <= todayStr) {
-              const alreadyAck = settings.acknowledgedDeadlines?.[stageName] === dateStr;
-              
-              if (!alreadyAck) {
-                // Mostra il popup
-                setDeadlineAlert({ stageName, date: dateStr });
-                break; // Mostra solo uno alla volta
-              }
+               // Verifica se il traguardo è già stato raggiunto logicamente (careerStatus)
+               // Oppure se è l'ultimo traguardo raggiunto o inferiore
+               const stageIndex = CAREER_STAGES.findIndex(s => s.name === stageName);
+               const currentQualIndex = CAREER_STAGES.findIndex(s => 
+                 s.name.toLowerCase() === careerStatus.currentLevel.name.toLowerCase() ||
+                 (careerStatus.currentLevel.qualificationValue && s.name.toLowerCase() === careerStatus.currentLevel.qualificationValue.toLowerCase())
+               );
+
+               // Mostra solo se il traguardo è SUPERIORE alla qualifica attuale
+               if (stageIndex > currentQualIndex) {
+                 const alreadyAck = settings.acknowledgedDeadlines?.[stageName] === dateStr;
+                 
+                 if (!alreadyAck) {
+                   // Mostra il popup
+                   setDeadlineAlert({ stageName, date: dateStr });
+                   break; // Mostra solo uno alla volta
+                 }
+               }
             }
           }
         } catch (e) { console.error(e); }
@@ -267,7 +294,20 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       setIsGlobalAppointmentsOpen(true);
     };
     window.addEventListener('open-appointments-overview', handleOpenAppointments);
-    return () => window.removeEventListener('open-appointments-overview', handleOpenAppointments);
+    
+    const handleTestReminder = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.type) {
+        setReminderType(customEvent.detail.type);
+        setIsReminderModalOpen(true);
+      }
+    };
+    window.addEventListener('test-reminder', handleTestReminder);
+
+    return () => {
+      window.removeEventListener('open-appointments-overview', handleOpenAppointments);
+      window.removeEventListener('test-reminder', handleTestReminder);
+    };
   }, []);
 
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -309,6 +349,74 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     };
   }, [settings.enableGoals, settings.goals]);
 
+  useEffect(() => {
+    const checkReminders = () => {
+      const now = new Date();
+      const todayStr = getTodayDateString();
+      const currentHour = now.getHours();
+      const currentDay = now.getDay(); // 0 is Sunday, 1 is Monday...
+
+      // MORNING MOTIVATION LOGIC
+      // Se tra le 7:00 e le 12:00 e non l'abbiamo già mostrato oggi
+      if (currentHour >= 7 && currentHour < 12 && lastMorningReminderShownDate !== todayStr) {
+        setReminderType('MORNING_MOTIVATION');
+        setIsReminderModalOpen(true);
+        setLastMorningReminderShownDate(todayStr);
+        return;
+      }
+
+      // DAILY REMINDER LOGIC
+      // Se dopo le 19:00 e non abbiamo inserito nulla oggi e non l'abbiamo già mostrato oggi
+      if (currentHour >= 19 && lastReminderShownDate !== todayStr) {
+        const todayLog = activityLogs.find(l => l.date === todayStr);
+        const hasTodayActivity = todayLog && Object.values(todayLog.counts).some(v => (v || 0) > 0);
+        
+        if (!hasTodayActivity) {
+          setReminderType('DAILY_MISSING');
+          setIsReminderModalOpen(true);
+          setLastReminderShownDate(todayStr);
+          return; // Show one at a time
+        }
+      }
+
+      // WEEKLY REMINDER LOGIC
+      // Se è Domenica dopo le 18:00 o Lunedì mattina (prima delle 12:00)
+      const currentWeekId = getWeekIdentifier(now);
+      const isTimeForWeeklyCheck = (currentDay === 0 && currentHour >= 18) || (currentDay === 1 && currentHour < 12);
+      
+      if (isTimeForWeeklyCheck && lastWeeklyReminderShownWeek !== currentWeekId) {
+        // Verifica se gli obiettivi settimanali sono stati raggiunti
+        if (settings.goals.weekly && Object.keys(settings.goals.weekly).length > 0) {
+          let allGoalsMet = true;
+          
+          Object.entries(settings.goals.weekly).forEach(([activity, target]) => {
+            if ((target || 0) > 0) {
+              const weeklySum = activityLogs
+                .filter(l => getWeekIdentifier(new Date(l.date)) === currentWeekId)
+                .reduce((sum, l) => sum + (l.counts[activity as ActivityType] || 0), 0);
+              
+              if (weeklySum < (target as number)) {
+                allGoalsMet = false;
+              }
+            }
+          });
+
+          if (!allGoalsMet) {
+            setReminderType('WEEKLY_GOAL_NOT_REACHED');
+            setIsReminderModalOpen(true);
+            setLastWeeklyReminderShownWeek(currentWeekId);
+          }
+        }
+      }
+    };
+
+    // Check periodically or on dependency change
+    const interval = setInterval(checkReminders, 1000 * 60 * 30); // Every 30 mins
+    checkReminders(); // Initial check
+
+    return () => clearInterval(interval);
+  }, [activityLogs, settings.goals.weekly, lastReminderShownDate, lastWeeklyReminderShownWeek, lastMorningReminderShownDate]);
+
   const handleFinalizeSession = () => {
     if (userId) {
       syncLocalDataToCloud(userId);
@@ -329,7 +437,22 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     setIsLeadCaptureModalOpen(true);
   };
 
-  const handleSaveLead = (leadData: { id?: string; name: string; phone: string; note: string; status?: 'pending' | 'won' | 'lost'; type?: ActivityType; appointmentDate?: string; locationType?: 'physical' | 'online'; address?: string; platform?: string; temperature?: 'freddo' | 'tiepido' | 'caldo' }) => {
+  const handleSaveLead = (leadData: { 
+    id?: string; 
+    name: string; 
+    phone: string; 
+    note: string; 
+    status?: 'pending' | 'won' | 'lost'; 
+    type?: ActivityType; 
+    appointmentDate?: string; 
+    locationType?: 'physical' | 'online'; 
+    address?: string; 
+    platform?: string; 
+    temperature?: 'freddo' | 'tiepido' | 'caldo';
+    contractType?: ContractType;
+    linkedAppointment?: boolean;
+    followUpDate?: string;
+  }) => {
     let updatedLog: ActivityLog | null = null;
     let updatedAllLogs: ActivityLog[] | null = null;
 
@@ -337,40 +460,119 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       const newLogs = [...prevLogs];
       const dateStr = format(selectedInputDate, 'yyyy-MM-dd');
 
-      if (leadData.id) {
+      // --- GLOBAL DEDUPLICATION LOGIC (Hyper-Robust) ---
+      let effectiveId = leadData.id;
+      
+      console.log("[handleSaveLead] START - leadData:", JSON.parse(JSON.stringify(leadData)));
+      console.log("[handleSaveLead] initial effectiveId:", effectiveId);
+
+
+      // -------------------------------------------------
+
+      if (effectiveId) {
         // EDIT MODE
         let found = false;
         for (let i = 0; i < newLogs.length; i++) {
           const log = newLogs[i];
           if (log.leads) {
-            const leadIndex = log.leads.findIndex(l => l.id === leadData.id);
+            const leadIndex = log.leads.findIndex(l => l.id === effectiveId);
             if (leadIndex !== -1) {
               const oldLead = log.leads[leadIndex];
               const updatedLeads = [...log.leads];
-              updatedLeads[leadIndex] = { ...oldLead, ...leadData as any };
-              newLogs[i] = { ...log, leads: updatedLeads };
-              updatedLog = newLogs[i];
-              found = true;
+              
+              const dataToSave = { ...leadData };
+              if (!dataToSave.id) delete dataToSave.id;
 
+              const oldType = oldLead.type || ActivityType.CONTACTS;
+              const newType = (leadData.status !== 'lost') ? (leadData.type || oldType) : oldType;
+              
+              console.log(`[handleSaveLead] EDIT MODE: Updating lead ${effectiveId} in log ${log.date}. oldType=${oldType}, newType=${newType}`);
+
+              // --- GESTIONE TRASFORMAZIONE TIPO (v1.2.99 - Sales Funnel Logic) ---
+              // MODIFICA CRUCIAL: Ogni trasformazione/chiusura deve contare nel cruscotto di OGGI, non nel giorno passato.
+              let todayLogIndex = newLogs.findIndex(l => l.date === dateStr);
+              let todayLog = todayLogIndex >= 0 ? { ...newLogs[todayLogIndex] } : { date: dateStr, counts: {}, leads: [] };
+              let todayLogModified = false;
+
+              // Se sta diventando 'won' proprio ora, non incrementare qui, verrà gestito dal blocco 'won' successivo
+              const isNewlyWon = leadData.status === 'won' && oldLead.status !== 'won';
+
+              if (newType !== oldType && leadData.status !== 'lost' && !isNewlyWon) {
+                todayLog.counts = {
+                  ...todayLog.counts,
+                  [newType]: (todayLog.counts[newType] || 0) + 1
+                };
+                todayLogModified = true;
+                addNotification(`Contatto trasformato in ${newType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'}!`, 'info');
+              } else if (oldType === ActivityType.CONTACTS && leadData.linkedAppointment && !oldLead.linkedAppointment && leadData.status !== 'lost') {
+                todayLog.counts = {
+                  ...todayLog.counts,
+                  [ActivityType.APPOINTMENTS]: (todayLog.counts[ActivityType.APPOINTMENTS] || 0) + 1
+                };
+                todayLogModified = true;
+              }
+              // -----------------------------------------------------
+
+              // Prepariamo l'oggetto aggiornato
+              // KEEP THE ORIGINAL DATE AND ID!
+              const updatedLead = { 
+                ...oldLead, 
+                ...dataToSave as any,
+                id: effectiveId, // force retain correct ID
+                date: oldLead.date, // force retain original creation date
+                // Assicuriamoci che se è 'lost', mantenga il tipo originale per non sballare i tracciamenti futuri
+                type: (leadData.status === 'lost') ? oldType : (leadData.type || oldType)
+              };
+
+              console.log("[handleSaveLead] EDIT MODE: updatedLead ->", updatedLead);
+
+              updatedLeads[leadIndex] = updatedLead;
+              newLogs[i] = { ...log, leads: updatedLeads };
+              
               // Se lo stato cambia in 'won' ora (era pending o lost prima)
               if (leadData.status === 'won' && oldLead.status !== 'won') {
                 const targetActivity = leadData.type || ActivityType.NEW_CONTRACTS;
-                // Incrementiamo il contatore dell'attività corrispondente
-                newLogs[i].counts[targetActivity] = (newLogs[i].counts[targetActivity] || 0) + 1;
-
-                // AGGIUNTA: Se è un contratto, aggiorniamo anche i guadagni (contractDetails)
-                if (targetActivity === ActivityType.NEW_CONTRACTS) {
-                  if (!newLogs[i].contractDetails) newLogs[i].contractDetails = {};
-                  // Default a GREEN per ora affinché i guadagni si aggiornino
-                  newLogs[i].contractDetails![ContractType.GREEN] = (newLogs[i].contractDetails![ContractType.GREEN] || 0) + 1;
-
-                  // Automazione: se è un contratto vinto da lead, e vogliamo che sia Green, aggiungiamo anche FU
-                  newLogs[i].counts[ActivityType.NEW_FAMILY_UTILITY] = (newLogs[i].counts[ActivityType.NEW_FAMILY_UTILITY] || 0) + 1;
-                }
-
+                const cType = leadData.contractType || (targetActivity === ActivityType.NEW_FAMILY_UTILITY ? ContractType.GREEN : ContractType.LIGHT);
+                
+                todayLog.counts = {
+                    ...todayLog.counts,
+                    [targetActivity]: (todayLog.counts[targetActivity] || 0) + 1,
+                    ...(cType === ContractType.GREEN && targetActivity !== ActivityType.NEW_FAMILY_UTILITY ? {
+                      [ActivityType.NEW_FAMILY_UTILITY]: (todayLog.counts[ActivityType.NEW_FAMILY_UTILITY] || 0) + 1
+                    } : {}),
+                    ...(targetActivity === ActivityType.NEW_FAMILY_UTILITY ? {
+                      [ActivityType.NEW_CONTRACTS]: (todayLog.counts[ActivityType.NEW_CONTRACTS] || 0) + 1
+                    } : {})
+                };
+                todayLog.contractDetails = {
+                    ...(todayLog.contractDetails || {}),
+                    [cType]: ((todayLog.contractDetails && todayLog.contractDetails[cType]) || 0) + 1
+                };
+                todayLogModified = true;
+                
                 addNotification(`Grande! ${leadData.name} è ora un ${targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'Family Utility' : 'Cliente'}! 🚀`, 'success');
               }
-              break;
+
+              // Salva i contatori aggiornati nel log di oggi
+              if (todayLogModified) {
+                if (todayLogIndex >= 0) {
+                  // PREVENT OVERWRITE: todayLog was cloned BEFORE we updated the leads array.
+                  // We must ensure todayLog preserves the newly updated leads array.
+                  todayLog.leads = newLogs[todayLogIndex].leads;
+                  newLogs[todayLogIndex] = todayLog;
+                } else {
+                  newLogs.push(todayLog);
+                }
+              }
+
+              // Il file aggiornato che vogliamo mandare su Supabase potrebbe essere sia quello di ieri che quello di oggi.
+              // `saveLogForDate` normalmente accetta un solo log, ma aggiornerà tutto il file su Supabase se necessario.
+              // Impostiamo `updatedLog` per forzare il sync. Meglio passare `todayLog` se è stato modificato (per mostrare i punti oggi).
+              updatedLog = todayLogModified ? todayLog : newLogs[i];
+              found = true;
+              
+              // Non facciamo break se vogliamo aggiornare possibili duplicati ID in log diversi, 
+              // ma tipicamente un ID è unico per data. Se però è una modifica globale, proseguiamo.
             }
           }
         }
@@ -392,26 +594,47 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
           newLogs.push(dateLog);
         }
 
+        const newLeadType = leadData.type || leadCaptureType;
+        
+        // Remove undefined id from leadData so it doesn't overwrite our generated ID
+        const dataToCreate = { ...leadData as any };
+        if (dataToCreate.id === undefined) delete dataToCreate.id;
+
         const newLead = {
-          id: Date.now().toString(),
-          type: leadCaptureType,
+          id: Date.now().toString(), // Ensure guaranteed ID
+          type: newLeadType,
           date: new Date().toISOString(),
           status: leadData.status || 'pending',
-          ...leadData as any
+          ...dataToCreate
         };
 
+        if (!newLead.id) {
+            newLead.id = Date.now().toString(); // Extra safety net
+        }
+
         dateLog.leads!.push(newLead);
+        console.log("[handleSaveLead] CREATE MODE: Appending new lead ->", newLead);
 
         // Se creato direttamente come 'won'
         if (newLead.status === 'won') {
           const targetActivity = leadData.type || ActivityType.NEW_CONTRACTS;
           dateLog.counts[targetActivity] = (dateLog.counts[targetActivity] || 0) + 1;
+          
+          if (!dateLog.contractDetails) dateLog.contractDetails = {};
+          const cType = leadData.contractType || (targetActivity === ActivityType.NEW_FAMILY_UTILITY ? ContractType.GREEN : ContractType.LIGHT);
+          dateLog.contractDetails[cType] = (dateLog.contractDetails[cType] || 0) + 1;
+          
+          if (cType === ContractType.GREEN && targetActivity !== ActivityType.NEW_FAMILY_UTILITY) {
+            dateLog.counts[ActivityType.NEW_FAMILY_UTILITY] = (dateLog.counts[ActivityType.NEW_FAMILY_UTILITY] || 0) + 1;
+          }
+          if (targetActivity === ActivityType.NEW_FAMILY_UTILITY) {
+            dateLog.counts[ActivityType.NEW_CONTRACTS] = (dateLog.counts[ActivityType.NEW_CONTRACTS] || 0) + 1;
+          }
         } else {
-          // Incremento normale del contatore principale
-          dateLog.counts[leadCaptureType] = (dateLog.counts[leadCaptureType] || 0) + 1;
+          // FIX: Use the actual lead type (CONTACTS or APPOINTMENTS) for incrementing counts
+          dateLog.counts[newLeadType] = (dateLog.counts[newLeadType] || 0) + 1;
 
-          // SE è un contatto con appuntamento collegato, incrementiamo anche APPOINTMENTS
-          if (leadCaptureType === ActivityType.CONTACTS && (leadData as any).linkedAppointment) {
+          if (newLeadType === ActivityType.CONTACTS && (leadData as any).linkedAppointment) {
             dateLog.counts[ActivityType.APPOINTMENTS] = (dateLog.counts[ActivityType.APPOINTMENTS] || 0) + 1;
           }
         }
@@ -437,6 +660,27 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
     setIsLeadCaptureModalOpen(false);
     setEditingLead(null);
+
+    // AUTOMAZIONE: Aggiornamento automatico del "Prossimo Appuntamento" nelle impostazioni
+    if ((leadData.type === ActivityType.APPOINTMENTS || (leadData as any).linkedAppointment) && leadData.appointmentDate && leadData.status !== 'won') {
+      const appDate = new Date(leadData.appointmentDate);
+      if (appDate > new Date()) {
+        setSettings(prev => ({
+          ...prev,
+          nextAppointment: {
+            title: leadData.name,
+            date: leadData.appointmentDate!
+          }
+        }));
+      }
+    } else if (leadData.status === 'won' && settings.nextAppointment?.title === leadData.name) {
+      // Se il prossimo appuntamento è stato vinto, puliamolo
+      setSettings(prev => {
+        const { nextAppointment, ...rest } = prev;
+        return rest as any;
+      });
+    }
+
     if (!leadData.status || leadData.status !== 'won') {
       addNotification(`${leadCaptureType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'} salvato! `, 'info');
     }
@@ -525,31 +769,56 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       loadCareerDates(userId)
     ]);
 
-    // DATA MIGRATION v1.2.75: Convert ISO dates to yyyy-MM-dd
+    // DATA MIGRATION v1.2.94: Recalibrate counters based on leads (removes "ghost" counts)
     const migratedLogs = loadedLogs.map(log => {
-      const newLog = { ...log };
-      if (newLog.date && newLog.date.includes('T')) {
-        newLog.date = newLog.date.split('T')[0];
-      }
-      if (newLog.leads) {
-        newLog.leads = newLog.leads.map(lead => {
-          const newLead = { ...lead };
-          if (newLead.date && newLead.date.includes('T')) {
-            newLead.date = newLead.date.split('T')[0];
-          }
-          if (newLead.followUpDate && newLead.followUpDate.includes('T')) {
-            newLead.followUpDate = newLead.followUpDate.split('T')[0];
-          }
-          if (newLead.appointmentDate && newLead.appointmentDate.includes('T')) {
-            newLead.appointmentDate = newLead.appointmentDate.split('T')[0];
-          }
-          return newLead;
-        });
-      }
-      return newLog;
+        const newLog = { ...log, counts: { ...log.counts } };
+        if (newLog.date && newLog.date.includes('T')) newLog.date = newLog.date.split('T')[0];
+        
+        if (newLog.leads) {
+          const originalLeads = [...newLog.leads];
+          newLog.leads = originalLeads.map(lead => {
+              const cleanLead = { ...lead };
+              if (cleanLead.date && cleanLead.date.includes('T')) cleanLead.date = cleanLead.date.split('T')[0];
+              if (cleanLead.followUpDate && cleanLead.followUpDate.includes('T')) cleanLead.followUpDate = cleanLead.followUpDate.split('T')[0];
+              if (cleanLead.appointmentDate && cleanLead.appointmentDate.includes('T')) cleanLead.appointmentDate = cleanLead.appointmentDate.split('T')[0];
+              return cleanLead;
+          });
+
+          // We NO LONGER forcefully recalibrate counts downwards. 
+          // The counts stored in the database are the source of truth for daily activity.
+          // This allows "manual taps" and "cross-day funnel progression" to be preserved in the counts.
+        }
+        return newLog;
     });
 
-    setActivityLogs(migratedLogs);
+          // RE-CALIBRATE COUNTERS (Source of Truth: Registered Leads)
+          const calibratedLogs = migratedLogs.map(log => {
+            const counts: { [key in ActivityType]?: number } = { ...log.counts };
+            
+            // Per questi tipi, usiamo SOLO i lead registrati come conteggio ufficiale
+            // (a meno che non ci siano stati "tap" manuali, ma i lead sono più affidabili qui)
+            let actualContactCount = 0;
+            let actualAppointmentCount = 0;
+
+            if (log.leads) {
+              log.leads.forEach(lead => {
+                const type = lead.type || ActivityType.CONTACTS;
+                if (lead.status !== 'lost') {
+                   if (type === ActivityType.CONTACTS) actualContactCount++;
+                   if (type === ActivityType.APPOINTMENTS) actualAppointmentCount++;
+                }
+              });
+            }
+
+            // Usiamo i lead come *minimo garantito* per i contatori,
+            // ma non scaliamo se il contatore è già superiore (indica lead trasformati in altro tipo)
+            counts[ActivityType.CONTACTS] = Math.max(counts[ActivityType.CONTACTS] || 0, actualContactCount);
+            counts[ActivityType.APPOINTMENTS] = Math.max(counts[ActivityType.APPOINTMENTS] || 0, actualAppointmentCount);
+
+            return { ...log, counts };
+          });
+
+          setActivityLogs(calibratedLogs);
     let mergedSettings = { ...DEFAULT_SETTINGS, ...(loadedSettings || {}) };
     if (loadedProfile) mergedSettings.userProfile = { ...mergedSettings.userProfile, ...loadedProfile };
     setSettings(mergedSettings);
@@ -574,20 +843,20 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   }, [settings, isInitializing, authLoading, userId]);
 
   useEffect(() => {
-    if (!isInitializing && !authLoading && activityLogs.length > 0) {
+    if (!isInitializing && !authLoading) {
       saveLogs(userId, activityLogs).catch(err => console.error(err));
       window.dispatchEvent(new Event('daily-check-updated'));
     }
   }, [activityLogs, isInitializing, authLoading, userId]);
 
   useEffect(() => {
-    if (!isInitializing && !authLoading && Object.keys(unlockedAchievements).length > 0) {
+    if (!isInitializing && !authLoading) {
       saveUnlockedAchievements(userId, unlockedAchievements).catch(err => console.error(err));
     }
   }, [unlockedAchievements, isInitializing, authLoading, userId]);
 
   useEffect(() => {
-    if (!isInitializing && !authLoading && Object.keys(careerDates).length > 0) {
+    if (!isInitializing && !authLoading) {
       saveCareerDates(userId, careerDates).catch(err => console.error(err));
     }
   }, [careerDates, isInitializing, authLoading, userId]);
@@ -701,6 +970,50 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     addNotification(`Qualifica aggiornata!`, 'success');
   };
 
+  const handleResetCareerPath = async () => {
+    console.log('[App] handleResetCareerPath triggered');
+    
+    try {
+      // 1. Reset Milestone Dates
+      setCareerDates({});
+      await saveCareerDates(userId, {});
+      
+      // 2. Reset Activity Logs (Critical for full career reset)
+      setActivityLogs([]);
+      await clearLogs(userId);
+      
+      // 3. Reset Manual Qualification
+      setSettings(prev => ({
+        ...prev,
+        userProfile: {
+          ...prev.userProfile,
+          currentQualification: null
+        }
+      }));
+      // Note: saveSettings is handled by an effect on settings change, but we could await it here if needed
+      
+      addNotification("Tutti i traguardi e la cronologia attività sono stati azzerati! 🔄", "success");
+      
+      // Forza il refresh della logica di carriera dopo che i salvataggi sono completati
+      window.dispatchEvent(new Event('careerDatesUpdated'));
+      window.dispatchEvent(new CustomEvent('daily-check-updated'));
+    } catch (err) {
+      console.error("Errore durante l'azzeramento:", err);
+      addNotification("Si è verificato un errore durante l'azzeramento dei dati.", "info");
+    }
+  };
+
+  const handleResetManualQualification = () => {
+    setSettings(prev => ({
+      ...prev,
+      userProfile: {
+        ...prev.userProfile,
+        currentQualification: null
+      }
+    }));
+    addNotification("Qualifica manuale rimossa. Il sistema ora calcola la tua posizione dai dati reali. 📈", "success");
+  };
+
   const COMMISSION_RATES = useMemo(() => ({
     [CommissionStatus.PRIVILEGIATO]: { [ContractType.GREEN]: 25, [ContractType.LIGHT]: 12.5 },
     [CommissionStatus.FAMILY_UTILITY]: { [ContractType.GREEN]: 50, [ContractType.LIGHT]: 25 }
@@ -738,7 +1051,55 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification, careerDates), [activityLogs, settings.userProfile.currentQualification, careerDates]);
   const streak = useMemo(() => calculateCurrentStreak(activityLogs), [activityLogs]);
 
+  const nextFollowUp = useMemo(() => {
+    const allLeads: Lead[] = [];
+    activityLogs.forEach(log => {
+      if (log.leads) allLeads.push(...log.leads);
+    });
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return allLeads
+      .filter(l => l.status === 'pending' && l.followUpDate)
+      .sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime())[0] || null;
+  }, [activityLogs]);
+
   const sessionStats = useMemo(() => calculateDailySessionStats(selectedDateLog, settings.goals), [selectedDateLog, settings.goals]);
+
+  // Swipe Handling Refs
+  const touchStartXDaily = useRef<number | null>(null);
+  const touchStartYDaily = useRef<number | null>(null);
+  const touchStartTimeDaily = useRef<number>(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (activeView !== 'today') return;
+    const touch = e.touches[0];
+    touchStartXDaily.current = touch.clientX;
+    touchStartYDaily.current = touch.clientY;
+    touchStartTimeDaily.current = Date.now();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (activeView !== 'today' || touchStartXDaily.current === null || touchStartYDaily.current === null) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchStartXDaily.current - touchEndX;
+    const diffY = touchStartYDaily.current - touchEndY;
+    const duration = Date.now() - touchStartTimeDaily.current;
+
+    if (Math.abs(diffX) > Math.abs(diffY) && duration < 350) {
+      if (diffX > 75 && activeTab === 'inserimento') {
+        setActiveTab('risultati');
+      } else if (diffX < -75 && activeTab === 'risultati') {
+        setActiveTab('inserimento');
+      }
+    }
+    
+    touchStartXDaily.current = null;
+    touchStartYDaily.current = null;
+  };
 
   if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
@@ -778,7 +1139,12 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         )}
 
         <div className={`flex-1 flex flex-col h-full min-w-0 transition-all duration-500 relative ${activeView !== 'focus' ? 'lg:pl-20' : ''}`}>
-          <main id="main-scroll-container" className="flex-1 relative overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar">
+          <main 
+            id="main-scroll-container" 
+            className="flex-1 relative overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div id="top-anchor" className="absolute top-0 left-0 w-full h-[1px] pointer-events-none" />
             
             {activeView !== 'focus' && (
@@ -792,19 +1158,35 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                 onOpenPaywall={() => setIsPaywallModalOpen(true)}
                 toggleTheme={globalToggleTheme}
                 currentTheme={globalTheme as any}
-                onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
-                onOpenGuide={() => setIsGuideModalOpen(true)}
-                streak={streak}
-                onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
                 onOpenCareerPath={() => setActiveView('career')}
                 onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
                 isLoggedIn={!!user}
                 onLogout={signOut}
                 onCloseApp={onClose}
+                onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
+                onOpenGuide={() => setIsGuideModalOpen(true)}
+                streak={streak}
+                onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
               />
             )}
             {(activeView === 'today' || activeView === 'stats') && (
-              <div className="flex flex-col gap-8 max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 pt-12">
+              <div className="flex flex-col gap-4 max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 pt-6">
+                {activeView === 'today' && !isFollowUpModalOpen && !isDailyRecapOpen && !isMonthlyReportModalOpen && !isGuideModalOpen && !isTeamModalOpen && !isTargetCalculatorModalOpen && !isVisionBoardModalOpen && !isCareerPathModalOpen && !isScriptLibraryOpen && !isSocialShareModalOpen && !isContractSelectorModalOpen && !isLeadCaptureModalOpen && !isCalendarModalOpen && !isVoiceModeOpen && !isResetGoalsModalOpen && (
+                  <div className="flex justify-center mb-2 p-1.5 rounded-2xl mx-auto w-full max-w-md border-2 border-slate-200 dark:border-white/10 shadow-2xl relative z-30 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl">
+                    <button
+                      onClick={() => setActiveTab('inserimento')}
+                      className={`flex-1 py-3 text-sm sm:text-base font-black rounded-xl transition-all duration-300 ${activeTab === 'inserimento' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
+                    >
+                      Inserimento
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('risultati')}
+                      className={`flex-1 py-3 text-sm sm:text-base font-black rounded-xl transition-all duration-300 ${activeTab === 'risultati' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
+                    >
+                      Risultati
+                    </button>
+                  </div>
+                )}
                 <div className="relative z-10 flex flex-col items-start mb-2">
                   <h2 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">
                     {activeView === 'today' ? 'DASHBOARD' : 'STATISTICHE'}
@@ -831,13 +1213,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                     {careerStatus.currentLevel.name}
                   </div>
                 </div>
-
-                {activeView === 'today' && (
-                  <FollowUpBanner activityLogs={activityLogs} onEditLead={handleOpenLeadCapture} />
-                )}
               </div>
             )}
-            {/* Animated Background Mesh removed from here, now global */}
 
             <div className="relative z-10 w-full min-h-full">
               <AnimatePresence mode="wait">
@@ -845,147 +1222,280 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                   <motion.div key="today" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
                     className="flex flex-col gap-6 max-w-screen-2xl mx-auto py-6 lg:py-12 px-4 sm:px-8 lg:px-12 pb-32 md:pb-12"
                   >
-                    <GoalRecoveryWidget 
-                      commercialMonth={commercialMonth}
-                      recoveryStats={recoveryStats}
-                      loading={statsLoading}
-                      onActivateFocus={(goal, target) => {
-                        setRecoveryFocusGoal(goal);
-                        setRecoveryFocusTarget(target);
-                        setActiveView('focus');
-                      }}
-                    />
-                    <Dashboard
-                      activityLogs={activityLogs}
-                      goals={effectiveGoals}
-                      userProfile={settings.userProfile}
-                      onOpenAchievements={() => setAchievementsModalOpen(true)}
-                      onEditLead={handleOpenLeadCapture}
-                      commercialMonthStartDay={settings.commercialMonthStartDay || 16}
-                      customLabels={effectiveCustomLabels}
-                      onUpdateQualification={(q) => {
-                        setSettings(prev => ({ ...prev, userProfile: { ...prev.userProfile, currentQualification: q } }));
-                        addNotification(`Qualifica aggiornata a ${q}`, 'info');
-                      }}
-                      viewMode={viewMode}
-                      setViewMode={setViewMode}
-                      onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
-                      onUpdateActivity={handleUpdateActivity}
-                      selectedDate={selectedInputDate}
-                      onDateChange={setSelectedInputDate}
-                      careerDates={careerDates}
-                    />
-                    {settings.visionBoard?.enabled && settings.visionBoard?.targetAmount > 0 && (
-                      <DreamTrackerWidget
-                        visionBoardData={settings.visionBoard}
-                        autoPersonalEarnings={monthlyEarnings}
-                        onUpdateEarnings={handleUpdateDreamEarnings}
-                        onOpenVisionBoard={() => setIsVisionBoardModalOpen(true)}
-                      />
-                    )}
-                    <ActivityInput
-                      activityLogs={activityLogs}
-                      todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}
-                      onUpdateActivity={handleUpdateActivity}
-                      onOpenObjectionHandler={() => setIsScriptLibraryOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}
-                      selectedDate={selectedInputDate} onDateChange={setSelectedInputDate} commercialMonthStartDay={settings.commercialMonthStartDay}
-                      customLabels={effectiveCustomLabels} dailyEarnings={dailyEarnings} monthlyEarnings={monthlyEarnings}
-                      onOpenContractModal={() => setIsContractSelectorModalOpen(true)} onOpenAppointmentModal={() => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
-                      onOpenSettings={handleOpenSettings} onUpdateTarget={handleUpdateTarget} onOpenVisionBoardSettings={() => setIsVisionBoardModalOpen(true)}
-                      onOpenLeadCapture={handleOpenLeadCapture} onOpenCalendar={() => setIsCalendarModalOpen(true)}
-                      onEditLead={(lead) => handleOpenLeadCapture(lead.type, lead)}
-                      onOpenVoiceMode={() => setIsVoiceModeOpen(true)} onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
-                      onOpenTeamChallenge={() => setIsTeamModalOpen(true)} isHubMode={true}
-                      careerStatus={careerStatus}
-                      viewMode={viewMode} setViewMode={setViewMode}
-                      goals={effectiveGoals}
-                    />
-                  </motion.div>
-                )}
+                    <AnimatePresence mode="wait">
+                        {activeTab === 'inserimento' ? (
+                          <motion.div
+                            key="inserimento"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="w-full"
+                          >
+                            <ActivityInput
+                              activeTab="inserimento"
+                              activityLogs={activityLogs}
+                              todayCounts={selectedDateLog?.counts} currentLog={selectedDateLog} monthTotals={commercialMonthTotals}
+                              onUpdateActivity={handleUpdateActivity}
+                              onOpenObjectionHandler={() => setIsScriptLibraryOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}
+                              selectedDate={selectedInputDate} onDateChange={setSelectedInputDate} commercialMonthStartDay={settings.commercialMonthStartDay}
+                              customLabels={effectiveCustomLabels} dailyEarnings={dailyEarnings} monthlyEarnings={monthlyEarnings}
+                              onOpenContractModal={() => setIsContractSelectorModalOpen(true)} onOpenAppointmentModal={() => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
+                              onOpenSettings={handleOpenSettings} onUpdateTarget={handleUpdateTarget} onOpenVisionBoardSettings={() => setIsVisionBoardModalOpen(true)}
+                              onOpenLeadCapture={handleOpenLeadCapture} onOpenCalendar={() => setIsCalendarModalOpen(true)}
+                              onEditLead={(lead) => handleOpenLeadCapture(lead.type, lead)}
+                              onOpenVoiceMode={() => setIsVoiceModeOpen(true)} onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
+                              onOpenTeamChallenge={() => setIsTeamModalOpen(true)} isHubMode={true}
+                              careerStatus={careerStatus}
+                              viewMode={viewMode} setViewMode={setViewMode}
+                              goals={effectiveGoals}
+                            />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="risultati"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex flex-col gap-6 w-full"
+                          >
+                            <FollowUpBanner 
+                              activityLogs={activityLogs} 
+                              onEditLead={handleOpenLeadCapture} 
+                              onOpenChange={setIsFollowUpModalOpen}
+                              nextFollowUp={nextFollowUp}
+                            />
 
-                {activeView === 'stats' && (
-                  <motion.div key="stats" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
-                    className="max-w-7xl mx-auto py-12 px-4 lg:px-8"
-                  >
-                    <div className="bg-white/5 backdrop-blur-2xl rounded-[3rem] p-8 lg:p-16 border border-white/10 shadow-3xl">
-                      <Dashboard activityLogs={activityLogs} goals={settings.goals} userProfile={settings.userProfile}
-                        onOpenAchievements={() => setAchievementsModalOpen(true)} commercialMonthStartDay={settings.commercialMonthStartDay}
-                        customLabels={effectiveCustomLabels} onUpdateQualification={handleUpdateQualification}
-                        onEditLead={handleOpenLeadCapture}
-                        onUpdateActivity={handleUpdateActivity}
-                        onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
-                        initialTab="stats"
-                        viewMode={viewMode} setViewMode={setViewMode}
-                        selectedDate={selectedInputDate} onDateChange={setSelectedInputDate}
-                      />
-                    </div>
-                  </motion.div>
-                )}
+                            <GoalRecoveryWidget 
+                              commercialMonth={commercialMonth}
+                              recoveryStats={recoveryStats}
+                              loading={statsLoading}
+                              onActivateFocus={(goal, target) => {
+                                setRecoveryFocusGoal(goal);
+                                setRecoveryFocusTarget(target);
+                                setActiveView('focus');
+                              }}
+                            />
+
+                            <Dashboard
+                              activityLogs={activityLogs}
+                              goals={effectiveGoals}
+                              userProfile={settings.userProfile}
+                              onOpenAchievements={() => setAchievementsModalOpen(true)}
+                              onEditLead={handleOpenLeadCapture}
+                              commercialMonthStartDay={settings.commercialMonthStartDay || 16}
+                              customLabels={effectiveCustomLabels}
+                              onUpdateQualification={handleUpdateQualification}
+                              onUpdateActivity={handleUpdateActivity}
+                              onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
+                              initialTab="overview"
+                              viewMode={viewMode} setViewMode={setViewMode}
+                              selectedDate={selectedInputDate}
+                              onDateChange={setSelectedInputDate}
+                              careerDates={careerDates}
+                              visionBoardData={settings.visionBoard}
+                              dailyEarnings={dailyEarnings}
+                              onOpenVisionBoardSettings={() => setIsVisionBoardModalOpen(true)}
+                              onUpdateVisionBoardEarnings={(amount) => {
+                                setSettings(prev => ({
+                                  ...prev,
+                                  visionBoard: {
+                                    ...prev.visionBoard,
+                                    networkEarnings: amount,
+                                    earningsMonth: getMonthIdentifier(new Date())
+                                  }
+                                }));
+                              }}
+                              onOpenObjectionHandler={() => setIsScriptLibraryOpen(true)}
+                              onOpenCalendar={() => setIsCalendarModalOpen(true)}
+                              onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
+                              nextAppointment={settings.nextAppointment}
+                              nextFollowUp={nextFollowUp}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+
+                {activeView === 'stats' && (() => {
+                  const now = new Date();
+                  const identifier = getMonthIdentifier(now);
+                  const logsToSum = activityLogs.filter(log => getMonthIdentifier(new Date(log.date)) === identifier);
+                  
+                  const totals = Object.values(ActivityType).reduce((acc, activity: ActivityType) => {
+                    acc[activity] = logsToSum.reduce((sum, log) => sum + (log.counts[activity] || 0), 0);
+                    return acc;
+                  }, {} as Record<ActivityType, number>);
+
+                  const { CONTACTS = 0, APPOINTMENTS = 0, NEW_CONTRACTS = 0 } = totals;
+                  const conversionRates = {
+                    contactToAppointmentRate: CONTACTS > 0 ? (APPOINTMENTS / CONTACTS) * 100 : 0,
+                    appointmentToContractRate: APPOINTMENTS > 0 ? (NEW_CONTRACTS / APPOINTMENTS) * 100 : 0,
+                    overallConversionRate: CONTACTS > 0 ? (NEW_CONTRACTS / CONTACTS) * 100 : 0,
+                    totalContacts: CONTACTS,
+                    totalAppointments: APPOINTMENTS,
+                    totalContracts: NEW_CONTRACTS,
+                  };
+
+                  return (
+                    <motion.div key="stats" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
+                      className="max-w-7xl mx-auto py-12 px-4 lg:px-8 pb-32"
+                    >
+                      <div className="flex flex-col gap-12">
+                        {/* Imbuto di Conversione */}
+                        <div className="bg-white/5 backdrop-blur-2xl rounded-[3rem] p-8 lg:p-12 border border-white/10 shadow-3xl">
+                          <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
+                            <span className="w-1.5 h-8 bg-blue-500 rounded-full"></span>
+                            IMBUTO DI CONVERSIONE (QUESTO MESE)
+                          </h3>
+                          <div className="overflow-hidden mb-12">
+                            <ConversionFunnel data={totals} customLabels={effectiveCustomLabels} />
+                          </div>
+
+                          <h3 className="text-xl font-bold text-slate-700 dark:text-slate-100 mb-8 flex items-center gap-2">
+                            <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+                            Analisi Dettagliata
+                          </h3>
+                          {conversionRates.totalContacts > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <StatCard icon={<Activity className="w-8 h-8" />} title="Contatto → Appuntamento" value={`${conversionRates.contactToAppointmentRate.toFixed(1)}%`} description={`${conversionRates.totalAppointments} appuntamenti su ${conversionRates.totalContacts}`} colorClass="text-blue-500" />
+                              <StatCard icon={<Users className="w-8 h-8" />} title="Appuntamento → Contratto" value={`${conversionRates.appointmentToContractRate.toFixed(1)}%`} description={`${conversionRates.totalContracts} su ${conversionRates.totalAppointments}`} colorClass="text-emerald-500" />
+                              <StatCard icon={<TargetIcon className="w-8 h-8" />} title="Chiusura Globale" value={`${conversionRates.overallConversionRate.toFixed(1)}%`} description="Totale contratti su contatti" colorClass="text-violet-500" />
+                            </div>
+                          ) : (
+                            <div className="p-10 text-center text-slate-400 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">Nessun dato sufficiente per le statistiche.</div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })()}
 
                 {activeView === 'focus' && (
-                  <motion.div key="focus" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
-                    className="h-full w-full flex flex-col items-center justify-center bg-black fixed inset-0 z-[99999]"
-                  >
-                    <div className="w-full h-full max-w-lg mx-auto overflow-hidden shadow-2xl relative">
-                      <FocusModeModal
-                        isOpen={true}
-                        onClose={() => {
-                          setActiveView('today');
-                          setRecoveryFocusGoal(undefined);
-                          setRecoveryFocusTarget(undefined);
-                        }}
-                        onAddContact={() => handleOpenLeadCapture(ActivityType.CONTACTS)}
-                        initialGoalText={recoveryFocusGoal}
-                        initialTargetContacts={recoveryFocusTarget}
-                      />
-                    </div>
+                  <motion.div key="focus" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1">
+                    <FocusModeModal 
+                      isOpen={true} 
+                      onClose={() => setActiveView('today')}
+                      initialGoalText={recoveryFocusGoal}
+                      initialTargetContacts={recoveryFocusTarget}
+                    />
                   </motion.div>
                 )}
 
                 {activeView === 'career' && (
-                  <motion.div key="career" initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -100 }}
-                    className="h-full flex flex-col items-center justify-center p-4 lg:p-12"
+                  <motion.div key="career" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="w-full h-full min-h-[80vh] pb-32"
                   >
-                    <div className="w-full max-w-4xl h-[85vh]">
-                      <CareerPathModal
-                        isOpen={true}
-                        onClose={() => setActiveView('today')}
-                        isEmbedded={true}
+                    <div className="h-full">
+                      <CareerPathModal 
+                        isOpen={true} 
+                        isEmbedded={true} 
+                        onClose={() => setActiveView('today')} 
                         userId={userId}
                         careerDates={careerDates}
                         onUpdateDates={setCareerDates}
+                        onResetAll={handleResetCareerPath}
+                        manualQualification={settings.userProfile.currentQualification}
+                        onResetQualification={handleResetManualQualification}
+                        currentLevelName={careerStatus.currentLevel.name}
                       />
+                      
+                      {/* Footer aggiuntivo per coerenza con le richieste precedenti */}
+                      <div className="mt-8 flex flex-col items-center gap-6 py-12 border-t border-white/5 bg-slate-900/50 backdrop-blur-xl">
+                        <img 
+                          src="/union_logo_footer.jpg" 
+                          alt="Union Energia" 
+                          className="h-8 w-auto opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all" 
+                        />
+                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.3.1</p>
+                        <button onClick={signOut} className="px-10 py-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl font-black uppercase tracking-widest transition-all">Sconnetti</button>
+                      </div>
                     </div>
                   </motion.div>
                 )}
 
                 {activeView === 'settings' && (
-                  <motion.div key="settings" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
-                    className="max-w-4xl mx-auto py-12 px-6 lg:px-12"
+                  <motion.div key="settings" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}
+                    className="max-w-4xl mx-auto py-12 px-4 lg:px-8 pb-32"
                   >
-                    <div className="bg-white/70 dark:bg-white/5 backdrop-blur-3xl rounded-[3.5rem] p-10 lg:p-20 border border-slate-300 dark:border-white/20 shadow-3xl">
-                      <h2 className="text-5xl font-black text-slate-900 dark:text-white mb-12 tracking-tight">Impostazioni</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <button onClick={() => handleOpenSettings('profile')} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
-                          <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><UserCircleIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Profilo</h3><p className="text-slate-500 dark:text-slate-400 font-medium">Personalizza il tuo nome e ruolo.</p></div>
-                        </button>
-                        <button onClick={() => handleOpenSettings('goals')} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
-                          <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><TargetIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Obiettivi</h3><p className="text-slate-500 dark:text-slate-400 font-medium">Imposta i tuoi target giornalieri.</p></div>
-                        </button>
-                        <button onClick={() => handleOpenSettings('labels')} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
-                          <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><TagIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Etichette</h3><p className="text-slate-500 dark:text-slate-400 font-medium">Personalizza i nomi delle attività.</p></div>
-                        </button>
-                        <button onClick={() => setIsVisionBoardModalOpen(true)} className="group p-8 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-sm transition-all flex flex-col gap-4 text-left">
-                          <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><EyeIcon className="w-10 h-10" /></div>
-                          <div><h3 className="text-2xl font-bold text-slate-800 dark:text-white">Vision Board</h3><p className="text-slate-500 dark:text-slate-400 font-medium">I tuoi sogni e premi personali.</p></div>
+                    <div className="bg-white dark:bg-slate-900/40 backdrop-blur-3xl border border-slate-200 dark:border-white/10 shadow-3xl rounded-[3rem] p-8 lg:p-12">
+                      <div className="flex justify-between items-center mb-10">
+                        <div>
+                          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Profilo e Impostazioni</h2>
+                          <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">Gestisci i tuoi obiettivi e il tuo profilo</p>
+                        </div>
+                        <button onClick={() => setActiveView('today')} className="p-3 bg-slate-100 dark:bg-white/10 rounded-2xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                          <X className="w-6 h-6" />
                         </button>
                       </div>
-                      <div className="mt-16 pt-12 border-t border-white/5 flex justify-between items-center text-slate-500 font-bold">
-                        <p>My Sharing Simulator v1.2.84</p>
-                        <button onClick={signOut} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all">Sconnetti</button>
+                      
+                      <div className="space-y-6">
+                        <button onClick={() => handleOpenSettings('profile')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                              <UserCircleIcon size={28} />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-black text-slate-900 dark:text-white text-xl">Dati Personali</p>
+                              <p className="text-sm font-medium text-slate-500">Nome e Qualifica attuale</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+
+                        <button onClick={() => handleOpenSettings('goals')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                              <TargetIcon size={28} />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-black text-slate-900 dark:text-white text-xl">Obiettivi Mensili</p>
+                              <p className="text-sm font-medium text-slate-500">Imposta i tuoi target di produzione</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+
+                        <button onClick={() => handleOpenSettings('labels')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                              <TagIcon size={28} />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-black text-slate-900 dark:text-white text-xl">Etichette Attività</p>
+                              <p className="text-sm font-medium text-slate-500">Personalizza i nomi delle attività</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+
+                        <button onClick={() => setDeleteDataModalOpen(true)} className="w-full flex items-center justify-between p-6 bg-red-500/5 dark:bg-red-500/5 rounded-3xl hover:bg-red-500/10 transition-all border border-red-500/10 group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform">
+                              <Trash2 size={28} />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-black text-red-600 dark:text-red-400 text-xl">Gestione Dati</p>
+                              <p className="text-sm font-medium text-red-500/70">Cancella o resetta lo storico</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="text-red-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+
+                      <div className="mt-12 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center gap-6">
+                        <img 
+                          src="/union_logo_footer.jpg" 
+                          alt="Union Energia" 
+                          className="h-10 w-auto opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all" 
+                        />
+                        <div className="text-center">
+                          <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">My Sharing Simulator</p>
+                          <p className="text-slate-500 text-xs mt-1">Versione 1.3.1 • Protetto da crittografia SSL</p>
+                        </div>
+                        <button onClick={signOut} className="w-full max-w-xs py-4 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest transition-all hover:bg-slate-900">Sconnetti</button>
                       </div>
                     </div>
                   </motion.div>
@@ -1017,7 +1527,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       />
       <DeleteDataModal
         isOpen={isDeleteDataModalOpen}
-        onClose={() => setDeleteDataModalOpen(false)}
+        onClose={() => setDeleteDataModalOpen(true)}
         onConfirmDeleteMonth={handleDeleteCurrentMonth}
         onConfirmDeleteAll={handleClearAllData}
       />
@@ -1058,6 +1568,18 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         onClose={() => setIsDailyRecapOpen(false)}
         stats={sessionStats}
         onFinalize={handleFinalizeSession}
+      />
+      <GoalReminderModal
+        isOpen={isReminderModalOpen}
+        type={reminderType}
+        onClose={() => setIsReminderModalOpen(false)}
+        onGoToInput={() => {
+          setIsReminderModalOpen(false);
+          setActiveTab('inserimento');
+        }}
+        dailyTarget={settings.goals.daily[ActivityType.CONTACTS] || 0}
+        weeklyTarget={settings.goals.weekly[ActivityType.CONTACTS] || 0}
+        isSaturday={new Date().getDay() === 6}
       />
     </>
   );

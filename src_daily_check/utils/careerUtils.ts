@@ -56,6 +56,8 @@ export const calculateCareerStatus = (
     return sum + contracts;
   }, 0);
 
+  console.log('[careerUtils] totalClients:', totalClients, 'totalContracts:', totalContracts, 'logs counts:', logs.length);
+
   // 1. Determine Level based on Metrics (Standard Logic)
   let metricLevelIndex = 0;
   for (let i = 0; i < CAREER_LEVELS.length; i++) {
@@ -97,9 +99,14 @@ export const calculateCareerStatus = (
     });
   }
 
-  // 5. THE WINNER: The highest index achieved
-  const finalIndex = Math.max(metricLevelIndex, specialLevelIndex, manualLevelIndex, milestoneLevelIndex);
-  let currentLevel = CAREER_LEVELS[finalIndex];
+  // 5. THE WINNER: The manual override has absolute precedence if set, otherwise we use the highest index achieved
+  let finalIndex = Math.max(metricLevelIndex, specialLevelIndex, milestoneLevelIndex);
+  
+  if (manualLevelIndex !== -1) {
+    finalIndex = manualLevelIndex;
+  }
+
+  const currentLevel = CAREER_LEVELS[finalIndex];
   
   // Logic for Special Status Flag (mostly for notifications or specific UI tags)
   const specialStatus = totalContracts >= 10 ? 'family_pro' : undefined;
@@ -120,6 +127,8 @@ export const calculateCareerStatus = (
     progressPercentage = (clientsInCurrentLevel / clientsNeededForNextLevel) * 100;
     clientsForNextLevel = nextLevel.minClients;
   }
+
+  console.log('[careerUtils] Final index:', finalIndex, 'Level:', CAREER_LEVELS[finalIndex].name, { metricLevelIndex, specialLevelIndex, manualLevelIndex, milestoneLevelIndex });
 
   return {
     currentLevel,

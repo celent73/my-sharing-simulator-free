@@ -2,13 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { ActivityLog, Lead, ActivityType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTodayDateString } from '../utils/dateUtils';
-import { format, subDays } from 'date-fns';
+import { format, subDays, isToday, isPast } from 'date-fns';
+import { Clock, ChevronRight, AlertCircle, Calendar } from 'lucide-react';
 
 interface FollowUpBannerProps {
     activityLogs: ActivityLog[];
     onEditLead: (type: ActivityType, lead: Lead) => void;
+    onOpenChange?: (open: boolean) => void;
+    nextFollowUp?: Lead | null;
 }
-const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLead }) => {
+const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLead, onOpenChange, nextFollowUp }) => {
     const { followUps, staleLeads, recentLeads, futureLeads, unregisteredContacts, debugInfo } = useMemo(() => {
         const todayStr = getTodayDateString();
         const threeDaysAgoStr = format(subDays(new Date(), 3), 'yyyy-MM-dd');
@@ -17,6 +20,7 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
         const stale: Lead[] = [];
         const recent: Lead[] = [];
         const future: Lead[] = [];
+        const processedIds = new Set<string>();
         let totalContactsCount = 0;
         let registeredLeadsCount = 0;
         const countsByStatus: Record<string, number> = { pending: 0, won: 0, lost: 0, missing: 0 };
@@ -40,10 +44,17 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
                     typesCount[type] = (typesCount[type] || 0) + 1;
 
                     if (status === 'pending') {
-                        // Unifichiamo la data di riferimento: priorità followUpDate, poi date (ISO), poi data del log
+                        // RENDER-LEVEL DEDUPLICATION
+                        if (lead.id && processedIds.has(lead.id)) return;
+                        if (lead.id) processedIds.add(lead.id);
+
+                        // Unifichiamo la data di riferimento...
                         const leadDateOnly = lead.date ? lead.date.split('T')[0] : logDateStr;
                         const leadRefDate = lead.followUpDate || leadDateOnly;
-                        datesFound.push(`${lead.name}:${leadRefDate}`);
+                        
+                        // FIX: Protezione contro lead.id mancante (causa pagina bianca)
+                        const safeId = lead.id || 'no-id';
+                        datesFound.push(`${lead.name}:${leadRefDate}(${safeId.slice(-4)})`);
 
                         if (lead.followUpDate) {
                             if (lead.followUpDate <= todayStr) {
@@ -52,15 +63,18 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
                                 future.push(lead);
                             }
                         } else {
-                            if (leadRefDate <= threeDaysAgoStr) {
-                                stale.push(lead);
+                            if (leadRefDate <= todayStr) {
+                                scheduled.push(lead);
                             } else {
-                                recent.push(lead);
+                                future.push(lead);
                             }
                         }
                     }
 
-                    if (type === ActivityType.CONTACTS && (lead.date ? lead.date.split('T')[0] : logDateStr) >= threeDaysAgoStr) {
+                    // Qualsiasi lead registrato in questo periodo conta come "registrazione" riuscita,
+                    // anche se è stato trasformato in Appuntamento o Cliente.
+                    const leadDateOnly = lead.date ? lead.date.split('T')[0] : logDateStr;
+                    if (leadDateOnly >= threeDaysAgoStr) {
                         registeredLeadsCount++;
                     }
                 });
@@ -80,16 +94,18 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
 
     const getStatusColor = (date: string, isStale: boolean = false) => {
         if (isStale) return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
-        const today = new Date().toISOString().split('T')[0];
+        const today = getTodayDateString();
         if (date < today) return 'text-red-500 bg-red-500/10 border-red-500/20';
-        return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+        if (date === today) return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+        return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
     };
 
     const getStatusLabel = (date: string, isStale: boolean = false) => {
         if (isStale) return 'SOSPESO';
-        const today = new Date().toISOString().split('T')[0];
+        const today = getTodayDateString();
         if (date < today) return 'SCADUTO';
-        return 'OGGI';
+        if (date === today) return 'OGGI';
+        return 'FISSATO';
     };
 
     const renderLeadCard = (lead: Lead, isStale: boolean = false) => (
@@ -159,13 +175,23 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
 
     const [isOpen, setIsOpen] = useState(false);
 
+    const handleOpen = () => {
+        setIsOpen(true);
+        onOpenChange?.(true);
+    };
+
+    const handleClose = () => {
+        setIsOpen(false);
+        onOpenChange?.(false);
+    };
+
     // Rimosso il return null per garantire feedback visivo che il componente esiste
     const hasItems = followUps.length > 0 || staleLeads.length > 0 || recentLeads.length > 0 || futureLeads.length > 0 || unregisteredContacts > 0;
 
     return (
         <div className="mb-8 w-full max-w-5xl mx-auto">
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={handleOpen}
                 className="w-full flex items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:scale-[1.01] hover:shadow-lg transition-all shadow-sm group"
             >
                 <div className="flex items-center gap-4">
@@ -218,13 +244,13 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
             {/* Modal Overlay */}
             <AnimatePresence>
                 {isOpen && (
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-0 md:p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setIsOpen(false)}
-                            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                            onClick={handleClose}
+                            className="absolute inset-0 bg-slate-950/90 backdrop-blur-md"
                         />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -244,7 +270,7 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={handleClose}
                                     className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -254,7 +280,32 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
                             </div>
 
                             {/* Modal Content */}
-                            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-10">
+                            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-8">
+                                {nextFollowUp && (new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999)) && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="p-5 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-3xl flex items-center justify-between gap-4"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/20">
+                                                <AlertCircle size={24} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-black text-orange-900 dark:text-orange-200 uppercase tracking-tighter">
+                                                    {isPast(new Date(nextFollowUp.followUpDate!)) && !isToday(new Date(nextFollowUp.followUpDate!)) ? 'Follow-up Scaduto ⚠️' : 'Azione Richiesta Oggi 🚀'}
+                                                </h4>
+                                                <p className="text-xs font-bold text-orange-700 dark:text-orange-400">Non dimenticare di contattare {nextFollowUp.name}</p>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => onEditLead(nextFollowUp.type || ActivityType.CONTACTS, nextFollowUp)}
+                                            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-black uppercase rounded-xl shadow-lg transition-all active:scale-95"
+                                        >
+                                            GESTISCI ORA
+                                        </button>
+                                    </motion.div>
+                                )}
                                 {followUps.length > 0 && (
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-2">
@@ -303,7 +354,7 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
                                             Inserisci i dati per poterli gestire nei futuri follow-up.
                                         </p>
                                         <button
-                                            onClick={() => { setIsOpen(false); onEditLead(ActivityType.CONTACTS, {} as any); }}
+                                            onClick={() => { handleClose(); onEditLead(ActivityType.CONTACTS, {} as any); }}
                                             className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl shadow-lg transition-all active:scale-95"
                                         >
                                             REGISTRA ORA
@@ -324,7 +375,7 @@ const FollowUpBanner: React.FC<FollowUpBannerProps> = ({ activityLogs, onEditLea
                                 )}
 
                                 <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 text-[9px] font-mono opacity-30">
-                                    DEBUG v1.2.75: Logs: {debugInfo.logsCount}, Contacts: {debugInfo.totalContactsCount}, Reg: {debugInfo.registeredLeadsCount}, P:{debugInfo.countsByStatus.pending} W:{debugInfo.countsByStatus.won} L:{debugInfo.countsByStatus.lost}, Types: {Object.entries(debugInfo.typesCount).map(([k,v]) => `${k}:${v}`).join(' ')}, Leads: {debugInfo.datesFound.join(' | ')}, Now: {debugInfo.todayStr}
+                                    DEBUG v1.3.1: Logs: {debugInfo.logsCount}, Contacts: {debugInfo.totalContactsCount}, Reg: {debugInfo.registeredLeadsCount}, P:{debugInfo.countsByStatus.pending} W:{debugInfo.countsByStatus.won} L:{debugInfo.countsByStatus.lost}, Types: {Object.entries(debugInfo.typesCount).map(([k,v]) => `${k}:${v}`).join(' ')}, Leads: {debugInfo.datesFound.join(' | ')}, Now: {debugInfo.todayStr}
                                 </div>
                             </div>
                         </motion.div>

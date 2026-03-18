@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { ActivityType, UserProfile, GoalPeriod } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
 import html2canvas from 'html2canvas';
+import { X } from 'lucide-react';
 
 interface GoalsShareModalProps {
     isOpen: boolean;
@@ -51,10 +52,13 @@ const GoalsShareModal: React.FC<GoalsShareModalProps> = ({ isOpen, onClose, goal
                 {/* Header */}
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-black">
                     <h3 className="font-bold text-slate-700 dark:text-white">Anteprima Obiettivi</h3>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                    <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onClose(); }} 
+                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors z-50 pointer-events-auto"
+                        aria-label="Close"
+                    >
+                        <X size={24} className="text-slate-500 dark:text-slate-400" />
                     </button>
                 </div>
 

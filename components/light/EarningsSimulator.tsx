@@ -3,8 +3,7 @@ import { Calculator, Info, RotateCcw, Plus, Minus, Layers, Zap, User, Lock, Chec
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useShary } from '../../contexts/SharyContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { useDailyStats } from '../../hooks/useDailyStats';
+import { useState } from 'react';
 
 interface EarningsSimulatorProps {
     networkSize: number[];
@@ -41,18 +40,6 @@ const EarningsSimulator: React.FC<EarningsSimulatorProps> = ({
     const { isActive: isSharyActive } = useShary();
     const [isSharyTipOpen, setIsSharyTipOpen] = useState(false);
 
-    // --- REAL DATA BRIDGE LOGIC ---
-    const { stats, loading: statsLoading } = useDailyStats();
-    const [useRealData, setUseRealData] = useState(false);
-    const [monthlyPlannedContacts, setMonthlyPlannedContacts] = useState(20);
-
-    // Quando attiviamo i dati reali, aggiorniamo le utenze personali basandoci sulla bravura reale
-    useEffect(() => {
-        if (useRealData && stats.contactToContractRate > 0) {
-            const calculatedUnits = Math.round(monthlyPlannedContacts * stats.contactToContractRate);
-            setPersonalUnits(calculatedUnits);
-        }
-    }, [useRealData, monthlyPlannedContacts, stats.contactToContractRate]);
 
     const calculateEarnings = () => {
         let total = 0;
@@ -123,67 +110,6 @@ const EarningsSimulator: React.FC<EarningsSimulatorProps> = ({
                         <p className="text-sm font-medium text-slate-500 dark:text-gray-400 leading-relaxed">
                             {t('light_simulator.earn_desc')}
                         </p>
-                    </div>
-
-                    {/* Real Data Bridge Toggle */}
-                    <div className="p-6 bg-gradient-to-br from-blue-50/50 to-white/50 dark:from-blue-500/5 dark:to-slate-900/50 rounded-[2rem] border-2 border-white dark:border-white/10 shadow-sm relative overflow-hidden group">
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${useRealData ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
-                                    <Zap size={20} className={useRealData ? 'animate-pulse' : ''} />
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">Ponte Dati Reali</h4>
-                                    <p className="text-[10px] font-bold text-slate-500 dark:text-gray-400 opacity-60">Usa conversioni del Daily Chek</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setUseRealData(!useRealData)}
-                                className={`w-14 h-8 rounded-full p-1 transition-all duration-300 ${useRealData ? 'bg-blue-500 shadow-inner' : 'bg-gray-200 dark:bg-white/10'}`}
-                            >
-                                <div className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${useRealData ? 'translate-x-6' : 'translate-x-0'}`} />
-                            </button>
-                        </div>
-
-                        <AnimatePresence>
-                            {useRealData && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                                    animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
-                                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                                    className="pt-4 border-t border-blue-500/10 space-y-4"
-                                >
-                                    <div className="flex justify-between items-center bg-blue-500/5 dark:bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
-                                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase">La tua bravura reale:</span>
-                                        <span className="text-sm font-black text-blue-600 dark:text-blue-300">
-                                            {(stats.contactToContractRate * 100).toFixed(1)}% <span className="opacity-50 text-[8px]">Closing</span>
-                                        </span>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-[10px] font-black text-slate-500 dark:text-gray-400 uppercase tracking-widest">Contatti Pianificati/Mese</span>
-                                            <span className="text-lg font-black text-blue-600">{monthlyPlannedContacts}</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="200"
-                                            step="5"
-                                            value={monthlyPlannedContacts}
-                                            onChange={(e) => setMonthlyPlannedContacts(parseInt(e.target.value))}
-                                            className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"
-                                        />
-                                    </div>
-
-                                    <div className="bg-union-green-500/10 p-3 rounded-xl border border-union-green-500/20 text-center">
-                                        <p className="text-[10px] font-bold text-union-green-600 dark:text-union-green-400">
-                                            Con {monthlyPlannedContacts} contatti produrrai circa <span className="text-sm font-black">{Math.round(monthlyPlannedContacts * stats.contactToContractRate)}</span> utenze personali.
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </div>
 
                     {/* Personal Units Slider */}

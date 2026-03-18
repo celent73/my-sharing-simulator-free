@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType, Lead, ViewMode, Goals } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
@@ -7,6 +8,7 @@ import { formatItalianDate, getCommercialMonthString, getDaysUntilCommercialMont
 import LeadCaptureModal from './LeadCaptureModal';
 import AppointmentsOverviewModal from './AppointmentsOverviewModal';
 import HistoryListModal from './HistoryListModal';
+import LeadsOverviewModal from './LeadsOverviewModal';
 import {
     Plus,
     Minus,
@@ -57,6 +59,7 @@ interface ActivityInputProps {
     viewMode: ViewMode;
     setViewMode: (mode: ViewMode) => void;
     goals: Goals;
+    activeTab?: 'inserimento' | 'risultati';
 }
 
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
@@ -114,7 +117,8 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     careerStatus,
     viewMode,
     setViewMode,
-    goals
+    goals,
+    activeTab = 'inserimento'
 }) => {
     const { user } = useAuth();
     const [isFooterVisible, setIsFooterVisible] = React.useState(true);
@@ -229,7 +233,23 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ActivityType | null>(null);
     const [targetDates, setTargetDates] = useState<Record<string, string>>({});
     const [isAppointmentsOverviewOpen, setIsAppointmentsOverviewOpen] = useState(false);
+    const [isContactsOverviewOpen, setIsContactsOverviewOpen] = useState(false);
     const [appointmentsFilterDate, setAppointmentsFilterDate] = useState<Date | null>(null);
+    const [contactsFilterDate, setContactsFilterDate] = useState<Date | null>(null);
+
+    const [pulsingActivity, setPulsingActivity] = useState<ActivityType | null>(null);
+    const prevTotalsRef = useRef(getPeriodTotals);
+
+    useEffect(() => {
+        Object.keys(getPeriodTotals).forEach((key) => {
+            const activity = key as ActivityType;
+            if (getPeriodTotals[activity] > (prevTotalsRef.current[activity] || 0)) {
+                setPulsingActivity(activity);
+                setTimeout(() => setPulsingActivity(null), 1000);
+            }
+        });
+        prevTotalsRef.current = getPeriodTotals;
+    }, [getPeriodTotals]);
 
     React.useEffect(() => {
         if (!isHubMode) return;
@@ -276,7 +296,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
             
             {/* Date Navigator Pill — always visible */}
             <div className="mb-8 flex flex-col items-center">
-                <div className="w-full max-w-sm bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-700 px-4 py-4">
+                <div className="w-full max-w-5xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-700 px-4 py-4">
                     {/* Row: < Date OGGI > */}
                     <div className="flex items-center justify-between gap-2">
                         <button
@@ -336,9 +356,9 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
 
 
-                {/* POWER RING (Central Indicator) - Only in Hub Mode */}
-                {isHubMode && (
-                    <div className="mb-16 relative group">
+                {/* POWER RING (Central Indicator) - Moved to Results Tab */}
+                {isHubMode && activeTab === 'risultati' && (
+                    <div className="mb-16 relative group animate-in fade-in zoom-in duration-500">
                         <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none"></div>
                         <div className="relative w-64 h-64 lg:w-80 lg:h-80 rounded-full border-[1.5rem] border-slate-300/30 dark:border-slate-700/60 flex items-center justify-center shadow-[inset_0_0_60px_rgba(0,0,0,0.15)]">
                             <div className="text-center">
@@ -375,7 +395,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         </div>
 
                         {/* SCRIPT LIBRARY BUTTON UNDER THE RING */}
-                        <div className="mt-8 relative z-20">
+                        <div className="mt-8 relative z-20 flex justify-center">
                             <button
                                 onClick={onOpenObjectionHandler}
                                 className="flex items-center gap-3 px-10 py-4 bg-[#007aff] hover:bg-[#0063cc] text-white rounded-3xl shadow-xl shadow-blue-500/30 transition-all active:scale-95 group border border-blue-400/30"
@@ -387,147 +407,166 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                     </div>
                 )}
 
-                {/* ACTIVITY GRID */}
-                <div className="w-full mb-6 text-center space-y-6">
-                    <div>
-                        <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-4">
-                            inserisci le tue azioni quotidiane
-                        </h2>
-                        
-                        {/* Period Selector Pill */}
-                        <div className="flex justify-center">
-                            <div className="inline-flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-800/80 rounded-[1.25rem] border border-slate-300 dark:border-slate-700 shadow-inner">
-                                <button 
-                                    onClick={() => setViewMode('daily')} 
-                                    className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                                >
-                                    Giorno
-                                </button>
-                                <button 
-                                    onClick={() => setViewMode('weekly')} 
-                                    className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                                >
-                                    Settimana
-                                </button>
-                                <button 
-                                    onClick={() => setViewMode('monthly')} 
-                                    className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                                >
-                                    Mese
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isHubMode ? 'lg:grid-cols-5 max-w-7xl' : 'lg:grid-cols-2'} gap-4 lg:gap-6 w-full`}>
-                    {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
-                        const count = todayCounts[activity] || 0;
-                        let label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
-                        if (activity === ActivityType.APPOINTMENTS) {
-                            label = 'appuntamenti fissati';
-                        }
-                        const styles = CARD_STYLES[activity];
-
-                        return (
-                            <div key={activity} className={`group relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200 dark:border-slate-700 ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none transition-all duration-500 hover:scale-[1.05] hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)]`}>
-                                <div className="flex flex-col h-full justify-between gap-6">
-                                    <div className="flex justify-between items-start">
-                                        <div className={`h-10 w-10 ${isHubMode ? 'lg:h-12 lg:w-12' : 'lg:h-12 lg:w-12'} rounded-xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
-                                            <div className={isHubMode ? "scale-90 lg:scale-100" : "scale-90 lg:scale-95"}>
-                                                {activityIcons[activity]}
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            {activity === ActivityType.APPOINTMENTS && (
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); setIsAppointmentsOverviewOpen(true); }}
-                                                    className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
-                                                    title="Vedi appuntamenti"
-                                                >
-                                                    <ListChecks className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
-                                                </button>
-                                            )}
-                                            {activity === ActivityType.CONTACTS && (
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); setSelectedActivityForDetails(ActivityType.CONTACTS); }}
-                                                    className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
-                                                    title="Vedi contatti"
-                                                >
-                                                    <Users className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={(e) => handlePlusClick(e, activity)}
-                                                className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-xl hover:shadow-2xl transition-all active:scale-90 animate-pulse-slow ring-4 ring-white/30 group-hover:scale-110`}
-                                            >
-                                                <Plus className="w-7 h-7 lg:w-10 lg:h-10 drop-shadow-md" strokeWidth={4} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}>
-                                                {getPeriodTotals[activity]}
-                                            </span>
-                                        </div>
-                                        
-                                        {/* Goal Progress Text */}
-                                        {(() => {
-                                            const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
-                                                              viewMode === 'weekly' ? goals.weekly[activity] : 
-                                                              goals.monthly[activity];
-                                            
-                                            if (!goalValue || goalValue === 0) return null;
-                                            
-                                            const current = getPeriodTotals[activity];
-                                            const remaining = Math.max(0, goalValue - current);
-                                            
-                                            return (
-                                                <div className="mt-2 flex items-center gap-1.5">
-                                                    <Target className={`w-3 h-3 ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
-                                                    <span className={`text-[10px] font-black uppercase tracking-tight ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                                        {remaining === 0 ? 'Target Raggiunto!' : `Mancano ${remaining} per l'obiettivo`}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
-                                            className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
-                                            disabled={(todayCounts[activity] || 0) === 0}
+                {/* ACTIVITY GRID - Visible in Inserimento Tab */}
+                {activeTab === 'inserimento' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
+                        <div className="w-full mb-6 text-center space-y-6">
+                            <div>
+                                <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-4">
+                                    inserisci le tue azioni quotidiane
+                                </h2>
+                                
+                                {/* Period Selector Pill */}
+                                <div className="flex justify-center">
+                                    <div className="inline-flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-800/80 rounded-[1.25rem] border border-slate-300 dark:border-slate-700 shadow-inner">
+                                        <button 
+                                            onClick={() => setViewMode('daily')} 
+                                            className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
                                         >
-                                            <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
+                                            Giorno
                                         </button>
-                                        <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                            <div
-                                                className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
-                                                style={{ 
-                                                    width: (() => {
-                                                        const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
-                                                                          viewMode === 'weekly' ? goals.weekly[activity] : 
-                                                                          goals.monthly[activity];
-                                                        const current = getPeriodTotals[activity];
-                                                        if (!goalValue || goalValue === 0) return `${Math.min((current / 10) * 100, 100)}%`;
-                                                        return `${Math.min((current / goalValue) * 100, 100)}%`;
-                                                    })()
-                                                }}
-                                            />
-                                        </div>
+                                        <button 
+                                            onClick={() => setViewMode('weekly')} 
+                                            className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                                        >
+                                            Settimana
+                                        </button>
+                                        <button 
+                                            onClick={() => setViewMode('monthly')} 
+                                            className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                                        >
+                                            Mese
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
+                        </div>
+                        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 ${isHubMode ? 'xl:grid-cols-5' : ''} gap-4 lg:gap-6 w-full max-w-5xl mx-auto`}>
+                            {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
+                                const count = todayCounts[activity] || 0;
+                                let label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
+                                if (activity === ActivityType.APPOINTMENTS) {
+                                    label = 'appuntamenti fissati';
+                                }
+                                const styles = CARD_STYLES[activity];
 
-                {/* Voice Mode and Bottom Actions removed as requested */}
+                                return (
+                                    <div key={activity} className={`group relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200 dark:border-slate-700 ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none transition-all duration-500 hover:scale-[1.05] hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] relative overflow-hidden`}>
+                                        
+                                        <AnimatePresence>
+                                            {pulsingActivity === activity && (
+                                                <motion.div
+                                                    initial={{ opacity: 0.8, scale: 0.95 }}
+                                                    animate={{ opacity: 0, scale: 1.05 }}
+                                                    transition={{ duration: 0.8, ease: "easeOut" }}
+                                                    className={`absolute inset-0 z-0 bg-gradient-to-br ${styles.gradient} mix-blend-overlay opacity-30 pointer-events-none rounded-[inherit]`}
+                                                />
+                                            )}
+                                        </AnimatePresence>
+
+                                        <div className="flex flex-col h-full justify-between gap-6 relative z-10">
+                                            <div className="flex justify-between items-start">
+                                                <div className={`h-10 w-10 ${isHubMode ? 'lg:h-12 lg:w-12' : 'lg:h-12 lg:w-12'} rounded-xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
+                                                    <div className={isHubMode ? "scale-90 lg:scale-100" : "scale-90 lg:scale-95"}>
+                                                        {activityIcons[activity]}
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    {activity === ActivityType.APPOINTMENTS && (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setIsAppointmentsOverviewOpen(true); }}
+                                                            className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
+                                                            title="Vedi appuntamenti"
+                                                        >
+                                                            <ListChecks className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                                                        </button>
+                                                    )}
+                                                    {activity === ActivityType.CONTACTS && (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setIsContactsOverviewOpen(true); }}
+                                                            className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
+                                                            title="Vedi contatti"
+                                                        >
+                                                            <Users className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={(e) => handlePlusClick(e, activity)}
+                                                        className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-xl hover:shadow-2xl transition-all active:scale-90 animate-pulse-slow ring-4 ring-white/30 group-hover:scale-110`}
+                                                    >
+                                                        <Plus className="w-7 h-7 lg:w-10 lg:h-10 drop-shadow-md" strokeWidth={4} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-xs lg:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
+                                                <div className="flex items-baseline gap-2">
+                                                    <motion.span 
+                                                        key={`${activity}-${getPeriodTotals[activity]}`}
+                                                        initial={{ scale: 0.9, color: '#3b82f6' }}
+                                                        animate={{ scale: pulsingActivity === activity ? [1, 1.4, 1] : 1, color: 'inherit' }}
+                                                        transition={{ duration: 0.5 }}
+                                                        className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}
+                                                    >
+                                                        {getPeriodTotals[activity]}
+                                                    </motion.span>
+                                                </div>
+                                                
+                                                {/* Goal Progress Text */}
+                                                {(() => {
+                                                    const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
+                                                                    viewMode === 'weekly' ? goals.weekly[activity] : 
+                                                                    goals.monthly[activity];
+                                                    
+                                                    if (!goalValue || goalValue === 0) return null;
+                                                    
+                                                    const current = getPeriodTotals[activity];
+                                                    const remaining = Math.max(0, goalValue - current);
+                                                    
+                                                    return (
+                                                        <div className="mt-2 flex items-center gap-1.5">
+                                                            <Target className={`w-3 h-3 ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
+                                                            <span className={`text-xs font-black uppercase tracking-tight ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                                {remaining === 0 ? 'Target Raggiunto!' : `Mancano ${remaining} per l'obiettivo`}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
+                                                    className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
+                                                    disabled={(todayCounts[activity] || 0) === 0}
+                                                >
+                                                    <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
+                                                </button>
+                                                <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
+                                                        style={{ 
+                                                            width: (() => {
+                                                                const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
+                                                                                viewMode === 'weekly' ? goals.weekly[activity] : 
+                                                                                goals.monthly[activity];
+                                                                const current = getPeriodTotals[activity];
+                                                                if (!goalValue || goalValue === 0) return `${Math.min((current / 10) * 100, 100)}%`;
+                                                                return `${Math.min((current / goalValue) * 100, 100)}%`;
+                                                            })()
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                               )}
             </div>
-
 
             <HistoryListModal
                 isOpen={!!selectedActivityForDetails}
@@ -535,6 +574,23 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 activityType={selectedActivityForDetails}
                 activityLog={currentLog}
                 customLabel={selectedActivityForDetails ? (customLabels?.[selectedActivityForDetails] || ACTIVITY_LABELS[selectedActivityForDetails]) : ''}
+            />
+
+            <LeadsOverviewModal
+                isOpen={isContactsOverviewOpen}
+                onClose={() => {
+                    setIsContactsOverviewOpen(false);
+                    setContactsFilterDate(null);
+                }}
+                onEdit={(lead) => {
+                    setIsContactsOverviewOpen(false);
+                    setContactsFilterDate(null);
+                    if (onEditLead) onEditLead(lead);
+                }}
+                activityLogs={activityLogs}
+                activityType={ActivityType.CONTACTS}
+                filterDate={contactsFilterDate}
+                customLabel={customLabels?.[ActivityType.CONTACTS] || ACTIVITY_LABELS[ActivityType.CONTACTS]}
             />
 
             <AppointmentsOverviewModal

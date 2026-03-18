@@ -74,33 +74,33 @@ const CareerDeadlineBanner: React.FC<CareerDeadlineBannerProps> = ({ careerStatu
         };
 
     return (
-        <div className="w-full px-4 py-2 z-40 relative">
-            <div className={`relative w-full max-w-2xl mx-auto`}>
+        <div className="w-full py-2 z-40 relative">
+            <div className={`relative w-full max-w-5xl mx-auto`}>
                 {/* Glow bordo */}
                 <div className={`absolute -inset-[1.5px] rounded-2xl bg-gradient-to-r ${colors.glow} opacity-60 blur-[5px] pointer-events-none`} />
                 
                 <div
                     onClick={onOpenCareerPath}
-                    className={`relative flex items-center gap-4 ${colors.bg} backdrop-blur-2xl border ${colors.border} rounded-2xl px-5 py-3.5 w-full ${onOpenCareerPath ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                    className={`relative flex items-center gap-6 ${colors.bg} backdrop-blur-2xl border ${colors.border} rounded-2xl px-6 py-8 w-full ${onOpenCareerPath ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
                 >
                     {/* Dot animato */}
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center bg-white/5`}>
-                        <div className={`w-3 h-3 rounded-full ${colors.dot} ${colors.dotGlow} animate-pulse`} />
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-white/5`}>
+                        <div className={`w-4 h-4 rounded-full ${colors.dot} ${colors.dotGlow} animate-pulse`} />
                     </div>
                     
                     {/* Testo */}
                     <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-baseline mb-0.5">
-                            <p className={`text-[9px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none`}>
+                        <div className="flex justify-between items-baseline mb-1">
+                            <p className={`text-[11px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none`}>
                                 🏆 SCADENZA CARRIERA
                             </p>
                             {careerStatus && (
-                                <p className="text-[9px] font-bold text-white/50 uppercase">
+                                <p className="text-[11px] font-bold text-white/50 uppercase">
                                     {careerStatus.totalClients} / {careerStatus.clientsForNextLevel > 0 && careerStatus.clientsForNextLevel < 9000 ? careerStatus.clientsForNextLevel : 11}
                                 </p>
                             )}
                         </div>
-                        <p className="text-xs sm:text-sm font-bold text-white leading-snug truncate">
+                        <p className="text-base sm:text-lg font-bold text-white leading-snug truncate">
                             {message}
                         </p>
                     </div>

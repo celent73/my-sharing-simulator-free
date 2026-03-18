@@ -71,7 +71,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen, onClo
                 <div className="space-y-4">
                     <button 
                         onClick={handleLogCompleted}
-                        className="w-full group relative overflow-hidden bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-100 dark:border-emerald-800 hover:border-emerald-500 rounded-2xl p-4 text-left transition-all duration-300"
+                        className="w-full group relative overflow-hidden bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-500 rounded-2xl p-4 text-left transition-all duration-300"
                     >
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
@@ -86,7 +86,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen, onClo
 
                     <button 
                         onClick={() => setStep('schedule')}
-                        className="w-full group relative overflow-hidden bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-100 dark:border-blue-800 hover:border-blue-500 rounded-2xl p-4 text-left transition-all duration-300"
+                        className="w-full group relative overflow-hidden bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-500 rounded-2xl p-4 text-left transition-all duration-300"
                     >
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
@@ -113,7 +113,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen, onClo
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Titolo</label>
                         <input 
                             type="text" 
-                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                             placeholder="Es. Zoom con Marco"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
@@ -124,7 +124,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen, onClo
                             <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Data</label>
                             <input 
                                 type="date" 
-                                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                             />
@@ -133,7 +133,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen, onClo
                             <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Ora</label>
                             <input 
                                 type="time" 
-                                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                 value={time}
                                 onChange={(e) => setTime(e.target.value)}
                             />

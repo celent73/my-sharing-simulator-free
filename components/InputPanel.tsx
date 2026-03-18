@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import SharyTrigger from './SharyTrigger';
-import { useDailyStats } from '../hooks/useDailyStats';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Importazione del visualizzatore
@@ -438,53 +437,6 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const lang = (language === 'it' || language === 'de') ? language : 'en';
   const txt = uiTexts[lang];
 
-  // --- REAL DATA BRIDGE LOGIC ---
-  const { stats, loading: statsLoading } = useDailyStats();
-  const [useRealData, setUseRealData] = useState(false);
-  const [plannedMonthlyActivity, setPlannedMonthlyActivity] = useState(20);
-  const [bridgePeriod, setBridgePeriod] = useState<'30days' | 'commercial'>('30days');
-
-  // Selezione delle statistiche in base al periodo scelto
-  const activeStats = bridgePeriod === 'commercial' && stats.commercialMonthStats 
-    ? stats.commercialMonthStats 
-    : stats;
-
-  const handleApplyNow = () => {
-    if (activeStats.contactToContractRate > 0) {
-      const units = Math.round(plannedMonthlyActivity * activeStats.contactToContractRate);
-      onInputChange('myPersonalUnitsGreen', units);
-      onInputChange('myPersonalUnitsLight', 0);
-    }
-    if (activeStats.newFamilyUtilityTotal > 0) {
-      onInputChange('directRecruits', Math.round(activeStats.newFamilyUtilityTotal));
-    }
-    // Mostra un feedback visivo se necessario o semplicemente una notifica
-  };
-
-  // Sincronizzazione automatica se il ponte è attivo
-  React.useEffect(() => {
-    // Il ponte funziona solo se siamo in modalità Family Utility
-    if (useRealData && viewMode === 'family') {
-      // 1. Sincronizzazione Utenze Personali
-      if (activeStats.contactToContractRate > 0) {
-        const totalUnitsThreshold = Math.round(plannedMonthlyActivity * activeStats.contactToContractRate);
-        onInputChange('myPersonalUnitsGreen', totalUnitsThreshold);
-        onInputChange('myPersonalUnitsLight', 0);
-      }
-
-      // 2. Sincronizzazione Reclutamento (Secondo Ponte)
-      if (activeStats.newFamilyUtilityTotal > 0) {
-        onInputChange('directRecruits', Math.round(activeStats.newFamilyUtilityTotal));
-      }
-    }
-  }, [useRealData, viewMode, plannedMonthlyActivity, activeStats.contactToContractRate, activeStats.newFamilyUtilityTotal]);
-
-  // Reset ponte se cambiamo modalità (opzionale, ma consigliato per chiarezza)
-  React.useEffect(() => {
-    if (viewMode !== 'family' && useRealData) {
-      setUseRealData(false);
-    }
-  }, [viewMode]);
 
   return (
     <>
@@ -563,7 +515,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
         <div className="bg-white/70 dark:bg-black/30 backdrop-blur-3xl rounded-[3rem] shadow-2xl border border-white/80 dark:border-white/10 flex-grow flex flex-col p-4 sm:p-8 overflow-hidden relative z-10 transition-colors duration-300">
 
           {/* BLOCCO HEADER & PONTE (FISSO IN ALTO) */}
-          <div className="shrink-0 mb-6 lg:mb-8">
+          <div className="shrink-0 mb-3 lg:mb-4">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-4 lg:gap-5">
                 <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-union-blue-500 to-union-blue-700 text-white rounded-2xl lg:rounded-3xl flex items-center justify-center shadow-xl shadow-union-blue-500/30 ring-4 ring-white">
@@ -597,124 +549,9 @@ const InputPanel: React.FC<InputPanelProps> = ({
                   <RotateCcw size={20} className="lg:w-6 lg:h-6" strokeWidth={3} />
                 </button>
 
-                {/* MINI TOGGLE PONTE DATI REALI */}
-                {viewMode === 'family' && (
-                  <button
-                    onClick={() => setUseRealData(!useRealData)}
-                    className={`flex items-center gap-2 lg:gap-3 p-1 pl-2.5 pr-1 lg:pl-4 lg:pr-2 lg:py-2 rounded-full border transition-all ${useRealData ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/20' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400'}`}
-                  >
-                    <Zap size={12} className={`lg:w-4 lg:h-4 ${useRealData ? 'animate-pulse' : ''}`} />
-                    <span className="text-[9px] lg:text-[11px] font-black uppercase tracking-tighter mr-0.5 lg:mr-1">Ponte Dati Reali</span>
-                    <div className={`w-7 h-3.5 lg:w-9 lg:h-4.5 rounded-full p-0.5 transition-all ${useRealData ? 'bg-white/30' : 'bg-slate-300 dark:bg-white/20'}`}>
-                      <div className={`w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 rounded-full bg-white shadow-sm transition-transform ${useRealData ? 'translate-x-3.5 lg:translate-x-4.5' : 'translate-x-0'}`} />
-                    </div>
-                  </button>
-                )}
               </div>
             </div>
 
-            {/* ESPANSIONE PONTE DATI REALI (DENTRO LO SHRINK-0) */}
-            <AnimatePresence>
-              {useRealData && viewMode === 'family' && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  className="relative z-20 overflow-hidden bg-blue-600/5 dark:bg-blue-500/10 rounded-[1.5rem] border border-blue-500/10 p-4 space-y-5"
-                >
-                  {/* SEZIONE VENDITA PERSONALE */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center px-1">
-                      <div className="flex items-center gap-2 text-blue-600">
-                        <Zap size={14} className="animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Periodo Rif:</span>
-                      </div>
-                      <div className="flex bg-blue-100 dark:bg-blue-900/40 rounded-lg p-0.5 border border-blue-200/50">
-                        <button 
-                          onClick={() => setBridgePeriod('30days')}
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-all ${bridgePeriod === '30days' ? 'bg-blue-600 text-white shadow-sm' : 'text-blue-600/60'}`}
-                        >
-                          30 GG
-                        </button>
-                        <button 
-                          onClick={() => setBridgePeriod('commercial')}
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-all ${bridgePeriod === 'commercial' ? 'bg-blue-600 text-white shadow-sm' : 'text-blue-600/60'}`}
-                        >
-                          MESE
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center px-1">
-                      <div className="flex items-center gap-2 text-blue-600">
-                        <Target size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Efficienza Vendita:</span>
-                      </div>
-                      <span className="text-sm font-black text-blue-600">{(activeStats.contactToContractRate * 100).toFixed(1)}%</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-[10px] font-black text-slate-400 px-1">
-                        <span className="uppercase tracking-tighter">CONTATTI / MESE</span>
-                        <span className="text-blue-600 text-sm font-black">{plannedMonthlyActivity}</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="200"
-                        step="5"
-                        value={plannedMonthlyActivity}
-                        onChange={(e) => setPlannedMonthlyActivity(parseInt(e.target.value))}
-                        className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* SEZIONE SVILUPPO RETE (SECONDO PONTE) */}
-                  <div className="pt-3 border-t border-blue-500/10 space-y-3">
-                    <div className="flex justify-between items-center px-1">
-                      <div className="flex items-center gap-2 text-purple-600">
-                        <Users size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Bravura Reclutamento:</span>
-                      </div>
-                      <span className="text-sm font-black text-purple-600">
-                        {activeStats.appointmentsTotal > 0 ? ((activeStats.newFamilyUtilityTotal / activeStats.appointmentsTotal) * 100).toFixed(1) : '0.0'}%
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-[10px] font-black text-slate-400 px-1">
-                        <span className="uppercase tracking-tighter">TARGET RECLUTAMENTO / MESE</span>
-                        <span className="text-purple-600 text-sm font-black">{inputs.directRecruits} Partner (FU)</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="20"
-                        step="1"
-                        value={inputs.directRecruits}
-                        onChange={(e) => onInputChange('directRecruits', parseInt(e.target.value))}
-                        className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-purple-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-blue-500/10 text-center space-y-3">
-                    <p className="text-[10px] lg:text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
-                      Con questo ritmo produrrai <span className="text-blue-600 dark:text-blue-400 font-black text-sm">{Math.round(plannedMonthlyActivity * activeStats.contactToContractRate)}</span> utenze e recluterai <span className="text-purple-600 dark:text-purple-400 font-black text-sm">{Math.round(activeStats.newFamilyUtilityTotal)}</span> partner (FU) ogni mese.
-                    </p>
-                    
-                    <button 
-                      onClick={handleApplyNow}
-                      className="w-full py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
-                    >
-                      <RefreshCcw size={12} />
-                      Applica Snapshot Ora
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
           <div className="flex-grow overflow-y-auto pr-3 custom-scrollbar min-h-0 space-y-4">

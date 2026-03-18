@@ -25,13 +25,23 @@ export const getTodayDateString = (): string => {
 };
 
 export const getWeekIdentifier = (date: Date): string => {
-  const start = startOfWeek(date, { weekStartsOn: 1 }); // Monday
-  const end = endOfWeek(date, { weekStartsOn: 1 });
-  return `${format(start, 'yyyy-MM-dd')}-${format(end, 'yyyy-MM-dd')}`;
+  if (!date || isNaN(date.getTime())) return format(new Date(), 'yyyy-MM-dd') + '-invalid';
+  try {
+    const start = startOfWeek(date, { weekStartsOn: 1 }); // Monday
+    const end = endOfWeek(date, { weekStartsOn: 1 });
+    return `${format(start, 'yyyy-MM-dd')}-${format(end, 'yyyy-MM-dd')}`;
+  } catch (e) {
+    return 'invalid-week';
+  }
 };
 
 export const getMonthIdentifier = (date: Date): string => {
-  return format(date, 'yyyy-MM');
+  if (!date || isNaN(date.getTime())) return 'invalid-month';
+  try {
+    return format(date, 'yyyy-MM');
+  } catch (e) {
+    return 'invalid-month';
+  }
 };
 
 export const getPreviousWeekIdentifier = (date: Date): string => {

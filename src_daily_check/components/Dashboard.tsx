@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 
 // Importazioni base
-import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead, ViewMode } from '../types';
+import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead, ViewMode, VisionBoardData, NextAppointment } from '../types';
 import {
   getWeekIdentifier,
   getMonthIdentifier,
@@ -16,12 +16,13 @@ import {
 // Importazione Grafici e Componenti
 import ActivityBarChart from './charts/ActivityBarChart';
 import { ACTIVITY_LABELS, activityIcons } from '../constants';
-import ActivityFocus from './ActivityFocus';
 import StatCard from './StatCard';
-import DateNavigator from './DateNavigator';
+import CareerDeadlineBanner from './CareerDeadlineBanner';
 import ConversionFunnel from './ConversionFunnel';
 import GoalCalendar from './GoalCalendar';
+import DreamTrackerWidget from './DreamTrackerWidget';
 import { calculateCareerStatus } from '../utils/careerUtils';
+import { Calculator, Sparkles, ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 
 interface DashboardProps {
   activityLogs: ActivityLog[] | undefined;
@@ -38,9 +39,18 @@ interface DashboardProps {
   onUpdateActivity: (activity: ActivityType, change: number) => void;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  selectedDate?: Date;
-  onDateChange?: (date: Date) => void;
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
   careerDates?: Record<string, string>;
+  visionBoardData: VisionBoardData;
+  dailyEarnings: number;
+  onOpenVisionBoardSettings: () => void;
+  onUpdateVisionBoardEarnings: (amount: number) => void;
+  onOpenObjectionHandler: () => void;
+  onOpenCalendar: () => void;
+  onOpenTargetCalculator: () => void;
+  nextAppointment?: NextAppointment;
+  nextFollowUp?: Lead | null;
 }
 
 type DashboardTab = 'overview' | 'stats';
@@ -105,7 +115,16 @@ const Dashboard: React.FC<DashboardProps> = ({
   setViewMode,
   selectedDate: propSelectedDate,
   onDateChange: propOnDateChange,
-  careerDates
+  careerDates,
+  visionBoardData,
+  dailyEarnings,
+  onOpenVisionBoardSettings,
+  onUpdateVisionBoardEarnings,
+  onOpenObjectionHandler,
+  onOpenCalendar,
+  onOpenTargetCalculator,
+  nextAppointment,
+  nextFollowUp
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
@@ -128,6 +147,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     const { name, value } = e.target;
     setCustomDateRange(prev => ({ ...prev, [name]: value }));
   };
+
+  const careerStatus = useMemo(() => 
+    calculateCareerStatus(activityLogs, userProfile.currentQualification, careerDates),
+    [activityLogs, userProfile.currentQualification, careerDates]
+  );
 
   const processedData = useMemo(() => {
     if (activityLogs.length === 0) return [];
@@ -159,12 +183,24 @@ const Dashboard: React.FC<DashboardProps> = ({
           }))
           .reverse();
       case 'weekly':
-        return aggregate(getWeekIdentifier, activityLogs).slice(-12).map(d => ({ ...d, name: d.name.replace('-W', ' W') }));
+        return aggregate(getWeekIdentifier, activityLogs).slice(-12).map(d => {
+          // Identifier is "yyyy-MM-dd-yyyy-MM-dd"
+          const parts = d.name.split('-');
+          if (parts.length >= 6) {
+            // Suggest "dd/MM - dd/MM"
+            return { ...d, name: `${parts[2]}/${parts[1]} - ${parts[5]}/${parts[4]}` };
+          }
+          return { ...d, name: d.name };
+        });
       case 'monthly': {
         const monthNames = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
         return aggregate(getMonthIdentifier, activityLogs).slice(-12).map(d => {
-          const [year, monthNum] = d.name.split('-M');
-          return { ...d, name: `${monthNames[parseInt(monthNum) - 1]} ${year.slice(2)}` };
+          const parts = d.name.split('-'); // "yyyy-MM"
+          if (parts.length >= 2) {
+            const monthNum = parseInt(parts[1]);
+            return { ...d, name: `${monthNames[monthNum - 1]} ${parts[0].slice(2)}` };
+          }
+          return { ...d, name: d.name };
         });
       }
       case 'commercial_monthly': {
@@ -329,35 +365,30 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className={`bg-[#f2f2f7] dark:bg-slate-900/40 ${compactView ? '' : ''} ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:pb-2 sm:pt-10 sm:px-10'} rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans`}>
+    <div className={`bg-[#f2f2f7] dark:bg-slate-900/40 ${compactView ? '' : ''} ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:pb-2 sm:pt-10 sm:px-0'} rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans`}>
       {/* Calcolo status carriera per l'header */}
-      {(() => {
-        const careerStatus = calculateCareerStatus(activityLogs, userProfile.currentQualification, careerDates);
-        return (
-          <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-2 pl-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-500">
-            <div className="flex flex-col items-end">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">LIVELLO</span>
-              <span 
-                className="text-xs font-bold uppercase tracking-tight transition-colors duration-500"
-                style={{ color: careerStatus.currentLevel.color || 'inherit' }}
-              >
-                {careerStatus.currentLevel.name}
-              </span>
-            </div>
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-500"
-              style={{ 
-                backgroundColor: careerStatus.currentLevel.color || '#3b82f6',
-                boxShadow: `0 4px 12px ${careerStatus.currentLevel.color || '#3b82f6'}40`
-              }}
-            >
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            </div>
-          </div>
-        );
-      })()}
+      <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-2 pl-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-500">
+        <div className="flex flex-col items-end">
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">LIVELLO</span>
+          <span
+            className="text-xs font-bold uppercase tracking-tight transition-colors duration-500"
+            style={{ color: careerStatus.currentLevel.color || 'inherit' }}
+          >
+            {careerStatus.currentLevel.name}
+          </span>
+        </div>
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-500"
+          style={{
+            backgroundColor: careerStatus.currentLevel.color || '#3b82f6',
+            boxShadow: `0 4px 12px ${careerStatus.currentLevel.color || '#3b82f6'}40`
+          }}
+        >
+           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          </svg>
+        </div>
+      </div>
 
       {/* Header e Selezione Vista - RIMOSSO SELETTORE QUALIFICA RIDONDANTE */}
       {currentTab !== 'stats' && (
@@ -367,12 +398,11 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       )}
-      {/* --- QUI ABBIAMO INSERITO IL DATE NAVIGATOR --- */}
-      {/* Appare SOLO se la modalità è 'daily' e NON siamo in compactView */}
-      {viewMode === 'daily' && !compactView && (
-        <DateNavigator
-          currentDate={selectedDate}
-          onDateChange={setSelectedDate}
+      {/* --- BANNER SCADENZA CARRIERA --- */}
+      {!compactView && (
+        <CareerDeadlineBanner
+          careerStatus={careerStatus}
+          targetDates={careerDates || {}}
         />
       )}
 
@@ -380,7 +410,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Tab Riepilogo */}
       {currentTab === 'overview' && (
-        <div className="animate-fade-in relative z-10 w-full px-4">
+        <div className="animate-fade-in relative z-10 w-full">
           {/* Productivity Calendar */}
           <GoalCalendar
             activityLogs={activityLogs}
@@ -397,7 +427,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
               // Stessa logica esatta di GoalCalendar per l'icona 📅:
               const hasScheduled = activityLogs?.some(log =>
-                log.leads?.some(lead => lead.appointmentDate?.startsWith(localDateStr))
+                log.leads?.some(lead => 
+                  lead.appointmentDate?.startsWith(localDateStr) || 
+                  lead.followUpDate?.startsWith(localDateStr)
+                )
               );
               const hasApptEntry = activityLogs?.some(log =>
                 log.date === localDateStr && log.leads?.some(lead => lead.type === ActivityType.APPOINTMENTS)
@@ -412,12 +445,127 @@ const Dashboard: React.FC<DashboardProps> = ({
             }}
           />
 
-
-
-
-
           {!compactView && (
-            <div className="mb-2" />
+            <div className="flex flex-col items-center w-full mx-auto mt-8 space-y-8">
+              {/* PROSSIMO APPUNTAMENTO */}
+              {nextAppointment && (
+                <div className="w-full bg-white dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-6 shadow-xl border border-blue-500/20 flex items-center justify-between group overflow-hidden relative">
+                  <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-blue-500/10 blur-[50px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none"></div>
+                  <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-500">
+                      <Calendar className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">PROSSIMO OBIETTIVO</p>
+                      <h4 className="text-xl font-black text-slate-900 dark:text-white mb-0.5">{nextAppointment.title}</h4>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                        {new Date(nextAppointment.date).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-blue-100 dark:border-blue-800/30">
+                      {(() => {
+                        const diff = new Date(nextAppointment.date).getTime() - new Date().getTime();
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        if (diff < 0) return 'In corso / Passato';
+                        if (hours > 24) return `Tra ${Math.floor(hours/24)} giorni`;
+                        if (hours > 0) return `Tra ${hours}h ${mins}m`;
+                        return `Tra ${mins} minuti`;
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* VISION BOARD */}
+              <div className="w-full">
+                <DreamTrackerWidget 
+                  visionBoardData={visionBoardData}
+                  autoPersonalEarnings={dailyEarnings}
+                  onUpdateEarnings={onUpdateVisionBoardEarnings}
+                  onOpenVisionBoard={onOpenVisionBoardSettings}
+                />
+              </div>
+
+              {/* PROSSIMO FOLLOW-UP ALERT */}
+              {nextFollowUp && (
+                <div className={`w-full ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500/30' : 'bg-white dark:bg-slate-900/60 border-blue-500/20'} backdrop-blur-3xl rounded-[2.5rem] p-6 shadow-xl border flex items-center justify-between group overflow-hidden relative transition-all duration-500 hover:scale-[1.02]`}>
+                  <div className="flex items-center gap-5">
+                    <div className={`w-14 h-14 ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-blue-400 to-indigo-500'} rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-500 group-hover:rotate-12`}>
+                      <Clock className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-black ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'text-orange-600' : 'text-blue-500'} uppercase tracking-[0.2em] mb-1`}>
+                        {new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(0,0,0,0) ? 'FOLLOW-UP SCADUTO ⚠️' : 'PROSSIMO FOLLOW-UP'}
+                      </p>
+                      <h4 className="text-lg font-black text-slate-900 dark:text-white mb-0.5">{nextFollowUp.name}</h4>
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        Entro il {new Date(nextFollowUp.followUpDate!).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
+                      </p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => onEditLead(nextFollowUp.type || ActivityType.CONTACTS, nextFollowUp)}
+                    className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-md hover:shadow-lg transition-all active:scale-90 border border-slate-200 dark:border-slate-700"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
+              )}
+
+              {/* POWER RING (Guadagno Oggi) */}
+              <div className="relative group flex flex-col items-center py-8">
+                <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none"></div>
+                <div className="relative w-64 h-64 lg:w-72 lg:h-72 rounded-full border-[1.5rem] border-slate-300/30 dark:border-slate-700/60 flex items-center justify-center shadow-[inset_0_0_60px_rgba(0,0,0,0.15)] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                  <div className="text-center">
+                    <p className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Guadagno Oggi</p>
+                    <p className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white drop-shadow-sm">€{Math.round(dailyEarnings)}</p>
+                    <button
+                      onClick={onOpenTargetCalculator}
+                      className="mt-4 p-3 bg-white/5 dark:bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl transition-all active:scale-95 mx-auto"
+                    >
+                      <Calculator className="w-5 h-5 text-blue-500" />
+                    </button>
+                    <div className="mt-3 flex flex-col items-center gap-2">
+                      <svg className="absolute inset-[-1.5rem] w-[calc(100%+3rem)] h-[calc(100%+3rem)] -rotate-90">
+                        <circle
+                          cx="50%"
+                          cy="50%"
+                          r="48%"
+                          fill="transparent"
+                          stroke="url(#hubGradientDashboard)"
+                          strokeWidth="1.5rem"
+                          strokeDasharray={`${Math.min(dailyEarnings / 10, 100) * 3} 1000`}
+                          strokeLinecap="round"
+                          className="drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-1000"
+                        />
+                        <defs>
+                          <linearGradient id="hubGradientDashboard" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#a3e635" />
+                            <stop offset="100%" stopColor="#10b981" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SCRIPT LIBRARY BUTTON */}
+                <div className="mt-12 relative z-20">
+                  <button
+                    onClick={onOpenObjectionHandler}
+                    className="flex items-center gap-3 px-10 py-4 bg-[#007aff] hover:bg-[#0063cc] text-white rounded-3xl shadow-xl shadow-blue-500/30 transition-all active:scale-95 group border border-blue-400/30"
+                  >
+                    <Sparkles size={22} className="text-white group-hover:animate-pulse" />
+                    <span className="font-black text-sm uppercase tracking-[0.2em]">Script Library</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="h-10" />
+            </div>
           )}
         </div>
       )}
@@ -425,7 +573,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Tab Statistiche */}
       {currentTab === 'stats' && (
         <div className="animate-fade-in relative z-10 w-full px-6 sm:px-12 lg:px-16 flex flex-col items-center">
-          <div className="w-full max-w-6xl">
+          <div className="w-full">
             <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3 px-6">
               <span className="w-1.5 h-8 bg-blue-500 rounded-full"></span>
               IMBUTO DI CONVERSIONE

@@ -2,80 +2,78 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactDOM from 'react-dom';
 import { ActivityLog, ActivityType, Lead } from '../types';
+import { ACTIVITY_LABELS } from '../constants';
+import { it } from 'date-fns/locale';
+import { format } from 'date-fns';
 
-interface AppointmentsOverviewModalProps {
+interface LeadsOverviewModalProps {
     isOpen: boolean;
     onClose: () => void;
     onEdit: (lead: Lead) => void;
     activityLogs: ActivityLog[];
+    activityType: ActivityType;
     filterDate?: Date | null;
+    customLabel?: string;
 }
 
-const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ isOpen, onClose, onEdit, activityLogs, filterDate }) => {
+const LeadsOverviewModal: React.FC<LeadsOverviewModalProps> = ({ 
+    isOpen, 
+    onClose, 
+    onEdit, 
+    activityLogs, 
+    activityType,
+    filterDate,
+    customLabel 
+}) => {
 
-    // Helper for capitalization
-    const capitalize = (str: string) => str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+    const capitalize = (str: string) => str ? str.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()).join(' ') : "";
 
-    // Process appointments directly from activity logs
-    const appointments = useMemo(() => {
+    const leads = useMemo(() => {
         if (!isOpen || !activityLogs) return [];
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const filterStr = filterDate ? filterDate.toISOString().split('T')[0] : null;
-
-        const upcoming: (Lead & { _displayDate: string, _isFollowUp: boolean })[] = [];
+        const filterStr = filterDate ? format(filterDate, 'yyyy-MM-dd') : null;
+        const allLeads: Lead[] = [];
 
         activityLogs.forEach(log => {
             if (log.leads) {
                 log.leads.forEach(lead => {
-                    if (lead.status !== 'won' && lead.status !== 'lost') {
-                        let isMatch = false;
-                        let displayDate = '';
-                        let isFollowUp = false;
-
-                        if (filterStr) {
-                            if (lead.appointmentDate?.startsWith(filterStr)) {
-                                isMatch = true;
-                                displayDate = lead.appointmentDate;
-                            } else if (lead.followUpDate?.startsWith(filterStr)) {
-                                isMatch = true;
-                                displayDate = lead.followUpDate;
-                                isFollowUp = true;
-                            } else if (log.date === filterStr && lead.type === ActivityType.APPOINTMENTS) {
-                                isMatch = true;
-                                displayDate = lead.date;
-                            }
-                        } else {
-                            // Vista generale: SOLO appuntamenti futuri (escludiamo i Follow-Up qui per non confondere)
-                            const isApp = lead.type === ActivityType.APPOINTMENTS || lead.appointmentDate;
-                            const hasFutureApp = lead.appointmentDate && new Date(lead.appointmentDate) >= today;
-                            
-                            if (isApp && hasFutureApp) {
-                                isMatch = true;
-                                displayDate = lead.appointmentDate!;
-                            } else if (isApp && !lead.appointmentDate && log.date === filterStr) {
-                                // Se è nel log di oggi come Appuntamento ma senza data specifica (raro)
-                                isMatch = true;
-                                displayDate = log.date;
+                    if (lead && lead.type === activityType) {
+                        // --- FILTRO AVANZATO (v1.3.1) ---
+                        // 1. Se stiamo guardando i CONTATTI, nascondi quelli che sono diventati appuntamenti o clienti/persi
+                        if (activityType === ActivityType.CONTACTS) {
+                            if (lead.status !== 'pending' || lead.linkedAppointment || lead.appointmentDate) {
+                                return;
                             }
                         }
+                        // 2. Per gli altri tipi (Appuntamenti, Contratti), basati sullo status e sul tipo
+                        else if (lead.status === 'lost') {
+                            return;
+                        }
 
-                        if (isMatch && displayDate) {
-                            upcoming.push({ ...lead, _displayDate: displayDate, _isFollowUp: isFollowUp });
+                        if (filterStr) {
+                            if (log.date === filterStr) {
+                                allLeads.push(lead);
+                            }
+                        } else {
+                            allLeads.push(lead);
                         }
                     }
                 });
             }
         });
 
-        // Sort upcoming from the nearest to the furthest
-        upcoming.sort((a, b) => new Date(a._displayDate).getTime() - new Date(b._displayDate).getTime());
-        return upcoming;
-    }, [isOpen, activityLogs]);
+        allLeads.sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
+        });
+
+        return allLeads;
+    }, [isOpen, activityLogs, activityType, filterDate]);
 
     if (!isOpen) return null;
+
+    const label = customLabel || ACTIVITY_LABELS[activityType] || 'Contatti';
 
     return ReactDOM.createPortal(
         <AnimatePresence>
@@ -99,17 +97,17 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner">
                                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-white tracking-tight">
-                                    {filterDate ? 'Agenda' : 'Prossimi Appuntamenti'}
+                                    {label}
                                 </h2>
                                 <p className="text-sm font-medium text-white/70">
                                     {filterDate 
-                                        ? filterDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) 
-                                        : 'Lista dei contatti e impegni salvati'}
+                                        ? format(filterDate, 'd MMMM yyyy', { locale: it })
+                                        : `Elenco completo ${label.toLowerCase()}`}
                                 </p>
                             </div>
                         </div>
@@ -125,36 +123,33 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
 
                     {/* Content */}
                     <div className="px-8 pb-8 overflow-y-auto flex-1 custom-scrollbar">
-                        {appointments.length === 0 ? (
+                        {leads.length === 0 ? (
                             <div className="text-center py-20 px-4">
                                 <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
-                                    <span className="text-4xl opacity-40">📅</span>
+                                    <span className="text-4xl opacity-40">👥</span>
                                 </div>
-                                <h3 className="text-white font-medium text-xl mb-2">Nessun appuntamento</h3>
+                                <h3 className="text-white font-medium text-xl mb-2">Nessun contatto</h3>
                                 <p className="text-white/60 text-sm max-w-[280px] mx-auto">
                                     {filterDate 
-                                        ? 'Nessun impegno salvato per questa giornata.' 
-                                        : 'Non hai ancora registrato dei contatti o appuntamenti futuri.'}
+                                        ? 'Non hai nessun contatto registrato per questa data.' 
+                                        : 'Non hai ancora registrato nessun contatto.'}
                                 </p>
                             </div>
                         ) : (
                             <div className="space-y-3 mt-4">
-                                {appointments.map((app) => {
-                                    const d = new Date(app._displayDate);
-                                    const dateStr = d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
-                                    const weekdayStr = d.toLocaleDateString('it-IT', { weekday: 'short' });
-                                    const hasTime = app._displayDate.includes('T') && app._displayDate.split('T')[1].length >= 5;
-                                    const timeStr = hasTime ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                                {leads.map((lead) => {
+                                    const d = lead.date ? new Date(lead.date) : new Date();
+                                    const dateStr = format(d, 'd MMM yyyy', { locale: it });
+                                    const timeStr = format(d, 'HH:mm');
 
                                     return (
-                                        <div key={app.id} className="relative group">
+                                        <div key={lead.id} className="relative group">
                                             <div className="bg-white/[0.07] border border-white/10 rounded-[1.75rem] p-6 hover:bg-white/[0.12] transition-all flex flex-col sm:flex-row gap-6 items-start sm:items-center active:scale-[0.98]">
                                                 
                                                 {/* Date/Time - Refined iOS Style */}
                                                 <div className="flex flex-row sm:flex-col items-center sm:items-start gap-2 sm:gap-0 shrink-0 min-w-[80px]">
                                                     <span className="text-2xl font-bold text-white tracking-tighter">{timeStr}</span>
                                                     <div className="flex items-center gap-1 opacity-70">
-                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-white">{weekdayStr}</span>
                                                         <span className="text-[10px] font-bold uppercase tracking-widest text-white">{dateStr}</span>
                                                     </div>
                                                 </div>
@@ -167,41 +162,36 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                                     <div className="flex items-center justify-between gap-3">
                                                         <div className="flex items-center gap-2 truncate">
                                                             <h4 className="text-xl font-bold text-white truncate tracking-tight">
-                                                                {capitalize(app.name)}
+                                                                {capitalize(lead.name || 'Senza Nome')}
                                                             </h4>
-                                                            {app._isFollowUp && (
-                                                                <div className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tighter backdrop-blur-md border bg-purple-500/10 text-purple-400 border-purple-500/20">
-                                                                    Follow-Up 🚀
+                                                            {lead.temperature && (
+                                                                <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tighter backdrop-blur-md border ${
+                                                                    lead.temperature === 'caldo' ? 'bg-orange-500/20 text-orange-400 border-orange-500/40' :
+                                                                    lead.temperature === 'tiepido' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
+                                                                    'bg-blue-500/20 text-blue-400 border-blue-500/40'
+                                                                }`}>
+                                                                    {lead.temperature === 'caldo' ? 'Caldo 🔥' : lead.temperature === 'tiepido' ? 'Tiepido 🌤️' : 'Freddo ❄️'}
                                                                 </div>
                                                             )}
-                                                            {!app._isFollowUp && app.temperature && (
-                                                                <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tighter backdrop-blur-md border ${
-                                                                    app.temperature === 'caldo' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
-                                                                    app.temperature === 'tiepido' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                                                                    'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                                                }`}>
-                                                                    {app.temperature === 'caldo' ? 'Caldo 🔥' : app.temperature === 'tiepido' ? 'Tiepido 🌤️' : 'Freddo ❄️'}
+                                                            {lead.status === 'won' && (
+                                                                <div className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 backdrop-blur-md">
+                                                                    Cliente ✨
                                                                 </div>
                                                             )}
                                                         </div>
                                                     </div>
 
                                                     <div className="flex flex-wrap items-center gap-3 mt-1.5">
-                                                        {app.locationType === 'online' ? (
-                                                            <div className="flex items-center gap-1.5 text-white/40 text-xs text font-medium">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-                                                                {app.platform || 'Online'}
-                                                            </div>
-                                                        ) : app.locationType === 'physical' ? (
-                                                            <div className="flex items-center gap-1.5 text-white/40 text-xs text font-medium">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.5)]" />
-                                                                {app.address ? <span className="truncate max-w-[150px]">{app.address}</span> : 'In presenza'}
-                                                            </div>
-                                                        ) : null}
-                                                        {app.phone && (
+                                                        {lead.phone && (
                                                             <div className="flex items-center gap-1.5 text-white/80 text-xs font-bold">
                                                                 <span className="opacity-60">📞</span>
-                                                                {app.phone}
+                                                                {lead.phone}
+                                                            </div>
+                                                        )}
+                                                        {lead.type && (
+                                                            <div className="flex items-center gap-1.5 text-white/50 text-[10px] font-black uppercase tracking-widest">
+                                                                <span className="opacity-50 text-white">•</span>
+                                                                <span>{ACTIVITY_LABELS[lead.type]}</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -209,7 +199,7 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
 
                                                 {/* Action Button */}
                                                 <button
-                                                    onClick={() => onEdit(app)}
+                                                    onClick={() => onEdit(lead)}
                                                     className="absolute top-6 right-6 sm:static p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all border border-white/10 shadow-sm active:scale-90"
                                                 >
                                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,11 +209,11 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                             </div>
 
                                             {/* Notes - Refined Style */}
-                                            {app.note && (
+                                            {lead.note && (
                                                 <div className="mx-6 px-4 py-3 -mt-2 bg-white/[0.04] border-x border-b border-white/10 rounded-b-2xl">
                                                     <p className="text-[13px] text-white/80 leading-relaxed font-medium">
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mr-2 not-italic font-sans">Note:</span>
-                                                        {app.note}
+                                                        {lead.note}
                                                     </p>
                                                 </div>
                                             )}
@@ -240,4 +230,4 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
     );
 };
 
-export default AppointmentsOverviewModal;
+export default LeadsOverviewModal;

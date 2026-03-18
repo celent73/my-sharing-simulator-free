@@ -303,7 +303,7 @@ export const loadCareerDates = async (userId: string | null): Promise<Record<str
       .eq('user_id', userId)
       .single();
 
-    if (data?.career_path_dates && Object.keys(data.career_path_dates).length > 0) {
+    if (data && data.career_path_dates !== undefined && data.career_path_dates !== null) {
       return data.career_path_dates;
     }
     const localData = localStorage.getItem(CAREER_DATES_KEY);

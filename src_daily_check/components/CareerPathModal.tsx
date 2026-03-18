@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Trash2, RotateCcw } from 'lucide-react';
 
 interface CareerPathModalProps {
     isOpen: boolean;
@@ -8,6 +9,10 @@ interface CareerPathModalProps {
     userId?: string | null;
     careerDates?: Record<string, string>;
     onUpdateDates?: (dates: Record<string, string>) => void;
+    onResetAll?: () => void;
+    manualQualification?: string | null;
+    onResetQualification?: () => void;
+    currentLevelName?: string;
 }
 
 import { saveCareerDates } from '../services/storageService';
@@ -33,7 +38,11 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
     isEmbedded = false,
     userId,
     careerDates,
-    onUpdateDates
+    onUpdateDates,
+    onResetAll,
+    manualQualification,
+    onResetQualification,
+    currentLevelName
 }) => {
     const [dates, setDates] = useState<Record<string, string>>(careerDates || {});
     const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(null);
@@ -55,6 +64,33 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
         saveCareerDates(userId || null, updated);
         if (onUpdateDates) onUpdateDates(updated);
         window.dispatchEvent(new Event('careerDatesUpdated'));
+    };
+
+    const handleResetIndividual = (stageName: string) => {
+        // Reset the date if it exists
+        if (dates[stageName]) {
+            handleDateChange(stageName, "");
+        }
+        
+        // Reset the manual qualification if it matches
+        if (manualQualification && manualQualification.toLowerCase() === stageName.toLowerCase()) {
+            if (onResetQualification) onResetQualification();
+        }
+    };
+
+    const handleResetAll = async () => {
+        if (confirm("Sei sicuro di voler azzerare tutti i traguardi raggiunti?")) {
+            // Aggiorna immediatamente lo stato locale per reattività istantanea
+            setDates({});
+            
+            if (onResetAll) {
+                await onResetAll();
+            } else {
+                await saveCareerDates(userId || null, {});
+                if (onUpdateDates) onUpdateDates({});
+                window.dispatchEvent(new Event('careerDatesUpdated'));
+            }
+        }
     };
 
     if (!isOpen && !isEmbedded) return null;
@@ -80,15 +116,24 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                         Piano <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 drop-shadow-none">Carriera</span>
                     </h2>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 transition-all border border-transparent hover:border-white/20 shadow-sm"
-                    aria-label="Chiudi"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleResetAll}
+                        className="flex items-center gap-2 py-2 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all border border-red-500/20 text-sm font-bold uppercase tracking-wider"
+                    >
+                        <RotateCcw className="h-4 w-4" />
+                        Azzera Tutto
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 transition-all border border-transparent hover:border-white/20 shadow-sm"
+                        aria-label="Chiudi"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {/* Game Path Content */}
@@ -97,9 +142,16 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                     {CAREER_STAGES.map((stage, index) => {
                         const isFilled = !!dates[stage.name];
                         const dateObj = isFilled ? new Date(dates[stage.name]) : null;
-                        const isReached = dateObj && dateObj <= new Date();
-                        const isCurrent = !isReached && (index === 0 || (!!dates[CAREER_STAGES[index - 1].name] && new Date(dates[CAREER_STAGES[index-1].name]) <= new Date()));
-                        const isFuture = !isFilled && !isCurrent;
+                        
+                        // Determina se il traguardo è raggiunto (per data o per livello attuale impostato)
+                        const currentLevelIndex = currentLevelName 
+                            ? CAREER_STAGES.findIndex(s => s.name.toLowerCase() === currentLevelName.toLowerCase()) 
+                            : -1;
+                        
+                        const isReached = (dateObj && dateObj <= new Date()) || (currentLevelIndex >= index);
+                        
+                        const isCurrent = !isReached && (index === 0 || (!!dates[CAREER_STAGES[index - 1].name] && new Date(dates[CAREER_STAGES[index-1].name]) <= new Date()) || (currentLevelIndex >= index - 1));
+                        const isFuture = !isFilled && !isCurrent && !isReached;
                         const isLeft = index % 2 === 0;
 
                         const isNextFilled = index < CAREER_STAGES.length - 1 && !!dates[CAREER_STAGES[index + 1].name];
@@ -135,18 +187,32 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
 
                                 <div className={`relative z-10 flex items-center justify-center ${isLeft ? '-translate-x-[5.5rem] sm:-translate-x-[7rem]' : 'translate-x-[5.5rem] sm:translate-x-[7rem]'}`}>
 
-                                    <div className={`absolute top-1/2 -translate-y-1/2 flex flex-col justify-center ${isLeft ? 'left-full ml-4 sm:ml-6 items-start text-left' : 'right-full mr-4 sm:mr-6 items-end text-right'} w-40 pointer-events-none`}>
+                                    <div className={`absolute top-1/2 -translate-y-1/2 flex flex-col justify-center ${isLeft ? 'left-full ml-4 sm:ml-6 items-start text-left' : 'right-full mr-4 sm:mr-6 items-end text-right'} w-40 pointer-events-auto`}>
                                         <h3
                                             className={`text-sm md:text-base font-black leading-tight drop-shadow-md transition-colors ${isFuture ? 'text-slate-500' : 'text-white'}`}
                                             style={(isFilled || isCurrent) ? { color: stage.color, textShadow: `0 0 10px ${stage.color}80` } : {}}
                                         >
                                             {stage.name}
                                         </h3>
-                                        {isFilled && (
-                                            <div className="mt-1 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 inline-flex items-center gap-1.5 shadow-xl">
-                                                <span className="text-[10px] sm:text-xs font-bold text-white/90 whitespace-nowrap">
-                                                    {new Date(dates[stage.name]).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                </span>
+                                        {(isFilled || (manualQualification && manualQualification.toLowerCase() === stage.name.toLowerCase())) && (
+                                            <div className="mt-1 flex items-center gap-2">
+                                                {isFilled && (
+                                                    <div className="px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 inline-flex items-center gap-1.5 shadow-xl">
+                                                        <span className="text-[10px] sm:text-xs font-bold text-white/90 whitespace-nowrap">
+                                                            {new Date(dates[stage.name]).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleResetIndividual(stage.name);
+                                                    }}
+                                                    className="p-1.5 rounded-full bg-red-500/20 hover:bg-red-500/40 text-red-500 transition-all border border-red-500/20 shadow-lg"
+                                                    title="Azzera questa qualifica"
+                                                >
+                                                    <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                                </button>
                                             </div>
                                         )}
                                     </div>
@@ -195,12 +261,12 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
             <AnimatePresence>
                 {selectedStage !== null && (
                     <motion.div
-                        className="absolute inset-0 z-[200] flex items-center justify-center p-4 bg-black/60"
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <div className="absolute inset-0 backdrop-blur-sm cursor-pointer" onClick={() => setSelectedStageIndex(null)}></div>
+                        <div className="absolute inset-0 cursor-pointer" onClick={() => setSelectedStageIndex(null)}></div>
 
                         <motion.div
                             className="w-full max-w-sm bg-slate-800 rounded-3xl p-6 shadow-2xl border border-white/20 relative overflow-hidden z-10"
@@ -231,17 +297,23 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                             <div className="space-y-6">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Seleziona Data</label>
-                                    <div className="relative flex items-center">
+                                    <div className="relative flex items-center group bg-slate-900 border-2 border-slate-700/50 rounded-xl overflow-hidden focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/20 transition-all shadow-inner">
                                         <input
                                             type="date"
                                             value={dates[selectedStage.name] || ''}
                                             onChange={(e) => handleDateChange(selectedStage.name, e.target.value)}
-                                            className="w-full bg-slate-900 border-2 border-slate-700/50 rounded-xl pl-4 pr-12 py-3.5 text-white font-black text-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-inner"
+                                            style={{ colorScheme: 'dark' }}
+                                            className="w-full bg-transparent pl-4 pr-12 py-3.5 text-white !text-white font-black text-lg focus:outline-none relative z-10 min-h-[56px]"
                                         />
+                                        {!dates[selectedStage.name] && (
+                                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-0">
+                                                <span className="text-white/40 font-black text-lg tracking-normal uppercase">gg/mm/aaaa</span>
+                                            </div>
+                                        )}
                                         {dates[selectedStage.name] && (
                                             <button
                                                 onClick={() => handleDateChange(selectedStage.name, '')}
-                                                className="absolute right-3 p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-colors"
+                                                className="absolute right-3 p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-colors z-20"
                                                 title="Cancella data"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -259,10 +331,10 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                     Conferma
                                 </button>
 
-                                {dates[selectedStage.name] && (
+                                {(dates[selectedStage.name] || (manualQualification && manualQualification.toLowerCase() === selectedStage.name.toLowerCase())) && (
                                     <button
                                         onClick={() => {
-                                            handleDateChange(selectedStage.name, '');
+                                            handleResetIndividual(selectedStage.name);
                                             setSelectedStageIndex(null);
                                         }}
                                         className="w-full py-3.5 rounded-xl font-black text-white bg-red-500 shadow-lg shadow-red-500/30 transition-transform active:scale-95 text-lg"

@@ -43,7 +43,7 @@ const QuickPitchMode: React.FC<QuickPitchModeProps> = ({ planResult, realization
   };
 
   return (
-    <div className="w-full max-w-[95%] 2xl:max-w-[1600px] mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
+    <div className="w-full mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
 
       {/* HEADER SECTION */}
       <div className="text-center space-y-4">

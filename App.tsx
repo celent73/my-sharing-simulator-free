@@ -36,7 +36,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.2.84";
+const APP_VERSION = "v1.3.1";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -595,7 +595,7 @@ const AppContent = () => {
 
 
       <div className="fixed top-2 right-2 z-[9999] pointer-events-none opacity-50 text-[10px] font-mono bg-black/20 text-white px-2 py-0.5 rounded-full backdrop-blur-sm">
-        v1.2.84
+        {APP_VERSION}
       </div>
 
 
@@ -607,7 +607,7 @@ const AppContent = () => {
 
       {activeModal !== 'DAILY_CHECK' && <ScrollToTopButton />}
 
-      <div className={`${isResultsFullScreen ? 'w-full p-0 pb-0 max-w-none' : 'container mx-auto p-4 sm:p-6 lg:p-8 pb-32'} relative flex-grow ${isResultsFullScreen ? 'z-[10000]' : 'z-10'} ${isTrialExpired ? 'blur-sm pointer-events-none select-none h-screen overflow-hidden' : ''}`}>
+      <div className={`${isResultsFullScreen ? 'w-full p-0 pb-0 max-w-none' : 'w-full p-2 sm:p-4 pb-32'} relative flex-grow ${isResultsFullScreen ? 'z-[10000]' : 'z-10'} ${isTrialExpired ? 'blur-sm pointer-events-none select-none h-screen overflow-hidden' : ''}`}>
 
         {/* Custom Styles Injection */}
 
@@ -623,7 +623,7 @@ const AppContent = () => {
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
                     <span>My Sharing</span>
                     <span className="text-main-accent">Simulator</span>
-                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2" style={{ color: 'var(--header-text)' }}>v1.2.84</span>
+                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2" style={{ color: 'var(--header-text)' }}>v1.3.1</span>
                     <img
                       src="/logo_v2_main.png"
                       alt="Logo"
@@ -709,7 +709,7 @@ const AppContent = () => {
         )}
 
         {/* MOBILE SWIPE NAVIGATION TABS */}
-        {!isResultsFullScreen && (
+        {!isResultsFullScreen && !activeModal && (
           <div
             className="md:hidden flex justify-center mb-6 p-1.5 rounded-2xl mx-auto max-w-[92%] border-2 border-white/60 dark:border-white/10 shadow-2xl relative z-30 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl"
           >

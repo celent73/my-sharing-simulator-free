@@ -133,7 +133,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
     if (!isOpen) return null;
 
-    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setSettings(prev => ({ ...prev, userProfile: { ...prev.userProfile, [name]: value } }));
     };
@@ -299,6 +299,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         <input type="text" name="lastName" className="w-full mt-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent dark:text-white" value={settings.userProfile.lastName} onChange={handleProfileChange} />
                                     </div>
                                 </div>
+                                <div className="mt-4">
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Qualifica Attuale</label>
+                                    <select 
+                                        name="currentQualification" 
+                                        className="w-full mt-1.5 px-4 py-3 border-2 border-slate-100 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 dark:text-white font-bold text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none cursor-pointer shadow-sm"
+                                        value={settings.userProfile.currentQualification || ''}
+                                        onChange={handleProfileChange}
+                                    >
+                                        <option value="">Automatica (base contratti)</option>
+                                        {Object.values(Qualification).map(q => (
+                                            <option key={q} value={q}>{q}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-medium">Imposta manualmente il tuo livello attuale se sei già un utente esperto.</p>
+                                </div>
                                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-600 flex justify-between items-center">
                                     <div>
                                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Giorno Inizio Mese Commerciale</p>
@@ -427,14 +442,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                         <span className="font-bold text-sm text-slate-700 dark:text-white">{label}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, -1)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-slate-500 hover:bg-slate-200"><MinusIcon /></button>
+                                                        {activeGoalTab !== 'monthly' && (
+                                                            <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, -1)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-slate-500 hover:bg-slate-200"><MinusIcon /></button>
+                                                        )}
                                                         <input
                                                             type="number"
                                                             className="w-16 text-center font-bold bg-transparent dark:text-white outline-none border-b border-transparent focus:border-blue-500"
                                                             value={val}
                                                             onChange={(e) => handleGoalChange(activeGoalTab, activity, e.target.value)}
+                                                            readOnly={activeGoalTab === 'monthly'}
                                                         />
-                                                        <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, 1)} className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 hover:bg-blue-200"><PlusIcon /></button>
+                                                        {activeGoalTab !== 'monthly' && (
+                                                            <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, 1)} className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 hover:bg-blue-200"><PlusIcon /></button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -508,6 +528,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         enabled={settings.notificationSettings.milestones}
                                         onChange={(val) => handleNotificationChange('milestones', val)}
                                     />
+                                </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600">
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                    <span className="text-blue-500">🧪</span> Anteprima Promemoria
+                                </h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-medium">Usa questi tasti per vedere come appariranno i pop-up di notifica quando il sistema li attiverà automaticamente.</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <button 
+                                        onClick={() => window.dispatchEvent(new CustomEvent('test-reminder', { detail: { type: 'MORNING_MOTIVATION' } }))}
+                                        className="py-3 px-4 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl font-bold text-xs hover:bg-blue-200 transition-all flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800"
+                                    >
+                                        Test Mattutino
+                                    </button>
+                                    <button 
+                                        onClick={() => window.dispatchEvent(new CustomEvent('test-reminder', { detail: { type: 'DAILY_MISSING' } }))}
+                                        className="py-3 px-4 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 rounded-xl font-bold text-xs hover:bg-orange-200 transition-all flex items-center justify-center gap-2 border border-orange-200 dark:border-orange-800"
+                                    >
+                                        Test Giornaliero
+                                    </button>
+                                    <button 
+                                        onClick={() => window.dispatchEvent(new CustomEvent('test-reminder', { detail: { type: 'WEEKLY_GOAL_NOT_REACHED' } }))}
+                                        className="py-3 px-4 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-xl font-bold text-xs hover:bg-indigo-200 transition-all flex items-center justify-center gap-2 border border-indigo-200 dark:border-indigo-800"
+                                    >
+                                        Test Settimanale
+                                    </button>
                                 </div>
                             </div>
                         </div>

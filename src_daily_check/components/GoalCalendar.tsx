@@ -30,7 +30,10 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({ activityLogs, goals, onSele
 
             // Important: search across ALL logs for any lead scheduled for THIS date
             const isScheduledForDay = activityLogs?.some(l =>
-                l.leads?.some(lead => lead.appointmentDate && lead.appointmentDate.startsWith(dateStr))
+                l.leads?.some(lead => 
+                    (lead.appointmentDate && lead.appointmentDate.startsWith(dateStr)) ||
+                    (lead.followUpDate && lead.followUpDate.startsWith(dateStr))
+                )
             ) || false;
 
             let goalsMet = 0;
@@ -70,7 +73,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({ activityLogs, goals, onSele
     const blanks = Array(firstDayIndex).fill(null);
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-6 lg:p-8 shadow-xl w-full max-w-5xl mx-auto mb-8">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-6 lg:p-8 shadow-xl w-full mx-auto mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Calendario Produttività</h3>
                 <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">

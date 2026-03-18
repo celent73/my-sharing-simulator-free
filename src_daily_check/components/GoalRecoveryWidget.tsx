@@ -18,19 +18,47 @@ const GoalRecoveryWidget: React.FC<GoalRecoveryWidgetProps> = ({ commercialMonth
     const behindStats = recoveryStats.filter(s => s.isBehind);
     const isOverallBehind = behindStats.length > 0;
 
+    // Determination of Status and Colors
+    const getStatusInfo = () => {
+        if (commercialMonth.daysRemaining <= 10 && isOverallBehind) {
+            return {
+                label: 'In Recupero',
+                colorClass: 'bg-orange-100 text-orange-600',
+                accentClass: 'bg-orange-500',
+                iconClass: 'text-orange-500'
+            };
+        }
+        if (commercialMonth.daysElapsed <= 20 && !isOverallBehind) {
+            return {
+                label: 'In Linea',
+                colorClass: 'bg-emerald-100 text-emerald-600',
+                accentClass: 'bg-emerald-500',
+                iconClass: 'text-emerald-500'
+            };
+        }
+        return {
+            label: 'In Corso',
+            colorClass: 'bg-blue-100 text-blue-600',
+            accentClass: 'bg-blue-500',
+            iconClass: 'text-blue-500'
+        };
+    };
+
+    const status = getStatusInfo();
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden relative"
+            className="w-full max-w-5xl mx-auto bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden relative"
         >
             {/* Background Accent */}
-            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-10 -mr-16 -mt-16 rounded-full ${isOverallBehind ? 'bg-orange-500' : 'bg-emerald-500'}`} />
+            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-10 -mr-16 -mt-16 rounded-full ${status.accentClass}`} />
 
             <div className="flex justify-between items-start mb-6 gap-4">
                 <div className="min-w-0">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                        <Target className={isOverallBehind ? "text-orange-500" : "text-emerald-500"} size={24} />
+                        <Target className={status.iconClass} size={24} />
                         Tabella di Marcia
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 truncate">
@@ -38,8 +66,8 @@ const GoalRecoveryWidget: React.FC<GoalRecoveryWidgetProps> = ({ commercialMonth
                     </p>
                 </div>
                 <div className="flex-shrink-0">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${isOverallBehind ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                        {isOverallBehind ? 'In Recupero' : 'In Corso'}
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${status.colorClass}`}>
+                        {status.label}
                     </span>
                 </div>
             </div>
@@ -112,8 +140,8 @@ const GoalRecoveryWidget: React.FC<GoalRecoveryWidgetProps> = ({ commercialMonth
                                     animate={{ opacity: 1, height: 'auto' }}
                                     className="mt-2 flex items-center gap-2 bg-orange-50 dark:bg-orange-900/20 p-2 rounded-xl"
                                 >
-                                    <Zap size={14} className="text-orange-500" />
-                                    <span className="text-[11px] font-bold text-orange-700 dark:text-orange-400">
+                                    <Zap size={16} className="text-orange-500" />
+                                    <span className="text-[13px] font-bold text-orange-700 dark:text-orange-400">
                                         Recupero: {stat.recoveryDaily.toFixed(1)} azioni / giorno
                                     </span>
                                 </motion.div>

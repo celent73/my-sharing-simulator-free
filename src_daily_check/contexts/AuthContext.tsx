@@ -55,15 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const signOut = async () => {
         try {
-            // Eseguiamo un'ultima sincronizzazione di sicurezza prima di scollegarci
-            if (user?.id) {
-                try {
-                    await syncLocalDataToCloud(user.id);
-                } catch (syncError) {
-                    console.error('Final sync before signout failed:', syncError);
-                }
-            }
-
+            // Rimuoviamo la sincronizzazione pesante al logout per evitare crash
+            // I dati sono già stati salvati durante l'editing.
+            
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('sb-') || key.includes('supabase.auth.token')) {
                     localStorage.removeItem(key);
@@ -71,6 +65,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
             await supabase.auth.signOut();
             localStorage.removeItem('arena_team_id');
+            
+            // Usiamo di nuovo il redirect pulito alla home
             window.location.href = '/';
         } catch (error) {
             console.error('Sign out error:', error);

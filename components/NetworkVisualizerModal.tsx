@@ -580,7 +580,6 @@ export const NetworkVisualizerModal: React.FC<NetworkVisualizerModalProps> = ({ 
           <div className="pointer-events-auto">
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md">Interactive 3D</span>
-              <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/60 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md">v1.2.47</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] tracking-tight">
               {txt.title}

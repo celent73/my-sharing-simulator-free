@@ -62,6 +62,7 @@ export interface Lead {
   platform?: string;
   followUpDate?: string;
   temperature?: 'freddo' | 'tiepido' | 'caldo';
+  linkedAppointment?: boolean;
 }
 
 export type GoalPeriod = {
