@@ -1577,7 +1577,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
       />
       <DeleteDataModal
         isOpen={isDeleteDataModalOpen}
-        onClose={() => setDeleteDataModalOpen(true)}
+        onClose={() => setDeleteDataModalOpen(false)}
         onConfirmDeleteMonth={handleDeleteCurrentMonth}
         onConfirmDeleteAll={handleClearAllData}
       />
