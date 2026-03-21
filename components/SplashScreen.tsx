@@ -152,7 +152,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 animate={{ opacity: 0.5 }}
                 transition={{ delay: 2 }}
             >
-                © 2026 My Sharing Simulator • v1.2.60
+                © 2026 My Sharing Simulator • v1.3.17
             </motion.div>
         </motion.div>
     );

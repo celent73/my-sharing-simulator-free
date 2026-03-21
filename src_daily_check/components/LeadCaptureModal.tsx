@@ -413,15 +413,19 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                         {!isAppointment && !isLinkedAppointment && (
                             <div className="space-y-3">
                                 <label className="block text-[10px] font-black uppercase text-black/40 tracking-[0.15em]">🚀 Prossimo Follow-up</label>
-                                <input 
-                                    type={followUpDate ? "date" : "text"}
-                                    value={followUpDate} 
-                                    onChange={e => setFollowUpDate(e.target.value)}
-                                    onFocus={(e) => e.target.type = 'date'}
-                                    onBlur={(e) => { if (!e.target.value) e.target.type = 'text' }}
-                                    placeholder="gg/mm/aaaa"
-                                    className="w-full px-5 py-4 bg-black/[0.03] border border-black/20 rounded-2xl focus:ring-2 focus:ring-slate-900/20 outline-none text-slate-900 font-bold transition-all" 
-                                />
+                                <div className="relative">
+                                    <input 
+                                        type="date" 
+                                        value={followUpDate} 
+                                        onChange={e => setFollowUpDate(e.target.value)}
+                                        className="w-full px-5 py-4 bg-black/[0.03] border border-black/20 rounded-2xl focus:ring-2 focus:ring-slate-900/20 outline-none text-slate-900 font-bold transition-all text-lg min-h-[60px]" 
+                                    />
+                                    {!followUpDate && (
+                                        <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400 font-bold text-lg">
+                                            gg/mm/aaaa
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
