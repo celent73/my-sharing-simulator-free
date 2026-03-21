@@ -91,7 +91,7 @@ const CareerDeadlineBanner: React.FC<CareerDeadlineBannerProps> = ({ careerStatu
                     {/* Testo */}
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline mb-1">
-                            <p className={`text-[11px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none`}>
+                            <p className={`text-[14px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none`}>
                                 🏆 SCADENZA CARRIERA
                             </p>
                             {careerStatus && (
