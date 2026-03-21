@@ -561,7 +561,7 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
                     key={expandedIds.length} // Force re-render on expansion to update counter if needed
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
-                    className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
+                    className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-3 sm:px-5 py-2 sm:py-3 shadow-sm"
                 >
                     <Users size={16} className="text-green-600" />
                     <div>
@@ -576,7 +576,7 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
                         key={totalWithBonus}
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
-                        className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
+                        className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-3 sm:px-5 py-2 sm:py-3 shadow-sm"
                     >
                         <Euro size={16} className="text-emerald-600" />
                         <div>
