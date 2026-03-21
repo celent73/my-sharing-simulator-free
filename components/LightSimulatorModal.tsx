@@ -29,6 +29,8 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
     const [networkSize, setNetworkSize] = useState([3, 9, 27, 81, 243, 729]);
     const [monthRange, setMonthRange] = useState('1');
     const [utilityType, setUtilityType] = useState<'DOMESTIC' | 'BUSINESS'>('DOMESTIC');
+    const [isVisible, setIsVisible] = useState(true);
+    const lastScrollY = React.useRef(0);
 
     useEffect(() => {
         if (isOpen) {
@@ -72,6 +74,16 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
     const handleModeToggle = (mode: 'manual' | 'auto') => {
         setExpansionMode(mode);
         if (mode === 'auto') handleFactorChange(duplicationFactor);
+    };
+    
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const currentScrollY = e.currentTarget.scrollTop;
+        if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
+            setIsVisible(true);
+        } else if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+            setIsVisible(false);
+        }
+        lastScrollY.current = currentScrollY;
     };
 
     // ─── All nav items in one flat list ───────────────────────────────────────
@@ -150,7 +162,10 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
 
                 {/* Tutorial: Simulator */}
                 {mainTab === 'tutorial' && tutorialTab === 'simulator' && (
-                    <div className="h-full overflow-y-auto custom-scrollbar p-6 pb-32 animate-in fade-in duration-200">
+                    <div 
+                        onScroll={handleScroll}
+                        className="h-full overflow-y-auto custom-scrollbar p-6 pb-32 animate-in fade-in duration-200"
+                    >
                         <EarningsSimulator
                             networkSize={networkSize}
                             onLevelChange={handleLevelChange}
@@ -171,14 +186,20 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
 
                 {/* Tutorial: Community */}
                 {mainTab === 'tutorial' && tutorialTab === 'community' && (
-                    <div className="h-full overflow-y-auto custom-scrollbar p-6 pb-32 animate-in fade-in duration-200">
+                    <div 
+                        onScroll={handleScroll}
+                        className="h-full overflow-y-auto custom-scrollbar p-6 pb-32 animate-in fade-in duration-200"
+                    >
                         <Community personalUnits={personalUnits} />
                     </div>
                 )}
 
                 {/* Contract Simulator */}
                 {mainTab === 'contract' && (
-                    <div className="h-full overflow-y-auto p-4 md:p-8 animate-in slide-in-from-right duration-300">
+                    <div 
+                        onScroll={handleScroll}
+                        className="h-full overflow-y-auto p-4 md:p-8 animate-in slide-in-from-right duration-300"
+                    >
                         <ContractSimulator />
                     </div>
                 )}
@@ -190,8 +211,15 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
             <div className="absolute bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 28 }}
+                    animate={{ 
+                        y: isVisible ? 0 : 100, 
+                        opacity: isVisible ? 1 : 0 
+                    }}
+                    transition={{ 
+                        type: 'spring', 
+                        stiffness: 260, 
+                        damping: 20 
+                    }}
                     className="flex items-center gap-3 p-3 bg-[#1c1c1e]/90 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/10 pointer-events-auto"
                 >
                     {dockItems.map(item => {
