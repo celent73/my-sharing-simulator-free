@@ -496,7 +496,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                                     <div className="flex items-center gap-5">
                                         <div className="w-14 h-14 bg-white/60 rounded-2xl flex items-center justify-center text-3xl shadow-sm">🤝</div>
                                         <div className="text-left">
-                                            <p className="font-black text-sm uppercase tracking-widest text-purple-900">NUOVO PROMOTER!</p>
+                                            <p className="font-black text-sm uppercase tracking-widest text-purple-900">NUOVO FAMILY UTILITY!</p>
                                             <p className="text-[10px] text-purple-600/60 font-black uppercase">INCREMENTA FAMILY UTILITY</p>
                                         </div>
                                     </div>

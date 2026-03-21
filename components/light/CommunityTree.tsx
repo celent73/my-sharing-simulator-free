@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Users, ChevronDown, ZoomIn, ZoomOut, Trash2, Plus, X, Filter, Euro } from 'lucide-react';
+import { User, Users, ChevronDown, ZoomIn, ZoomOut, Trash2, Plus, X, Filter, Euro, Zap } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -15,82 +15,59 @@ interface NodeData {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const ROLE_CONFIG: Record<string, { color: string; dot: string; earn: number }> = {
-    'Family Pro': { color: 'bg-blue-500 text-white', dot: 'bg-blue-500', earn: 65 },
-    Family: { color: 'bg-green-500 text-white', dot: 'bg-green-500', earn: 40 },
-    'Family Utility': { color: 'bg-teal-500 text-white', dot: 'bg-teal-500', earn: 35 },
-    Member: { color: 'bg-gray-400 text-white', dot: 'bg-gray-400', earn: 20 },
-    Potential: { color: 'bg-dashed border-2 border-gray-300 text-gray-300', dot: 'bg-gray-300', earn: 0 },
+
+const ROLE_CONFIG: Record<string, { color: string; dot: string; earn: number; indirectEarn: number }> = {
+    'Family Pro': { color: 'bg-[#bc1275] text-white', dot: 'bg-[#bc1275]', earn: 65, indirectEarn: 25 },
+    Family: { color: 'bg-green-500 text-white', dot: 'bg-green-500', earn: 40, indirectEarn: 20 },
+    'Family Utility': { color: 'bg-teal-500 text-white', dot: 'bg-teal-500', earn: 50, indirectEarn: 15 },
+    Member: { color: 'bg-gray-400 text-white', dot: 'bg-gray-400', earn: 15, indirectEarn: 0 },
+    Potential: { color: 'bg-dashed border-2 border-gray-300 text-gray-300', dot: 'bg-gray-300', earn: 0, indirectEarn: 0 },
 };
 
 const AVAILABLE_ROLES = ['Member', 'Family', 'Family Utility', 'Family Pro'];
 
+
 const INITIAL_TREE_DATA: NodeData = {
     id: 'me',
     label: 'Tu',
-    role: 'Family Pro',
-    level: -1,  // root is special, not a real network level
-    contracts: 3,
+    role: 'Family Utility',
+    level: -1,
+    contracts: 3, // Still has 3 personal units for qualification but we'll count earnings differently
     children: [
         {
-            id: 'marco',
-            label: 'Marco G.',
-            role: 'Family',
+            id: 'direct-1',
+            label: 'Partner 1',
+            role: 'Family Utility',
             level: 0,
-            contracts: 2,
+            contracts: 1,
             children: [
-                {
-                    id: 'anna',
-                    label: 'Anna L.',
-                    role: 'Member',
-                    level: 1,
-                    contracts: 1,
-                    children: [
-                        { id: 'filippo', label: 'Filippo', role: 'Member', level: 2, contracts: 1 },
-                        { id: 'elisa', label: 'Elisa', role: 'Member', level: 2, contracts: 0 },
-                    ]
-                },
-                { id: 'luca', label: 'Luca B.', role: 'Member', level: 1, contracts: 1 },
+                { id: 'sub-1-1', label: 'Collaboratore 1.1', role: 'Member', level: 1, contracts: 1 },
+                { id: 'sub-1-2', label: 'Collaboratore 1.2', role: 'Member', level: 1, contracts: 1 },
+                { id: 'sub-1-3', label: 'Collaboratore 1.3', role: 'Member', level: 1, contracts: 1 },
             ]
         },
         {
-            id: 'elena',
-            label: 'Elena R.',
-            role: 'Family',
+            id: 'direct-2',
+            label: 'Partner 2',
+            role: 'Family Utility',
             level: 0,
-            contracts: 2,
+            contracts: 1,
             children: [
-                {
-                    id: 'sara',
-                    label: 'Sara M.',
-                    role: 'Member',
-                    level: 1,
-                    contracts: 1,
-                    children: [
-                        { id: 'matteo', label: 'Matteo', role: 'Member', level: 2, contracts: 1 },
-                    ]
-                },
+                { id: 'sub-2-1', label: 'Collaboratore 2.1', role: 'Member', level: 1, contracts: 1 },
+                { id: 'sub-2-2', label: 'Collaboratore 2.2', role: 'Member', level: 1, contracts: 1 },
+                { id: 'sub-2-3', label: 'Collaboratore 2.3', role: 'Member', level: 1, contracts: 1 },
             ]
         },
         {
-            id: 'pietro',
-            label: 'Pietro V.',
-            role: 'Family Pro',
+            id: 'direct-3',
+            label: 'Partner 3',
+            role: 'Family Utility',
             level: 0,
-            contracts: 3,
+            contracts: 1,
             children: [
-                { id: 'giulia', label: 'Giulia S.', role: 'Member', level: 1, contracts: 1 },
-                {
-                    id: 'davide',
-                    label: 'Davide N.',
-                    role: 'Member',
-                    level: 1,
-                    contracts: 1,
-                    children: [
-                        { id: 'chiara', label: 'Chiara', role: 'Member', level: 2, contracts: 0 },
-                        { id: 'fabio', label: 'Fabio', role: 'Member', level: 2, contracts: 1 },
-                    ]
-                },
+                { id: 'sub-3-1', label: 'Collaboratore 3.1', role: 'Member', level: 1, contracts: 1 },
+                { id: 'sub-3-2', label: 'Collaboratore 3.2', role: 'Member', level: 1, contracts: 1 },
+                { id: 'sub-3-3', label: 'Collaboratore 3.3', role: 'Member', level: 1, contracts: 1 },
             ]
         }
     ]
@@ -103,9 +80,45 @@ const countNodes = (node: NodeData): number =>
 
 const calcEarnings = (node: NodeData): number => {
     const cfg = ROLE_CONFIG[node.role] ?? ROLE_CONFIG['Member'];
-    const own = (node.contracts ?? 0) * cfg.earn;
-    const sub = node.children?.reduce((s, c) => s + calcEarnings(c), 0) ?? 0;
-    return own + sub;
+    return (node.contracts ?? 0) * cfg.earn;
+};
+
+const calcTutorialEarnings = (node: NodeData, expandedIds: string[]): number => {
+    let total = 0;
+    const isExpanded = expandedIds.includes(node.id);
+    
+    if (isExpanded && node.children) {
+        node.children.forEach(child => {
+            const roleCfg = ROLE_CONFIG[node.role] ?? ROLE_CONFIG['Family Utility'];
+            // Directs earn €50, Indirects earn €15
+            const earnPerContract = child.level === 0 ? 50 : 15;
+            total += (child.contracts ?? 1) * earnPerContract;
+            
+            // Recurse if child is also expanded
+            total += calcTutorialEarnings(child, expandedIds);
+        });
+    }
+    return total;
+};
+
+const calcMonthly = (node: NodeData, expandedIds: string[]): number => {
+    let total = 0;
+    const isExpanded = expandedIds.includes(node.id);
+    if (isExpanded && node.children) {
+        node.children.forEach(child => {
+            total += (child.contracts ?? 1) * 1;
+            total += calcMonthly(child, expandedIds);
+        });
+    }
+    return total;
+};
+
+const check3x3BonusVisible = (node: NodeData, expandedIds: string[]): boolean => {
+    if (node.id !== 'me' || !expandedIds.includes('me')) return false;
+    const directs = node.children ?? [];
+    if (directs.length < 3) return false;
+    // Bonus appears only when all 3 directs are expanded (revealing all 9 indirects)
+    return directs.every(d => expandedIds.includes(d.id));
 };
 
 let _uidCounter = 1000;
@@ -207,7 +220,8 @@ const MemberDetailModal = ({ node, onClose, onDelete }: { node: NodeData; onClos
                         { label: 'Livello Rete', value: node.level },
                         { label: 'Contratti/mese', value: node.contracts ?? 0 },
                         { label: 'Team sotto', value: networkSize },
-                        { label: 'Guadagno stimato', value: `€${networkEarnings}` },
+                        { label: 'Indiretti (Mensile)', value: `€${calcMonthly(node, [])}` }, // Assuming calcMonthly needs expandedIds, but for a single node detail, it's not clear how it should behave. Passing empty for now.
+                        { label: 'Bonus Una Tantum', value: `€${calcEarnings(node)}` },
                     ].map(({ label, value }) => (
                         <div key={label} className="bg-gray-50 rounded-2xl p-4 text-center border border-gray-100">
                             <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">{label}</p>
@@ -231,18 +245,12 @@ const MemberDetailModal = ({ node, onClose, onDelete }: { node: NodeData; onClos
 
 // ─── Tree Node ───────────────────────────────────────────────────────────────
 
-const TreeNodeComponent = ({
-    node, onUpdate, onAdd, onDelete, theme, isProjection, filterRole
-}: {
-    node: NodeData;
-    onUpdate: (id: string, newLabel: string) => void;
-    onAdd: (parentId: string, label: string, role: string, contracts: number) => void;
-    onDelete: (id: string) => void;
-    theme: string;
-    isProjection?: boolean;
-    filterRole: string;
+const TreeNodeComponent = ({ node, theme, onAdd, onDelete, onUpdate, isProjection, expandedIds, toggleExpand }: {
+    node: NodeData; theme: string; onAdd: (parentId: string, label: string, role: string, contracts: number) => void;
+    onDelete: (id: string) => void; onUpdate: (id: string, newLabel: string) => void; isProjection?: boolean;
+    expandedIds: string[]; toggleExpand: (id: string) => void;
 }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
+    const isExpanded = expandedIds.includes(node.id);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showDetail, setShowDetail] = useState(false);
 
@@ -250,9 +258,11 @@ const TreeNodeComponent = ({
     const isMain = node.id === 'me';         // only the root 'Tu' node
     const isLevel3 = node.level >= 2;        // level 2+ = compact style
     const isGhost = node.id.includes('ghost');
-    const isHidden = filterRole !== 'all' && node.role !== filterRole && !isMain;
+    const isHidden = false; // filterRole is removed from here
 
-    const cfg = ROLE_CONFIG[node.role] ?? ROLE_CONFIG['Member'];
+    const is3x3Complete = isMain && check3x3BonusVisible(node, expandedIds);
+    const renderedRole = is3x3Complete ? 'Family Pro' : node.role;
+    const cfg = ROLE_CONFIG[renderedRole] ?? ROLE_CONFIG['Member'];
 
     // Animate in with staggered delay based on level
     const animDelay = node.level * 0.08;
@@ -271,6 +281,9 @@ const TreeNodeComponent = ({
         minimal: isMain ? 'bg-black text-white border-black' : 'bg-white text-black border-gray-200 shadow-sm'
     };
 
+    // Card background color based on role for "Tu" or standard
+    const roleColorClass = isMain ? (ROLE_CONFIG[renderedRole]?.color || 'bg-green-600') : '';
+
     const connectorColor = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
 
     if (isHidden && !isMain) return null;
@@ -286,12 +299,30 @@ const TreeNodeComponent = ({
                 onClick={() => !isGhost && !isProjection && setShowDetail(true)}
                 className={[
                     'relative rounded-[1.5rem] border z-20 transition-all duration-300 cursor-pointer',
-                    nodeStyles[theme as keyof typeof nodeStyles],
+                    isMain ? (roleColorClass + ' shadow-xl border-white/20') : nodeStyles[theme as keyof typeof nodeStyles],
                     isMain ? 'p-5 min-w-[150px]' : isLevel3 ? 'p-2 min-w-[80px]' : node.level === 0 ? 'p-3 min-w-[110px]' : 'p-3 min-w-[120px]',
                     isProjection && !isMain ? 'opacity-50 grayscale scale-95 border-dashed' : '',
                     'flex flex-col items-center group hover:scale-105 hover:shadow-xl',
                 ].join(' ')}
             >
+                {/* 3x3 Bonus Badge for 'Tu' */}
+                {isMain && check3x3BonusVisible(node, expandedIds) && (
+                    <motion.div 
+                        initial={{ scale: 0, rotate: -15 }}
+                        animate={{ 
+                            scale: [1, 1.1, 1],
+                            rotate: [-10, -5, -10],
+                        }}
+                        transition={{
+                            scale: { repeat: Infinity, duration: 2 },
+                            rotate: { repeat: Infinity, duration: 3 }
+                        }}
+                        className="absolute -top-6 -left-6 bg-gradient-to-br from-yellow-300 via-yellow-500 to-amber-600 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.5)] border-2 border-yellow-200 z-50 flex items-center gap-1.5"
+                    >
+                        <Zap size={12} className="fill-white" />
+                        BONUS 3x3 +150€
+                    </motion.div>
+                )}
                 {/* User icon */}
                 <div className={[
                     'p-2.5 rounded-full mb-2 shadow-inner transition-transform group-hover:scale-110',
@@ -313,7 +344,7 @@ const TreeNodeComponent = ({
                     </span>
                 )}
                 {isMain && (
-                    <span className="text-[10px] uppercase font-bold opacity-70 tracking-widest mt-0.5">{node.role}</span>
+                    <span className="text-[10px] uppercase font-bold opacity-70 tracking-widest mt-0.5">{renderedRole}</span>
                 )}
 
                 {/* Earnings per node (small badge) */}
@@ -325,18 +356,18 @@ const TreeNodeComponent = ({
                         className="flex items-center gap-0.5 mt-1.5 bg-green-50 text-green-700 rounded-full px-2 py-0.5 text-[9px] font-black"
                     >
                         <Euro size={9} />
-                        {calcEarnings(node)}/m
+                        {calcEarnings(node)}
                     </motion.div>
                 )}
 
-                {/* Expand/collapse toggle */}
+                {/* Expand/Collapse Button */}
                 {hasChildren && (
-                    <div
-                        onClick={e => { e.stopPropagation(); setIsExpanded(v => !v); }}
-                        className={`absolute -bottom-3 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm border border-white/50 backdrop-blur-sm z-30 ${isExpanded ? 'bg-white text-slate-800 rotate-180' : 'bg-slate-800 text-white'}`}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}
+                        className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-lg hover:bg-slate-700 transition-all z-30"
                     >
-                        <ChevronDown size={12} strokeWidth={3} />
-                    </div>
+                        {isExpanded ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />}
+                    </button>
                 )}
 
                 {/* + Add member button (on hover, non-ghost) */}
@@ -383,14 +414,15 @@ const TreeNodeComponent = ({
                         {node.children!.map(child => (
                             <TreeNodeComponent
                                 key={child.id}
-                                node={child}
-                                onUpdate={onUpdate}
-                                onAdd={onAdd}
-                                onDelete={onDelete}
-                                theme={theme}
-                                isProjection={child.id.includes('ghost')}
-                                filterRole={filterRole}
-                            />
+                                    node={child}
+                                    theme={theme}
+                                    onAdd={onAdd}
+                                    onDelete={onDelete}
+                                    onUpdate={onUpdate}
+                                    isProjection={child.id.includes('ghost')}
+                                    expandedIds={expandedIds}
+                                    toggleExpand={toggleExpand}
+                                />
                         ))}
                     </motion.div>
                 )}
@@ -405,7 +437,7 @@ const TreeNodeComponent = ({
                         onAdd={(label, role, contracts) => {
                             onAdd(node.id, label, role, contracts);
                             setShowAddModal(false);
-                            setIsExpanded(true);
+                            toggleExpand(node.id); // Ensure parent is expanded when adding a child
                         }}
                     />
                 )}
@@ -435,12 +467,20 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
     const [manualZoom, setManualZoom] = useState(false);
+    const [expandedIds, setExpandedIds] = useState<string[]>([]); // Start from zero (collapsed)
     const [filterRole, setFilterRole] = useState('all');
     const [showFilterMenu, setShowFilterMenu] = useState(false);
 
+    const toggleExpand = (id: string) => {
+        setExpandedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
     // Stats
     const totalMembers = countNodes(treeData) - 1; // exclude "me"
-    const totalEarnings = calcEarnings(treeData);
+    const totalEarnings = calcTutorialEarnings(treeData, expandedIds);
+    const has3x3Bonus = check3x3BonusVisible(treeData, expandedIds);
+    const totalWithBonus = totalEarnings + (has3x3Bonus ? 150 : 0);
+    const monthlyEarnings = calcMonthly(treeData, expandedIds);
 
     // Projection mode: inject ghost nodes
     const displayData = React.useMemo(() => {
@@ -514,11 +554,11 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between mx-6 mb-6 gap-3 flex-wrap"
+                className="flex items-center justify-between mx-6 mb-2 gap-3 flex-wrap"
             >
                 {/* Total members counter */}
                 <motion.div
-                    key={totalMembers}
+                    key={expandedIds.length} // Force re-render on expansion to update counter if needed
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
@@ -530,65 +570,39 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
                     </div>
                 </motion.div>
 
-                {/* Estimated network earnings */}
-                <motion.div
-                    key={totalEarnings}
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
-                >
-                    <Euro size={16} className="text-emerald-600" />
-                    <div>
-                        <p className="text-[8px] uppercase font-black text-gray-400 tracking-widest leading-none">Guadagno Stimato</p>
-                        <p className="text-2xl font-black text-emerald-700 leading-none mt-0.5">€{totalEarnings}</p>
-                    </div>
-                </motion.div>
-
-                {/* Filter dropdown */}
-                <div className="relative">
-                    <button
-                        onClick={() => setShowFilterMenu(v => !v)}
-                        className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-4 py-3 shadow-sm text-xs font-black text-gray-600 hover:bg-white transition-all"
+                {/* Estimated network earnings - TUM & Monthly */}
+                <div className="flex gap-3">
+                    <motion.div
+                        key={totalWithBonus}
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
                     >
-                        <Filter size={14} className="text-green-600" />
-                        {filterRole === 'all' ? 'Tutti' : filterRole}
-                    </button>
-                    <AnimatePresence>
-                        {showFilterMenu && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 6, scale: 0.95 }}
-                                className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 min-w-[160px]"
-                            >
-                                {['all', ...AVAILABLE_ROLES].map(r => {
-                                    const cfg = r === 'all' ? null : ROLE_CONFIG[r];
-                                    return (
-                                        <button
-                                            key={r}
-                                            onClick={() => { setFilterRole(r); setShowFilterMenu(false); }}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-left hover:bg-gray-50 transition-colors ${filterRole === r ? 'bg-green-50 text-green-700' : 'text-gray-700'}`}
-                                        >
-                                            {cfg && <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />}
-                                            {r === 'all' ? '🌐 Tutti i Ruoli' : r}
-                                        </button>
-                                    );
-                                })}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                        <Euro size={16} className="text-emerald-600" />
+                        <div>
+                            <p className="text-[8px] uppercase font-black text-gray-400 tracking-widest leading-none">Bonus Una Tantum</p>
+                            <p className="text-2xl font-black text-emerald-700 leading-none mt-0.5">€{totalWithBonus}</p>
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        key={'monthly-' + monthlyEarnings}
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        className="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl px-5 py-3 shadow-sm"
+                    >
+                        <Zap size={16} className="text-blue-600" />
+                        <div>
+                            <p className="text-[8px] uppercase font-black text-gray-400 tracking-widest leading-none">Rendita Mensile</p>
+                            <p className="text-2xl font-black text-blue-700 leading-none mt-0.5">€{monthlyEarnings}</p>
+                        </div>
+                    </motion.div>
                 </div>
+
+                {/* Filter dropdown removed as per request */}
             </motion.div>
 
-            {/* ── Legend ── */}
-            <div className="flex flex-wrap gap-2 justify-center mb-4 px-6 no-export">
-                {Object.entries(ROLE_CONFIG).filter(([k]) => k !== 'Potential').map(([role, cfg]) => (
-                    <span key={role} className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 ${cfg.color}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/60 inline-block" />
-                        {role} · €{cfg.earn}/contratto
-                    </span>
-                ))}
-            </div>
+            {/* Legend removed as per request */}
 
             {/* ── Zoom Controls ── */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-white/50 dark:border-white/10 z-50 no-export transition-all hover:scale-105">
@@ -599,7 +613,7 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
                 <button onClick={handleZoomIn} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 transition-colors"><ZoomIn size={18} /></button>
                 <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-2" />
                 <button
-                    onClick={() => { if (confirm('Resetta l\'albero? Rimarrai solo tu!')) setTreeData({ id: 'me', label: 'Tu', role: 'Family Pro', level: 0, contracts: 3, children: [] }); }}
+                    onClick={() => { if (confirm('Resetta l\'albero? Rimarrai solo tu!')) { setTreeData({ id: 'me', label: 'Tu', role: 'Family Utility', level: -1, contracts: 0, children: [] }); setExpandedIds([]); } }}
                     className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-red-50 hover:text-red-500 text-gray-400 transition-colors"
                     title="Resetta Albero"
                 ><Trash2 size={16} /></button>
@@ -617,7 +631,8 @@ const CommunityTree = ({ theme = 'glass', isProjectionMode = false }: TreeProps)
                         onAdd={addMember}
                         onDelete={deleteMember}
                         theme={theme}
-                        filterRole={filterRole}
+                        expandedIds={expandedIds}
+                        toggleExpand={toggleExpand}
                     />
                 </div>
             </div>

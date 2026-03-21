@@ -2,7 +2,7 @@
 // FILE: services/storageService.ts (Versione Ibrida Cloud/Locale)
 // ============================================================================
 
-import { ActivityLog, AppSettings, UnlockedAchievements, UserProfile, CommissionStatus, Qualification } from '../types';
+import { ActivityLog, AppSettings, UnlockedAchievements, UserProfile, CommissionStatus, Qualification, Client, Lead } from '../types';
 import { supabase } from '../supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -11,8 +11,14 @@ const ACTIVITY_KEY = 'daily-check-app-logs';
 const SETTINGS_KEY = 'daily-check-app-settings';
 const ACHIEVEMENTS_KEY = 'daily-check-app-achievements';
 const CAREER_DATES_KEY = 'dailyCheck_careerPathDates';
+const CLIENTS_KEY = 'daily-check-app-clients';
 
 // --- HELPERS ---
+const isValidUUID = (str: string | undefined | null): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
 const getLocalLogs = (): ActivityLog[] => {
   try {
     const localData = localStorage.getItem(ACTIVITY_KEY);
@@ -52,21 +58,29 @@ export const loadLogs = async (userId: string | null): Promise<ActivityLog[]> =>
       return localLogs; // Fallback al locale in caso di errore
     }
 
-    if (!data || data.length === 0) {
-      return localLogs; // Se il cloud è vuoto, usa i dati locali
-    }
-
     // Map snake_case DB columns to camelCase App properties
-    const mappedData = data.map((item: any) => ({
-      ...item,
-      contractDetails: item.contract_details,
-      leads: item.leads,
-      counts: item.counts,
-      date: item.date
+    const cloudLogs: ActivityLog[] = data.map((item: any) => ({
+      date: item.date,
+      counts: item.counts || {},
+      contractDetails: item.contract_details || {},
+      leads: item.leads || []
     }));
 
-    // In una versione futura potremmo voler fare un merge intelligente basato su timestamp
-    return mappedData as ActivityLog[];
+    // MERGE LOGIC: Combine local and cloud logs
+    const mergedLogs = [...localLogs];
+    cloudLogs.forEach(cLog => {
+      const existingIndex = mergedLogs.findIndex(l => l.date === cLog.date);
+      if (existingIndex >= 0) {
+        // Simple merge: Cloud wins for same-day
+        mergedLogs[existingIndex] = { ...mergedLogs[existingIndex], ...cLog };
+      } else {
+        mergedLogs.push(cLog);
+      }
+    });
+
+    // Save merged result back to localStorage for offline consistency
+    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(mergedLogs));
+    return mergedLogs;
   } else {
     // LOCAL MODE
     return localLogs;
@@ -170,23 +184,32 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
       console.error("Error loading settings:", error);
       return localSettings;
     }
-
     if (data) {
       // Reconstruct AppSettings object conforming to interface
-      return {
+      const cloudSettings: AppSettings = {
         theme: data.theme as 'light' | 'dark',
-        goals: data.goals,
-        commercialMonthStartDay: data.commercial_month_start_day,
-        customLabels: data.custom_labels,
-        notificationSettings: data.notification_settings,
-        visionBoard: data.vision_board,
-        acknowledgedDeadlines: data.acknowledged_deadlines || {},
-        userProfile: { firstName: '', lastName: '' } // Profile is loaded separately usually, but we need to merge
+        goals: data.goals || { daily: {}, weekly: {}, monthly: {} },
+        commercialMonthStartDay: data.commercial_month_start_day || 1,
+        customLabels: data.custom_labels || {},
+        notificationSettings: data.notification_settings || {},
+        visionBoard: data.vision_board || localSettings?.visionBoard || [],
+        acknowledgedDeadlines: data.acknowledged_deadlines || localSettings?.acknowledgedDeadlines || {},
+        userProfile: localSettings?.userProfile || { firstName: '', lastName: '' }, 
+        // Recuperiamo i campi non inclusi nel DB usando localStorage come fallback
+        enableGoals: data.enable_goals !== undefined ? data.enable_goals : (localSettings?.enableGoals !== undefined ? localSettings.enableGoals : true),
+        enableCustomLabels: data.enable_custom_labels !== undefined ? data.enable_custom_labels : (localSettings?.enableCustomLabels !== undefined ? localSettings.enableCustomLabels : true),
+        nextAppointment: data.next_appointment || localSettings?.nextAppointment,
+        careerPathDates: data.career_path_dates || localSettings?.careerPathDates || {},
       };
+      
+      // Persist to local for refresh consistency
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(cloudSettings));
+      return cloudSettings;
     }
-    return null;
+    // FALLBACK: Se non trovato nel cloud, usa il locale (fondamentale per primo login o glitch)
+    return localSettings;
   } else {
-    return getLocalSettings();
+    return localSettings;
   }
 };
 
@@ -206,11 +229,24 @@ export const loadUserProfile = async (userId: string | null): Promise<UserProfil
         currentQualification: data.current_qualification as Qualification,
         targetQualification: data.target_qualification as Qualification
       };
+      
+      // LOGIC V1.3.9: Se il cloud ha dati vuoti ma il locale ha dati reali, preserviamo i locali
+      const localS = getLocalSettings();
+      const localP = localS?.userProfile;
+      if (localP) {
+        if (!profile.currentQualification && localP.currentQualification) profile.currentQualification = localP.currentQualification;
+        if (!profile.targetQualification && localP.targetQualification) profile.targetQualification = localP.targetQualification;
+        if (!profile.firstName && localP.firstName) profile.firstName = localP.firstName;
+        if (!profile.lastName && localP.lastName) profile.lastName = localP.lastName;
+      }
+
       // Force clean "Utente" if found in cloud
       if (profile.firstName === 'Utente') profile.firstName = '';
       return profile;
     }
-    return { firstName: '', lastName: '', commissionStatus: CommissionStatus.PRIVILEGIATO };
+    // FALLBACK: Se non trovato nel cloud, usa il locale
+    const localS = getLocalSettings();
+    return localS?.userProfile || { firstName: '', lastName: '', commissionStatus: CommissionStatus.PRIVILEGIATO };
   } else {
     // In local mode, profile is part of settings, so we extract it or return default
     const settings = getLocalSettings();
@@ -235,19 +271,23 @@ export const saveSettings = async (userId: string | null, settings: AppSettings)
       commercial_month_start_day: settings.commercialMonthStartDay,
       custom_labels: settings.customLabels,
       notification_settings: settings.notificationSettings,
+      next_appointment: settings.nextAppointment,
       vision_board: settings.visionBoard,
-      acknowledged_deadlines: settings.acknowledgedDeadlines || {},
+      career_path_dates: settings.careerPathDates || {},
       updated_at: new Date().toISOString()
     });
 
-    if (settingsError) console.error("Error saving settings:", settingsError);
+    if (settingsError) {
+      console.error("Error saving settings to Supabase:", settingsError);
+      // We don't alert here to avoid spamming the user, but it's the reason why sync might fail
+    }
 
-    // Save Profile
-    if (settings.userProfile && (settings.userProfile.firstName?.trim() || settings.userProfile.lastName?.trim())) {
+    // Save Profile - ALWAYS SAVE if it exists, to preserve commissionStatus and qualifications even if name is blank
+    if (settings.userProfile) {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: userId,
-        first_name: settings.userProfile.firstName,
-        last_name: settings.userProfile.lastName,
+        first_name: settings.userProfile.firstName || '',
+        last_name: settings.userProfile.lastName || '',
         commission_status: settings.userProfile.commissionStatus,
         current_qualification: settings.userProfile.currentQualification,
         target_qualification: settings.userProfile.targetQualification,
@@ -264,6 +304,9 @@ export const saveSettings = async (userId: string | null, settings: AppSettings)
 // ---------------------------------------------------------------------------
 
 export const loadUnlockedAchievements = async (userId: string | null): Promise<UnlockedAchievements> => {
+  const localData = localStorage.getItem(ACHIEVEMENTS_KEY);
+  const localAchievements = localData ? JSON.parse(localData) : {};
+
   if (userId) {
     const { data, error } = await supabase
       .from('achievements')
@@ -271,10 +314,14 @@ export const loadUnlockedAchievements = async (userId: string | null): Promise<U
       .eq('user_id', userId)
       .single();
 
-    return data?.unlocked_achievements || {};
+    if (error && error.code !== 'PGRST116') {
+      console.error("Error loading achievements from Supabase:", error);
+      return localAchievements;
+    }
+
+    return data?.unlocked_achievements || localAchievements;
   } else {
-    const localData = localStorage.getItem(ACHIEVEMENTS_KEY);
-    return localData ? JSON.parse(localData) : {};
+    return localAchievements;
   }
 };
 
@@ -315,64 +362,295 @@ export const loadCareerDates = async (userId: string | null): Promise<Record<str
 };
 
 export const saveCareerDates = async (userId: string | null, dates: Record<string, string>) => {
+  // --- v1.3.5: DISABILITATO SUPABASE UPSERT QUI ---
+  // Per evitare race conditions e overwrite parziali, il salvataggio cloud
+  // su Supabase (tabella 'user_settings') deve passare SOLO da saveSettings.
+  
+  if (!userId) {
+    localStorage.setItem(CAREER_DATES_KEY, JSON.stringify(dates));
+  } else {
+    // Salvataggio locale comunque utile come backup rapido
+    localStorage.setItem(CAREER_DATES_KEY, JSON.stringify(dates));
+    console.log("[v1.3.5] saveCareerDates (Cloud): Skipped. Use saveSettings for atomic sync.");
+  }
+};
+
+// ---------------------------------------------------------------------------
+// GESTIONE CLIENTI (NEW PERSISTENT STORAGE)
+// ---------------------------------------------------------------------------
+
+export const loadClients = async (userId: string | null): Promise<Client[]> => {
+  const localData = localStorage.getItem(CLIENTS_KEY);
+  const localClients: Client[] = localData ? JSON.parse(localData) : [];
+
   if (userId) {
-    const { error } = await supabase.from('user_settings').upsert({
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading clients from Supabase:', error);
+      return localClients;
+    }
+
+    // Se Supabase non restituisce nulla, ma in locale abbiamo dei dati,
+    // potrebbe essere che il sync iniziale non sia ancora avvenuto.
+    // Restituiamo i locali per non mostrare il tab vuoto.
+    if (!data || data.length === 0) {
+      return localClients;
+    }
+
+    const mapped = data.map((c: any) => ({
+      id: c.id,
+      userId: c.user_id,
+      name: c.name,
+      phone: c.phone,
+      email: c.email,
+      notes: c.notes,
+      type: c.type,
+      sourceLeadId: c.source_lead_id,
+      createdAt: c.created_at
+    }));
+
+    // Update local cache: Se abbiamo dati dal cloud, essi diventano la verità, 
+    // ma per sicurezza uniamo se la lista locale ha client ID che non esistono nel cloud (ancora da sincronizzare)
+    const cloudIds = new Set(mapped.map(c => c.id));
+    const cloudLeadIds = new Set(mapped.filter(c => c.sourceLeadId).map(c => c.sourceLeadId));
+    
+    const localOnly = localClients.filter(lc => {
+      // Escludi se l'ID è già nel cloud
+      if (cloudIds.has(lc.id)) return false;
+      // Escludi se il sourceLeadId è già nel cloud (evita duplicati creati con diversi UUID locali)
+      if (lc.sourceLeadId && cloudLeadIds.has(lc.sourceLeadId)) return false;
+      return true;
+    });
+    
+    const merged = [...mapped, ...localOnly];
+
+    // Ulteriore Garanzia: Rimuovi duplicati logici (stesso sourceLeadId) anche nel merged
+    const finalClients: Client[] = [];
+    const seenLeadIds = new Set<string>();
+    
+    for (const client of merged) {
+      if (client.sourceLeadId) {
+        if (!seenLeadIds.has(client.sourceLeadId)) {
+          finalClients.push(client);
+          seenLeadIds.add(client.sourceLeadId);
+        }
+      } else {
+        finalClients.push(client);
+      }
+    }
+
+    localStorage.setItem(CLIENTS_KEY, JSON.stringify(finalClients));
+    return finalClients;
+  }
+  return localClients;
+};
+
+export const saveClient = async (userId: string | null, client: Partial<Client>) => {
+  // 1. Aggiornamento Locale (Cache immediata per UI reattiva)
+  const localData = localStorage.getItem(CLIENTS_KEY);
+  let allClients: Client[] = localData ? JSON.parse(localData) : [];
+  
+  const existingIndex = allClients.findIndex(c => c.id === client.id);
+  
+  const updatedClient = {
+    ...client,
+    userId: userId || 'local',
+    createdAt: client.createdAt || new Date().toISOString()
+  } as Client;
+
+  if (existingIndex >= 0) {
+    allClients[existingIndex] = updatedClient;
+  } else {
+    allClients.unshift(updatedClient);
+  }
+
+  localStorage.setItem(CLIENTS_KEY, JSON.stringify(allClients));
+
+  // 2. Persistenza Cloud (se connesso)
+  if (userId) {
+    const { error } = await supabase.from('clients').upsert({
+      id: updatedClient.id,
       user_id: userId,
-      career_path_dates: dates,
+      name: updatedClient.name,
+      phone: updatedClient.phone,
+      email: updatedClient.email,
+      notes: updatedClient.notes,
+      type: updatedClient.type,
+      source_lead_id: updatedClient.sourceLeadId,
+      created_at: updatedClient.createdAt,
       updated_at: new Date().toISOString()
     });
-    if (error) console.error("Error saving career dates", error);
-  } else {
-    localStorage.setItem(CAREER_DATES_KEY, JSON.stringify(dates));
+
+    if (error) {
+      console.error('Error saving client to Supabase:', error);
+      // Non blocchiamo l'esecuzione perché il dato è già in local storage (persistenza ibrida)
+    }
   }
+};
+
+export const deleteClient = async (userId: string | null, clientId: string) => {
+  const allClients = await loadClients(userId);
+  const filtered = allClients.filter(c => c.id !== clientId);
+  localStorage.setItem(CLIENTS_KEY, JSON.stringify(filtered));
+
+  if (userId) {
+    const { error } = await supabase.from('clients').delete().eq('id', clientId).eq('user_id', userId);
+    if (error) {
+      console.error('Error deleting client from Supabase:', error);
+      throw error;
+    }
+  }
+};
+
+export const createClientFromLead = async (userId: string | null, lead: Lead, type: 'cliente' | 'partner') => {
+  // 1. Verifica se esiste già un client per questo lead (DEDUPLICAZIONE v1.3.1)
+  const allClients = await loadClients(userId);
+  const existingClient = allClients.find(c => c.sourceLeadId === lead.id);
+  
+  if (existingClient) {
+    console.log(`[createClientFromLead] Client already exists for lead ${lead.id}. Updating instead of creating.`);
+    const updatedClient = {
+      ...existingClient,
+      name: lead.name,
+      phone: lead.phone,
+      notes: lead.note,
+      type // Potrebbe essere cambiato da cliente a partner
+    };
+    await saveClient(userId, updatedClient);
+    return updatedClient;
+  }
+
+  const newClient: Client = {
+    id: crypto.randomUUID(),
+    userId: userId || 'local',
+    name: lead.name,
+    phone: lead.phone,
+    notes: lead.note,
+    type,
+    sourceLeadId: lead.id,
+    createdAt: new Date().toISOString()
+  };
+  
+  await saveClient(userId, newClient);
+  return newClient;
 };
 
 // ---------------------------------------------------------------------------
 // MIGRATION & SYNC (THE MAGIC BUTTON)
 // ---------------------------------------------------------------------------
 
-export const syncLocalDataToCloud = async (userId: string) => {
-  if (!userId) return;
+export const syncLocalDataToCloud = async (userId: string): Promise<{ success: boolean; message?: string }> => {
+  if (!userId) return { success: false, message: "User ID missing" };
 
-  console.log("Starting Cloud Sync...");
+  console.log("[Sync] Starting Cloud Sync for user:", userId);
+  let lastError: any = null;
 
-  const localLogs = getLocalLogs();
-  const localSettings = getLocalSettings();
-  const localAchievements = getLocalAchievements();
+  try {
+    const localLogs = getLocalLogs();
+    const localSettings = getLocalSettings();
+    const localAchievements = getLocalAchievements();
 
-  if (localLogs.length > 0) {
-    await saveLogs(userId, localLogs);
-  }
-
-  if (localSettings) {
-    await saveSettings(userId, localSettings);
-    // Also force profile create/update if strictly local existed
-    if (localSettings.userProfile) {
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: userId, // Upsert needs ID
-        first_name: localSettings.userProfile.firstName,
-        last_name: localSettings.userProfile.lastName,
-        commission_status: localSettings.userProfile.commissionStatus,
-        updated_at: new Date().toISOString()
-      });
+    // 1. SYNC LOGS (Chunked)
+    if (localLogs.length > 0) {
+      console.log(`[Sync] Syncing ${localLogs.length} activity logs...`);
+      const CHUNK_SIZE = 50;
+      for (let i = 0; i < localLogs.length; i += CHUNK_SIZE) {
+        const chunk = localLogs.slice(i, i + CHUNK_SIZE).map(log => ({
+          user_id: userId,
+          date: log.date,
+          counts: log.counts,
+          contract_details: log.contractDetails || {},
+          leads: (log.leads || []).map(lead => ({
+            ...lead,
+            id: isValidUUID(lead.id) ? lead.id : crypto.randomUUID() // Sanitize lead ID
+          })),
+          updated_at: new Date().toISOString()
+        }));
+        
+        const { error } = await supabase.from('activity_logs').upsert(chunk, { onConflict: 'user_id, date' });
+        if (error) {
+          console.error("[Sync] Error syncing logs chunk:", error);
+          lastError = error;
+        }
+      }
     }
-  }
 
-  if (Object.keys(localAchievements).length > 0) {
-    await saveUnlockedAchievements(userId, localAchievements);
-  }
+    // 2. SYNC SETTINGS
+    if (localSettings) {
+      console.log("[Sync] Syncing user settings and profile...");
+      try {
+        await saveSettings(userId, localSettings);
+      } catch (e) {
+        lastError = e;
+      }
+    }
 
-  const localCareerDates = localStorage.getItem(CAREER_DATES_KEY);
-  if (localCareerDates) {
-    try {
-      await saveCareerDates(userId, JSON.parse(localCareerDates));
-    } catch (e) { console.error("Error syncing career dates", e); }
-  }
+    // 3. SYNC ACHIEVEMENTS
+    if (Object.keys(localAchievements).length > 0) {
+      console.log("[Sync] Syncing achievements...");
+      try {
+        await saveUnlockedAchievements(userId, localAchievements);
+      } catch (e) {
+        lastError = e;
+      }
+    }
 
-  console.log("Cloud Sync Completed!");
-  // Optional: Clear local storage after sync or keep it as backup?
-  // localStorage.clear(); // Safe to keep for now.
-  return true;
+    // 4. SYNC CLIENTI (Chunked)
+    const localClientsData = localStorage.getItem(CLIENTS_KEY);
+    if (localClientsData) {
+      const localClients: Client[] = JSON.parse(localClientsData);
+      if (localClients.length > 0) {
+        console.log(`[Sync] Syncing ${localClients.length} clients...`);
+        const CHUNK_SIZE = 50;
+        for (let i = 0; i < localClients.length; i += CHUNK_SIZE) {
+          const chunk = localClients.slice(i, i + CHUNK_SIZE).map(c => ({
+            id: isValidUUID(c.id) ? c.id : crypto.randomUUID(), // Sanitize ID
+            user_id: userId,
+            name: c.name,
+            phone: c.phone || '',
+            email: c.email || '',
+            notes: c.notes || '',
+            type: c.type || 'cliente',
+            source_lead_id: isValidUUID(c.sourceLeadId) ? c.sourceLeadId : null, // Sanitize source_lead_id
+            created_at: c.createdAt || new Date().toISOString()
+          }));
+
+          const { error } = await supabase.from('clients').upsert(chunk);
+          if (error) {
+            console.error("[Sync] Error syncing clients chunk:", error);
+            lastError = error;
+          }
+        }
+      }
+    }
+
+    const localCareerDates = localStorage.getItem(CAREER_DATES_KEY);
+    if (localCareerDates) {
+      console.log("[Sync] Syncing career dates...");
+      try {
+        await saveCareerDates(userId, JSON.parse(localCareerDates));
+      } catch (e) { lastError = e; }
+    }
+
+    console.log("[Sync] Cloud Sync Completed!");
+  } catch (err) {
+    console.error("[Sync] Fatal error during sync:", err);
+    lastError = err;
+  }
+  
+  if (lastError) {
+    return { 
+      success: false, 
+      message: lastError.message || lastError.details || JSON.stringify(lastError) 
+    };
+  }
+  
+  return { success: true };
 };
 
 // ---------------------------------------------------------------------------

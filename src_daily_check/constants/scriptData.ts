@@ -103,7 +103,7 @@ export const SALES_SCRIPTS: SalesScript[] = [
         category: 'Chiusura',
         title: 'La Scelta Doppia',
         description: 'Per portare alla decisione.',
-        text: 'Bene [Nome], abbiamo visto tutto. A questo punto, ti vedi più come un utente che vuole iniziare a risparmiare sulle proprie bollette o come un partner che vuole anche generare un\'entrata extra?',
+        text: 'Bene [Nome], abbiamo visto tutto. A questo punto, ti vedi più come un utente che vuole iniziare a risparmiare sulle proprie bollette o come un Family Utility che vuole anche generare un\'entrata extra?',
         icon: '⚖️'
     },
     {

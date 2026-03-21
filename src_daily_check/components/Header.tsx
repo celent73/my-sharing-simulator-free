@@ -18,12 +18,19 @@ interface HeaderProps {
     onOpenTeamChallenge: () => void;
     onOpenCareerPath: () => void;
     onCloseApp?: () => void;
-    onOpenDailyRecap: () => void; // New prop
     // Auth Props
     isLoggedIn?: boolean;
     onLogin?: () => void;
     onLogout?: () => void;
+    isSyncing?: boolean;
+    onSync?: () => void;
 }
+
+const SyncIcon = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    </svg>
+);
 
 const StreakBadge = ({ count }: { count: number }) => {
     return (
@@ -109,8 +116,8 @@ const InstallButton = () => {
 const Header: React.FC<HeaderProps> = ({
     userProfile, onOpenSettings, onOpenDeleteDataModal, careerStatus, streak, isPremium, remainingTrialDays, onOpenPaywall, toggleTheme, currentTheme, onOpenMonthlyReport, onOpenGuide, onOpenTeamChallenge, onOpenCareerPath,
     onCloseApp,
-    onOpenDailyRecap, // Added here
-    isLoggedIn, onLogin, onLogout
+    isLoggedIn, onLogin, onLogout,
+    isSyncing, onSync
 }) => {
 
     const [isVisible, setIsVisible] = React.useState(true);
@@ -133,38 +140,43 @@ const Header: React.FC<HeaderProps> = ({
     }, []);
 
     return (
-        <header className="flex flex-col gap-2 sm:gap-4 mb-4 sm:mb-8 mx-2 sm:mx-4 mt-2 sm:mt-4 rounded-[2rem] sm:rounded-[2.5rem] p-3 sm:p-6 border border-white/10 shadow-[0_32px_80px_0_rgba(0,0,0,0.8)] transition-all duration-500 relative z-50 bg-[#1c1c1e]">
-            <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10 gap-2">
+        <header className={`flex flex-col gap-4 mb-8 mx-4 mt-4 rounded-[2.5rem] p-4 sm:p-6 border border-white/10 shadow-2xl transition-all duration-500 relative z-50 bg-[#1c1c1e] ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
+            <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10 gap-4">
 
                 <div className="flex-shrink-0">
                     <StreakBadge count={streak} />
                 </div>
 
-                <div className="flex items-center gap-1 sm:gap-3 overflow-x-auto no-scrollbar py-1">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
                     <InstallButton />
 
-                    <div className={`flex gap-0 sm:gap-1 transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0 pointer-events-none'}`}>
-                        <button onClick={toggleTheme} className="p-1 sm:p-2 rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Tema">
+                    <div className="flex gap-1.5 transition-all duration-500 ease-in-out">
+                        {onSync && (
+                            <button 
+                                onClick={onSync} 
+                                disabled={isSyncing}
+                                className={`w-10 h-10 flex items-center justify-center rounded-xl text-blue-400 border border-blue-400/20 hover:bg-blue-500/10 transition-all ${isSyncing ? 'animate-spin' : ''}`}
+                                aria-label="Sincronizza"
+                            >
+                                <SyncIcon />
+                            </button>
+                        )}
+                        <button onClick={toggleTheme} className="w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Tema">
                             {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
                         </button>
-                        <button onClick={onOpenGuide} className="p-1 sm:p-2 rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Guida">
+                        <button onClick={onOpenGuide} className="w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Guida">
                             <QuestionMarkIcon />
                         </button>
-                        <button onClick={onOpenMonthlyReport} className="p-1 sm:p-2 rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Report">
+                        <button onClick={onOpenMonthlyReport} className="w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Report">
                             <DocumentIcon />
                         </button>
-                        <button onClick={onOpenDailyRecap} className="p-1 sm:p-2 rounded-xl text-blue-400 hover:bg-blue-500/10 transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)] animate-pulse-slow" aria-label="Recap Sessione">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        </button>
-                        <button onClick={onOpenDeleteDataModal} className="p-1 sm:p-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-all" aria-label="Cancella Dati">
+                        <button onClick={onOpenDeleteDataModal} className="w-10 h-10 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all font-medium" aria-label="Cancella Dati">
                             <TrashIcon />
                         </button>
                         {isLoggedIn && onLogout && (
                             <button
                                 onClick={onLogout}
-                                className="p-1 sm:p-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
+                                className="w-10 h-10 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all"
                                 aria-label="Disconnetti"
                             >
                                 <LogoutIcon />
@@ -177,7 +189,7 @@ const Header: React.FC<HeaderProps> = ({
                 {onCloseApp && (
                     <button
                         onClick={onCloseApp}
-                        className="flex-shrink-0 p-2 sm:p-2.5 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-all border border-red-500/30 shadow-sm"
+                        className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all border border-red-500/20"
                         aria-label="Chiudi App"
                     >
                         <CloseIcon />

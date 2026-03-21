@@ -65,6 +65,18 @@ export interface Lead {
   linkedAppointment?: boolean;
 }
 
+export interface Client {
+  id: string;
+  userId: string;
+  name: string;
+  phone: string;
+  email?: string;
+  notes?: string;
+  type: 'cliente' | 'partner';
+  sourceLeadId?: string;
+  createdAt: string;
+}
+
 export type GoalPeriod = {
   [key in ActivityType]?: number;
 };
@@ -118,6 +130,7 @@ export interface AppSettings {
   enableGoals?: boolean;
   enableCustomLabels?: boolean;
   acknowledgedDeadlines?: Record<string, string>; // Stage Name -> Date string (when it was shown)
+  careerPathDates?: Record<string, string>; // Stage Name -> Reached Date string
 }
 
 export type NotificationVariant = 'success' | 'info';

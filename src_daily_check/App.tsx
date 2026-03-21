@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ActivityLog, ActivityType, AppSettings, Notification, NotificationVariant, UnlockedAchievements, Achievement, Theme, CommissionStatus, ContractType, VisionBoardData, NextAppointment, Qualification, Lead, ViewMode } from './types';
-import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates, deleteLogsInRange } from './services/storageService';
+import { loadLogs, saveLogs, saveLogForDate, loadSettings, saveSettings, loadUnlockedAchievements, saveUnlockedAchievements, clearLogs, syncLocalDataToCloud, loadUserProfile, loadCareerDates, saveCareerDates, deleteLogsInRange, createClientFromLead } from './services/storageService';
 import { getTodayDateString, calculateProgressForActivity, getCommercialMonthRange, getMonthIdentifier, getWeekIdentifier } from './utils/dateUtils';
 import { format } from 'date-fns';
 import Header from './components/Header';
@@ -29,8 +29,7 @@ import TargetCalculatorModal from './components/TargetCalculatorModal';
 import DetailedGuideModal from './components/DetailedGuideModal';
 import LeadCaptureModal from './components/LeadCaptureModal';
 import CalendarModal from './components/CalendarModal';
-import DailyRecapModal from './components/DailyRecapModal';
-import { calculateDailySessionStats } from './utils/sessionUtils';
+import ClientsModal from './components/ClientsModal';
 
 import VoiceSpeedMode from './components/VoiceSpeedMode';
 import TeamLeaderboardModal from './components/TeamLeaderboardModal';
@@ -54,7 +53,7 @@ import { useDailyStats } from '../hooks/useDailyStats';
 import GoalRecoveryWidget from './components/GoalRecoveryWidget';
 import ConversionFunnel from './components/ConversionFunnel';
 import StatCard from './components/StatCard';
-const APP_VERSION = "v1.3.1";
+const APP_VERSION = "v1.3.12";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
 const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -115,9 +114,10 @@ const NotificationItem: React.FC<{ notification: Notification; onClose: () => vo
 
 interface AppContentProps {
   onClose?: () => void;
+  initialView?: string;
 }
 
-const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
+const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   const { user, signOut, loading: authLoading, isPasswordRecovery, setIsPasswordRecovery } = useAuth();
   const { theme: globalTheme, toggleTheme: globalToggleTheme } = useTheme();
 
@@ -127,12 +127,19 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  const [careerDates, setCareerDates] = useState<Record<string, string>>({});
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState<UnlockedAchievements>({});
   const [activeView, setActiveView] = useState<ActiveView>('today');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedInputDate, setSelectedInputDate] = useState<Date>(new Date());
+  const [isClientsModalOpen, setIsClientsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialView === 'clients') {
+      setIsClientsModalOpen(true);
+    }
+  }, [initialView]);
   
   // States for Focus Recovery Mode
   const [recoveryFocusGoal, setRecoveryFocusGoal] = useState<string | undefined>(undefined);
@@ -206,45 +213,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     document.documentElement.scrollTop = 0;
   };
 
-  useEffect(() => {
-    if (!authLoading && !isInitializing) {
-      if (Object.keys(careerDates).length > 0) {
-        try {
-          const now = new Date();
-          const todayStr = format(now, 'yyyy-MM-dd');
-          
-          for (const [stageName, dateStr] of Object.entries(careerDates)) {
-            if (!dateStr) continue;
-            
-            const deadline = new Date(dateStr);
-            const deadlineStr = format(deadline, 'yyyy-MM-dd');
-            
-            // Se la data è oggi o passata
-            if (deadlineStr <= todayStr) {
-               // Verifica se il traguardo è già stato raggiunto logicamente (careerStatus)
-               // Oppure se è l'ultimo traguardo raggiunto o inferiore
-               const stageIndex = CAREER_STAGES.findIndex(s => s.name === stageName);
-               const currentQualIndex = CAREER_STAGES.findIndex(s => 
-                 s.name.toLowerCase() === careerStatus.currentLevel.name.toLowerCase() ||
-                 (careerStatus.currentLevel.qualificationValue && s.name.toLowerCase() === careerStatus.currentLevel.qualificationValue.toLowerCase())
-               );
-
-               // Mostra solo se il traguardo è SUPERIORE alla qualifica attuale
-               if (stageIndex > currentQualIndex) {
-                 const alreadyAck = settings.acknowledgedDeadlines?.[stageName] === dateStr;
-                 
-                 if (!alreadyAck) {
-                   // Mostra il popup
-                   setDeadlineAlert({ stageName, date: dateStr });
-                   break; // Mostra solo uno alla volta
-                 }
-               }
-            }
-          }
-        } catch (e) { console.error(e); }
-      }
-    }
-  }, [authLoading, isInitializing, careerDates, settings.acknowledgedDeadlines]);
+  // Effetto deadline spostato più in basso per dipendenze (careerStatus)
+  
 
   const handleDeadlineAchieved = () => {
     if (!deadlineAlert) return;
@@ -271,13 +241,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     setActiveView('career');
   };
 
-  useEffect(() => {
-    const handleUpdateDates = () => {
-      loadCareerDates(userId).then(setCareerDates);
-    };
-    window.addEventListener('careerDatesUpdated', handleUpdateDates);
-    return () => window.removeEventListener('careerDatesUpdated', handleUpdateDates);
-  }, [userId]);
+  // Rimossa duplicazione: Career dates gestite tramite settings
+  // useEffect(() => { ... }) 
+  
 
   const [isGlobalAppointmentsOpen, setIsGlobalAppointmentsOpen] = useState(false);
   const [globalAppointmentsFilterDate, setGlobalAppointmentsFilterDate] = useState<Date | null>(null);
@@ -317,7 +283,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
   const [isPaywallModalOpen, setIsPaywallModalOpen] = useState(false);
   const [isAchievementsModalOpen, setAchievementsModalOpen] = useState(false);
-  const [isDailyRecapOpen, setIsDailyRecapOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
   const [isVisionBoardModalOpen, setIsVisionBoardModalOpen] = useState(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
@@ -417,12 +382,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     return () => clearInterval(interval);
   }, [activityLogs, settings.goals.weekly, lastReminderShownDate, lastWeeklyReminderShownWeek, lastMorningReminderShownDate]);
 
-  const handleFinalizeSession = () => {
-    if (userId) {
-      syncLocalDataToCloud(userId);
-      addNotification("Sessione salvata con successo nel cloud! 🚀", 'success');
-    }
-  };
 
   const removeNotification = useCallback((id: number) => setNotifications(prev => prev.filter(n => n.id !== id)), []);
 
@@ -534,6 +493,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                 const targetActivity = leadData.type || ActivityType.NEW_CONTRACTS;
                 const cType = leadData.contractType || (targetActivity === ActivityType.NEW_FAMILY_UTILITY ? ContractType.GREEN : ContractType.LIGHT);
                 
+                // AUTO-CREATE CLIENT (NEW persistency)
+                createClientFromLead(userId, updatedLead as Lead, targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'partner' : 'cliente')
+                  .catch(e => console.error("Error creating persistent client:", e));
+
                 todayLog.counts = {
                     ...todayLog.counts,
                     [targetActivity]: (todayLog.counts[targetActivity] || 0) + 1,
@@ -601,7 +564,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         if (dataToCreate.id === undefined) delete dataToCreate.id;
 
         const newLead = {
-          id: Date.now().toString(), // Ensure guaranteed ID
+          id: crypto.randomUUID(), // Ensure guaranteed UUID
           type: newLeadType,
           date: new Date().toISOString(),
           status: leadData.status || 'pending',
@@ -609,7 +572,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         };
 
         if (!newLead.id) {
-            newLead.id = Date.now().toString(); // Extra safety net
+            newLead.id = crypto.randomUUID(); // Extra safety net
         }
 
         dateLog.leads!.push(newLead);
@@ -630,6 +593,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
           if (targetActivity === ActivityType.NEW_FAMILY_UTILITY) {
             dateLog.counts[ActivityType.NEW_CONTRACTS] = (dateLog.counts[ActivityType.NEW_CONTRACTS] || 0) + 1;
           }
+
+          // AUTO-CREATE CLIENT (NEW persistency)
+          createClientFromLead(userId, newLead as Lead, targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'partner' : 'cliente')
+            .catch(e => console.error("Error creating persistent client:", e));
         } else {
           // FIX: Use the actual lead type (CONTACTS or APPOINTMENTS) for incrementing counts
           dateLog.counts[newLeadType] = (dateLog.counts[newLeadType] || 0) + 1;
@@ -691,6 +658,21 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const handleAppointmentSchedule = (appointment: NextAppointment) => {
     setSettings((prev: AppSettings) => ({ ...prev, nextAppointment: appointment }));
     addNotification("Appuntamento salvato!", "success");
+  };
+
+  const handleUpdateTargetQualification = (qualification: string | null) => {
+    setSettings((prev: AppSettings) => ({
+      ...prev,
+      userProfile: {
+        ...prev.userProfile,
+        targetQualification: qualification as Qualification
+      }
+    }));
+    addNotification(`Obiettivo aggiornato: ${qualification}`, "success");
+  };
+
+  const handleUpdateCareerDates = (dates: Record<string, string>) => {
+    setSettings(prev => ({ ...prev, careerPathDates: dates }));
   };
 
   const handleClearAllData = async () => {
@@ -755,8 +737,39 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   const handleLoginSuccess = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
-      await syncLocalDataToCloud(session.user.id);
-      loadLocalData();
+      setIsSyncing(true);
+      try {
+        // PULL & MERGE FIRST
+        await loadLocalData();
+        // THEN PUSH THE RESULT
+        const result = await syncLocalDataToCloud(session.user.id);
+        if (!result.success) {
+          addNotification(`Sync Login: ${result.message}`, "info");
+        }
+      } finally {
+        setIsSyncing(false);
+      }
+    }
+  };
+
+  const handleManualSync = async () => {
+    if (!userId) return;
+    setIsSyncing(true);
+    try {
+      // PULL & MERGE FIRST
+      await loadLocalData();
+      // THEN PUSH THE RESULT
+      const result = await syncLocalDataToCloud(userId);
+      if (result.success) {
+        addNotification("Sincronizzazione completata! ✅", "success");
+      } else {
+        addNotification(`Errore Sync: ${result.message} ⚠️`, "info");
+      }
+    } catch (e) {
+      console.error("Manual sync error:", e);
+      addNotification("Sincronizzazione fallita (errore irreversibile).", "info");
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -821,9 +834,11 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
           setActivityLogs(calibratedLogs);
     let mergedSettings = { ...DEFAULT_SETTINGS, ...(loadedSettings || {}) };
     if (loadedProfile) mergedSettings.userProfile = { ...mergedSettings.userProfile, ...loadedProfile };
+    if (loadedCareerDates && Object.keys(loadedCareerDates).length > 0) {
+      mergedSettings.careerPathDates = { ...mergedSettings.careerPathDates, ...loadedCareerDates };
+    }
     setSettings(mergedSettings);
     setUnlockedAchievements(loadedAchievements);
-    setCareerDates(loadedCareerDates);
     setIsInitializing(false);
 
     // Initial sync to cloud if logged in (safety net for migration)
@@ -855,11 +870,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     }
   }, [unlockedAchievements, isInitializing, authLoading, userId]);
 
-  useEffect(() => {
-    if (!isInitializing && !authLoading) {
-      saveCareerDates(userId, careerDates).catch(err => console.error(err));
-    }
-  }, [careerDates, isInitializing, authLoading, userId]);
+  // Consolidato in saveSettings - rimosso useEffect superfluo
+  
 
   const checkAndNotify = useCallback((oldP: any, newP: any, goals: any, activity: any) => {
     if (settings.enableGoals === false) return;
@@ -974,9 +986,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
     console.log('[App] handleResetCareerPath triggered');
     
     try {
-      // 1. Reset Milestone Dates
-      setCareerDates({});
-      await saveCareerDates(userId, {});
+      // 1. Reset Milestone Dates (in Settings)
+      setSettings(prev => ({ ...prev, careerPathDates: {} }));
       
       // 2. Reset Activity Logs (Critical for full career reset)
       setActivityLogs([]);
@@ -988,14 +999,13 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         userProfile: {
           ...prev.userProfile,
           currentQualification: null
-        }
+        },
+        careerPathDates: {} // Re-ensure it's clear
       }));
-      // Note: saveSettings is handled by an effect on settings change, but we could await it here if needed
       
       addNotification("Tutti i traguardi e la cronologia attività sono stati azzerati! 🔄", "success");
       
-      // Forza il refresh della logica di carriera dopo che i salvataggi sono completati
-      window.dispatchEvent(new Event('careerDatesUpdated'));
+      // Forza il refresh
       window.dispatchEvent(new CustomEvent('daily-check-updated'));
     } catch (err) {
       console.error("Errore durante l'azzeramento:", err);
@@ -1048,7 +1058,44 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
   }, [activityLogs, selectedInputDate, settings.commercialMonthStartDay]);
 
   const selectedDateLog = activityLogs.find(log => log.date === format(selectedInputDate, 'yyyy-MM-dd'));
-  const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification, careerDates), [activityLogs, settings.userProfile.currentQualification, careerDates]);
+  const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification, settings.careerPathDates || {}), [activityLogs, settings.userProfile.currentQualification, settings.careerPathDates]);
+  
+  // Re-inserito qui dopo che careerStatus è definito
+  useEffect(() => {
+    if (!authLoading && !isInitializing) {
+      const careerDates = settings.careerPathDates || {};
+      if (Object.keys(careerDates).length > 0) {
+        try {
+          const now = new Date();
+          const todayStr = format(now, 'yyyy-MM-dd');
+          
+          for (const [stageName, dateStr] of Object.entries(careerDates)) {
+            if (!dateStr) continue;
+            
+            const deadline = new Date(dateStr);
+            const deadlineStr = format(deadline, 'yyyy-MM-dd');
+            
+            if (deadlineStr <= todayStr) {
+               const stageIndex = CAREER_STAGES.findIndex(s => s.name === stageName);
+               const currentQualIndex = CAREER_STAGES.findIndex(s => 
+                 s.name.toLowerCase() === careerStatus.currentLevel.name.toLowerCase() ||
+                 (careerStatus.currentLevel.qualificationValue && s.name.toLowerCase() === careerStatus.currentLevel.qualificationValue.toLowerCase())
+               );
+
+               if (stageIndex > currentQualIndex) {
+                 const alreadyAck = settings.acknowledgedDeadlines?.[stageName] === dateStr;
+                 if (!alreadyAck) {
+                   setDeadlineAlert({ stageName, date: dateStr });
+                   break;
+                 }
+               }
+            }
+          }
+        } catch (e) { console.error(e); }
+      }
+    }
+  }, [authLoading, isInitializing, settings.careerPathDates, settings.acknowledgedDeadlines, careerStatus.currentLevel.name, careerStatus.currentLevel.qualificationValue, CAREER_STAGES]);
+
   const streak = useMemo(() => calculateCurrentStreak(activityLogs), [activityLogs]);
 
   const nextFollowUp = useMemo(() => {
@@ -1065,7 +1112,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       .sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime())[0] || null;
   }, [activityLogs]);
 
-  const sessionStats = useMemo(() => calculateDailySessionStats(selectedDateLog, settings.goals), [selectedDateLog, settings.goals]);
 
   // Swipe Handling Refs
   const touchStartXDaily = useRef<number | null>(null);
@@ -1159,7 +1205,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                 toggleTheme={globalToggleTheme}
                 currentTheme={globalTheme as any}
                 onOpenCareerPath={() => setActiveView('career')}
-                onOpenDailyRecap={() => setIsDailyRecapOpen(true)}
                 isLoggedIn={!!user}
                 onLogout={signOut}
                 onCloseApp={onClose}
@@ -1167,11 +1212,13 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                 onOpenGuide={() => setIsGuideModalOpen(true)}
                 streak={streak}
                 onOpenTeamChallenge={() => setIsTeamModalOpen(true)}
+                isSyncing={isSyncing}
+                onSync={handleManualSync}
               />
             )}
             {(activeView === 'today' || activeView === 'stats') && (
               <div className="flex flex-col gap-4 max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 pt-6">
-                {activeView === 'today' && !isFollowUpModalOpen && !isDailyRecapOpen && !isMonthlyReportModalOpen && !isGuideModalOpen && !isTeamModalOpen && !isTargetCalculatorModalOpen && !isVisionBoardModalOpen && !isCareerPathModalOpen && !isScriptLibraryOpen && !isSocialShareModalOpen && !isContractSelectorModalOpen && !isLeadCaptureModalOpen && !isCalendarModalOpen && !isVoiceModeOpen && !isResetGoalsModalOpen && (
+                {activeView === 'today' && !isFollowUpModalOpen && !isMonthlyReportModalOpen && !isGuideModalOpen && !isTeamModalOpen && !isTargetCalculatorModalOpen && !isVisionBoardModalOpen && !isCareerPathModalOpen && !isScriptLibraryOpen && !isSocialShareModalOpen && !isContractSelectorModalOpen && !isLeadCaptureModalOpen && !isCalendarModalOpen && !isVoiceModeOpen && !isResetGoalsModalOpen && (
                   <div className="flex justify-center mb-2 p-1.5 rounded-2xl mx-auto w-full max-w-md border-2 border-slate-200 dark:border-white/10 shadow-2xl relative z-30 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl">
                     <button
                       onClick={() => setActiveTab('inserimento')}
@@ -1249,6 +1296,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                               careerStatus={careerStatus}
                               viewMode={viewMode} setViewMode={setViewMode}
                               goals={effectiveGoals}
+                              onOpenClients={() => setIsClientsModalOpen(true)}
                             />
                           </motion.div>
                         ) : (
@@ -1293,7 +1341,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                               viewMode={viewMode} setViewMode={setViewMode}
                               selectedDate={selectedInputDate}
                               onDateChange={setSelectedInputDate}
-                              careerDates={careerDates}
+                              careerDates={settings.careerPathDates || {}}
                               visionBoardData={settings.visionBoard}
                               dailyEarnings={dailyEarnings}
                               onOpenVisionBoardSettings={() => setIsVisionBoardModalOpen(true)}
@@ -1394,11 +1442,13 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
                         isEmbedded={true} 
                         onClose={() => setActiveView('today')} 
                         userId={userId}
-                        careerDates={careerDates}
-                        onUpdateDates={setCareerDates}
+                        careerDates={settings.careerPathDates || {}}
+                        onUpdateDates={handleUpdateCareerDates}
                         onResetAll={handleResetCareerPath}
                         manualQualification={settings.userProfile.currentQualification}
                         onResetQualification={handleResetManualQualification}
+                        targetQualification={settings.userProfile.targetQualification}
+                        onUpdateTarget={handleUpdateTargetQualification}
                         currentLevelName={careerStatus.currentLevel.name}
                       />
                       
@@ -1506,7 +1556,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
 
           <button
             onClick={handleScrollToTop}
-            className={`fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-[99999] flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 ${showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}
+            className={`fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-[99999] flex items-center justify-center p-4 bg-[#1c1c1e] hover:bg-slate-800 text-white rounded-full shadow-2xl border-2 border-white/20 transition-all duration-300 ${showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}
             style={{ position: 'fixed', right: '1.5rem', bottom: '6rem' }}
             aria-label="Salita Veloce"
           >
@@ -1563,12 +1613,6 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
       <LeadCaptureModal isOpen={isLeadCaptureModalOpen} onClose={() => { setIsLeadCaptureModalOpen(false); setEditingLead(null); }} activityType={leadCaptureType} onSave={handleSaveLead} initialData={editingLead} />
       <CalendarModal isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)} selectedDate={selectedInputDate} onSelectDate={setSelectedInputDate} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />
-      <DailyRecapModal
-        isOpen={isDailyRecapOpen}
-        onClose={() => setIsDailyRecapOpen(false)}
-        stats={sessionStats}
-        onFinalize={handleFinalizeSession}
-      />
       <GoalReminderModal
         isOpen={isReminderModalOpen}
         type={reminderType}
@@ -1581,12 +1625,16 @@ const AppContent: React.FC<AppContentProps> = ({ onClose }) => {
         weeklyTarget={settings.goals.weekly[ActivityType.CONTACTS] || 0}
         isSaturday={new Date().getDay() === 6}
       />
+      <ClientsModal 
+        isOpen={isClientsModalOpen} 
+        onClose={() => setIsClientsModalOpen(false)} 
+      />
     </>
   );
 };
 
-const App: React.FC<{ onClose?: () => void }> = ({ onClose }) => (
-  <AuthProvider><AppContent onClose={onClose} /></AuthProvider>
+const App: React.FC<{ onClose?: () => void; initialView?: string }> = ({ onClose, initialView }) => (
+  <AuthProvider><AppContent onClose={onClose} initialView={initialView} /></AuthProvider>
 );
 
 export default App;

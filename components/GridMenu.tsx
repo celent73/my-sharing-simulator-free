@@ -11,7 +11,8 @@ import {
     BookOpen,
     ExternalLink,
     Download,
-    X
+    X,
+    Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -26,6 +27,7 @@ interface GridMenuProps {
     isSharyActive: boolean;
     onOpenTarget: () => void;
     onOpenDailyCheck: () => void;
+    onOpenClients?: () => void;
     onOpenGuide: () => void;
     onOpenInstall: () => void;
     isPremium: boolean;
@@ -109,6 +111,7 @@ const GridMenu: React.FC<GridMenuProps> = ({
     isSharyActive,
     onOpenTarget,
     onOpenDailyCheck,
+    onOpenClients,
     onOpenGuide,
     onOpenInstall,
     isPremium,
@@ -163,6 +166,12 @@ const GridMenu: React.FC<GridMenuProps> = ({
                             <MenuItem icon={Fuel} label={t('menu.fuel_pitch')} colorClass="bg-rose-500" onClick={onOpenFuelPitch} />
                             <MenuItem icon={Bot} label={isSharyActive ? t('menu.shary_active') : t('menu.activate_shary')} colorClass={isSharyActive ? "bg-emerald-500" : "bg-slate-500"} onClick={toggleShary} />
                             <MenuItem icon={Target} label={t('menu.calc_goal')} colorClass="bg-indigo-600" onClick={onOpenTarget} />
+                            <MenuItem 
+                                icon={Users} 
+                                label="Clienti" 
+                                colorClass="bg-emerald-600" 
+                                onClick={onOpenClients || (() => console.warn('onOpenClients mancante'))} 
+                            />
                         </div>
 
                         {/* ROW 3: Extra */}

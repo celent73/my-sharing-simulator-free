@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, RotateCcw } from 'lucide-react';
+import { Trash2, RotateCcw, Target as TargetIcon } from 'lucide-react';
 
 interface CareerPathModalProps {
     isOpen: boolean;
@@ -13,9 +13,11 @@ interface CareerPathModalProps {
     manualQualification?: string | null;
     onResetQualification?: () => void;
     currentLevelName?: string;
+    targetQualification?: string | null;
+    onUpdateTarget?: (qualification: string | null) => void;
 }
 
-import { saveCareerDates } from '../services/storageService';
+  
 
 const CAREER_STAGES = [
     { name: "Family Pro", color: "#ec4899" }, // Vibrant Pink
@@ -42,7 +44,9 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
     onResetAll,
     manualQualification,
     onResetQualification,
-    currentLevelName
+    currentLevelName,
+    targetQualification,
+    onUpdateTarget
 }) => {
     const [dates, setDates] = useState<Record<string, string>>(careerDates || {});
     const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(null);
@@ -61,9 +65,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
             delete updated[stageName];
         }
         setDates(updated);
-        saveCareerDates(userId || null, updated);
         if (onUpdateDates) onUpdateDates(updated);
-        window.dispatchEvent(new Event('careerDatesUpdated'));
     };
 
     const handleResetIndividual = (stageName: string) => {
@@ -86,9 +88,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
             if (onResetAll) {
                 await onResetAll();
             } else {
-                await saveCareerDates(userId || null, {});
                 if (onUpdateDates) onUpdateDates({});
-                window.dispatchEvent(new Event('careerDatesUpdated'));
             }
         }
     };
@@ -149,6 +149,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                             : -1;
                         
                         const isReached = (dateObj && dateObj <= new Date()) || (currentLevelIndex >= index);
+                        const isTarget = targetQualification && targetQualification.toLowerCase() === stage.name.toLowerCase();
                         
                         const isCurrent = !isReached && (index === 0 || (!!dates[CAREER_STAGES[index - 1].name] && new Date(dates[CAREER_STAGES[index-1].name]) <= new Date()) || (currentLevelIndex >= index - 1));
                         const isFuture = !isFilled && !isCurrent && !isReached;
@@ -189,10 +190,14 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
 
                                     <div className={`absolute top-1/2 -translate-y-1/2 flex flex-col justify-center ${isLeft ? 'left-full ml-4 sm:ml-6 items-start text-left' : 'right-full mr-4 sm:mr-6 items-end text-right'} w-40 pointer-events-auto`}>
                                         <h3
-                                            className={`text-sm md:text-base font-black leading-tight drop-shadow-md transition-colors ${isFuture ? 'text-slate-500' : 'text-white'}`}
-                                            style={(isFilled || isCurrent) ? { color: stage.color, textShadow: `0 0 10px ${stage.color}80` } : {}}
+                                            style={(isFilled || isCurrent || isTarget) ? { color: stage.color, textShadow: `0 0 10px ${stage.color}80` } : {}}
                                         >
                                             {stage.name}
+                                            {isTarget && (
+                                              <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-500 text-[8px] uppercase font-black border border-amber-500/30">
+                                                Target
+                                              </span>
+                                            )}
                                         </h3>
                                         {(isFilled || (manualQualification && manualQualification.toLowerCase() === stage.name.toLowerCase())) && (
                                             <div className="mt-1 flex items-center gap-2">
@@ -218,16 +223,21 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                     </div>
 
                                         <motion.button
-                                            whileHover={{ scale: isFuture ? 1 : 1.1 }}
-                                            whileTap={{ scale: isFuture ? 1 : 0.95 }}
-                                            onClick={() => !isFuture && setSelectedStageIndex(index)}
-                                            className={`relative w-24 h-24 sm:w-[7rem] sm:h-[7rem] rounded-full flex items-center justify-center border-4 shadow-xl transition-all duration-300 z-20 ${isFuture ? 'cursor-not-allowed grayscale-[0.8] opacity-70' : 'cursor-pointer hover:shadow-2xl'}`}
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => setSelectedStageIndex(index)}
+                                            className={`relative w-24 h-24 sm:w-[7rem] sm:h-[7rem] rounded-full flex items-center justify-center border-4 shadow-xl transition-all duration-300 z-20 ${isFuture ? 'grayscale-[0.4] opacity-80' : 'cursor-pointer hover:shadow-2xl'}`}
                                             style={{
-                                                backgroundColor: isReached ? stage.color : (isFilled || isCurrent) ? `${stage.color}20` : '#1e293b',
-                                                borderColor: isReached ? '#ffffff' : (isFilled || isCurrent) ? stage.color : '#334155',
-                                                boxShadow: (isFilled || isCurrent) ? `0 0 25px ${stage.color}60, inset 0 0 20px ${stage.color}40` : 'none'
+                                                backgroundColor: isReached ? stage.color : (isFilled || isCurrent || isTarget) ? `${stage.color}20` : '#1e293b',
+                                                borderColor: isReached ? '#ffffff' : (isFilled || isCurrent || isTarget) ? stage.color : '#334155',
+                                                boxShadow: (isTarget) ? `0 0 30px ${stage.color}, inset 0 0 20px ${stage.color}80` : (isFilled || isCurrent) ? `0 0 25px ${stage.color}60, inset 0 0 20px ${stage.color}40` : 'none'
                                             }}
                                         >
+                                            {isTarget && (
+                                              <div className="absolute -top-2 -right-2 bg-amber-500 text-white p-1.5 rounded-full shadow-lg border-2 border-slate-900 z-30">
+                                                <TargetIcon size={14} className="animate-pulse" />
+                                              </div>
+                                            )}
                                             {isCurrent && (
                                                 <span className="absolute inset-0 rounded-full animate-ping opacity-40 border-2" style={{ borderColor: stage.color }}></span>
                                             )}
@@ -323,13 +333,26 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                         )}
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setSelectedStageIndex(null)}
-                                    className="w-full py-3.5 rounded-xl font-black text-white shadow-lg transition-transform active:scale-95 text-lg"
-                                    style={{ backgroundColor: selectedStage.color, boxShadow: `0 4px 15px ${selectedStage.color}80` }}
-                                >
-                                    Conferma
-                                </button>
+                                <div className="pt-2 border-t border-white/5 space-y-3">
+                                  <button
+                                      onClick={() => {
+                                          if (onUpdateTarget) onUpdateTarget(selectedStage.name);
+                                          setSelectedStageIndex(null);
+                                      }}
+                                      className="w-full py-3 px-4 rounded-xl font-bold text-white bg-amber-600 hover:bg-amber-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-900/40"
+                                  >
+                                      <TargetIcon size={18} />
+                                      Imposta come Obiettivo
+                                  </button>
+
+                                  <button
+                                      onClick={() => setSelectedStageIndex(null)}
+                                      className="w-full py-3.5 rounded-xl font-black text-white shadow-lg transition-transform active:scale-95 text-lg"
+                                      style={{ backgroundColor: selectedStage.color, boxShadow: `0 4px 15px ${selectedStage.color}80` }}
+                                  >
+                                      Conferma
+                                  </button>
+                                </div>
 
                                 {(dates[selectedStage.name] || (manualQualification && manualQualification.toLowerCase() === selectedStage.name.toLowerCase())) && (
                                     <button

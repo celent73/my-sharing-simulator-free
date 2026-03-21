@@ -23,10 +23,10 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
 
     const [mainTab, setMainTab] = useState<'tutorial' | 'contract' | 'video'>('tutorial');
     const [tutorialTab, setTutorialTab] = useState('simulator');
-    const [personalUnits, setPersonalUnits] = useState(5);
+    const [personalUnits, setPersonalUnits] = useState(3);
     const [expansionMode, setExpansionMode] = useState<'manual' | 'auto'>('auto');
     const [duplicationFactor, setDuplicationFactor] = useState(3);
-    const [networkSize, setNetworkSize] = useState([5, 15, 45, 100, 250, 500]);
+    const [networkSize, setNetworkSize] = useState([3, 9, 27, 81, 243, 729]);
     const [monthRange, setMonthRange] = useState('1');
     const [utilityType, setUtilityType] = useState<'DOMESTIC' | 'BUSINESS'>('DOMESTIC');
 
@@ -38,9 +38,9 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
     }, [isOpen]);
 
     const handleReset = () => {
-        setNetworkSize([0, 0, 0, 0, 0, 0]);
-        setPersonalUnits(0);
-        setDuplicationFactor(1);
+        setNetworkSize([3, 9, 27, 81, 243, 729]);
+        setPersonalUnits(3);
+        setDuplicationFactor(3);
         setMonthRange('1');
         setUtilityType('DOMESTIC');
     };

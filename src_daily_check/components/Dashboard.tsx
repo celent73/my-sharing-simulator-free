@@ -365,26 +365,26 @@ const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className={`bg-[#f2f2f7] dark:bg-slate-900/40 ${compactView ? '' : ''} ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:pb-2 sm:pt-10 sm:px-0'} rounded-[2rem] sm:rounded-[3.5rem] relative overflow-hidden font-sans`}>
+    <div className={`bg-transparent ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:pb-2 sm:pt-10 sm:px-0'} relative overflow-hidden font-sans`}>
       {/* Calcolo status carriera per l'header */}
-      <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-2 pl-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-500">
+      <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-2xl p-2.5 pl-5 rounded-[1.5rem] border border-white/40 dark:border-white/10 shadow-2xl shadow-black/[0.03]">
         <div className="flex flex-col items-end">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">LIVELLO</span>
+          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">LIVELLO</span>
           <span
-            className="text-xs font-bold uppercase tracking-tight transition-colors duration-500"
+            className="text-xs font-black uppercase tracking-tight"
             style={{ color: careerStatus.currentLevel.color || 'inherit' }}
           >
             {careerStatus.currentLevel.name}
           </span>
         </div>
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-500"
+          className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-xl"
           style={{
             backgroundColor: careerStatus.currentLevel.color || '#3b82f6',
-            boxShadow: `0 4px 12px ${careerStatus.currentLevel.color || '#3b82f6'}40`
+            boxShadow: `0 8px 16px ${careerStatus.currentLevel.color || '#3b82f6'}30`
           }}
         >
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
           </svg>
         </div>
@@ -449,30 +449,29 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex flex-col items-center w-full mx-auto mt-8 space-y-8">
               {/* PROSSIMO APPUNTAMENTO */}
               {nextAppointment && (
-                <div className="w-full bg-white dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-6 shadow-xl border border-blue-500/20 flex items-center justify-between group overflow-hidden relative">
-                  <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-blue-500/10 blur-[50px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none"></div>
-                  <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-500">
-                      <Calendar className="w-8 h-8" />
+                <div className="w-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-6 shadow-2xl shadow-black/[0.03] border border-white/40 dark:border-white/10 flex items-center justify-between group overflow-hidden relative transition-all hover:scale-[1.01]">
+                   <div className="flex items-center gap-5 relative z-10">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-500/20 group-hover:rotate-6 transition-transform">
+                      <Calendar className="w-7 h-7" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">PROSSIMO OBIETTIVO</p>
-                      <h4 className="text-xl font-black text-slate-900 dark:text-white mb-0.5">{nextAppointment.title}</h4>
-                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                      <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.25em] mb-1">PROSSIMO APPUNTAMENTO</p>
+                      <h4 className="text-xl font-black text-[#1c1c1e] dark:text-white mb-0.5">{nextAppointment.title}</h4>
+                      <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                         {new Date(nextAppointment.date).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <div className="bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-blue-100 dark:border-blue-800/30">
+                  <div className="flex flex-col items-end relative z-10">
+                    <div className="bg-blue-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20">
                       {(() => {
                         const diff = new Date(nextAppointment.date).getTime() - new Date().getTime();
                         const hours = Math.floor(diff / (1000 * 60 * 60));
                         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        if (diff < 0) return 'In corso / Passato';
-                        if (hours > 24) return `Tra ${Math.floor(hours/24)} giorni`;
-                        if (hours > 0) return `Tra ${hours}h ${mins}m`;
-                        return `Tra ${mins} minuti`;
+                        if (diff < 0) return 'Scaduto';
+                        if (hours > 24) return `Tra ${Math.floor(hours/24)}gg`;
+                        if (hours > 0) return `Tra ${hours}h`;
+                        return `${mins}m`;
                       })()}
                     </div>
                   </div>
@@ -491,24 +490,24 @@ const Dashboard: React.FC<DashboardProps> = ({
 
               {/* PROSSIMO FOLLOW-UP ALERT */}
               {nextFollowUp && (
-                <div className={`w-full ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500/30' : 'bg-white dark:bg-slate-900/60 border-blue-500/20'} backdrop-blur-3xl rounded-[2.5rem] p-6 shadow-xl border flex items-center justify-between group overflow-hidden relative transition-all duration-500 hover:scale-[1.02]`}>
-                  <div className="flex items-center gap-5">
-                    <div className={`w-14 h-14 ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-blue-400 to-indigo-500'} rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-500 group-hover:rotate-12`}>
+                <div className="w-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-6 shadow-2xl shadow-black/[0.03] border-2 border-black/10 dark:border-white/20 flex items-center justify-between group overflow-hidden relative transition-all hover:scale-[1.01]">
+                  <div className="flex items-center gap-5 relative z-10">
+                    <div className={`w-14 h-14 ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'bg-gradient-to-br from-orange-400 to-red-500' : 'bg-gradient-to-br from-blue-400 to-indigo-500'} rounded-2xl flex items-center justify-center text-white shadow-xl transition-transform group-hover:rotate-6`}>
                       <Clock className="w-7 h-7" />
                     </div>
                     <div>
-                      <p className={`text-[10px] font-black ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'text-orange-600' : 'text-blue-500'} uppercase tracking-[0.2em] mb-1`}>
-                        {new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(0,0,0,0) ? 'FOLLOW-UP SCADUTO ⚠️' : 'PROSSIMO FOLLOW-UP'}
+                      <p className={`text-[10px] font-black ${new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(23,59,59,999) ? 'text-orange-500' : 'text-blue-500'} uppercase tracking-[0.25em] mb-1`}>
+                        {new Date(nextFollowUp.followUpDate!).getTime() < new Date().setHours(0,0,0,0) ? 'FOLLOW-UP SCADUTO' : 'PROSSIMO FOLLOW-UP'}
                       </p>
-                      <h4 className="text-lg font-black text-slate-900 dark:text-white mb-0.5">{nextFollowUp.name}</h4>
-                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      <h4 className="text-xl font-black text-[#1c1c1e] dark:text-white mb-0.5">{nextFollowUp.name}</h4>
+                      <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                         Entro il {new Date(nextFollowUp.followUpDate!).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
                       </p>
                     </div>
                   </div>
                   <button 
                     onClick={() => onEditLead(nextFollowUp.type || ActivityType.CONTACTS, nextFollowUp)}
-                    className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-md hover:shadow-lg transition-all active:scale-90 border border-slate-200 dark:border-slate-700"
+                    className="bg-black/[0.03] dark:bg-white/[0.05] text-slate-400 dark:text-slate-500 w-12 h-12 rounded-2xl flex items-center justify-center border border-black/[0.01] dark:border-white/[0.01] transition-all active:scale-90 hover:text-blue-500 hover:bg-blue-50"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
@@ -516,17 +515,17 @@ const Dashboard: React.FC<DashboardProps> = ({
               )}
 
               {/* POWER RING (Guadagno Oggi) */}
-              <div className="relative group flex flex-col items-center py-8">
-                <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none"></div>
-                <div className="relative w-64 h-64 lg:w-72 lg:h-72 rounded-full border-[1.5rem] border-slate-300/30 dark:border-slate-700/60 flex items-center justify-center shadow-[inset_0_0_60px_rgba(0,0,0,0.15)] bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+              <div className="relative group flex flex-col items-center py-12">
+                <div className="absolute inset-0 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="relative w-72 h-72 lg:w-80 lg:h-80 rounded-full border-[1.5rem] border-white/40 dark:border-white/5 flex items-center justify-center shadow-2xl shadow-black/[0.02] bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl">
                   <div className="text-center">
-                    <p className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Guadagno Oggi</p>
-                    <p className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white drop-shadow-sm">€{Math.round(dailyEarnings)}</p>
+                    <p className="text-[10px] lg:text-xs font-black text-[#8e8e93] dark:text-slate-500 uppercase tracking-[0.25em] mb-2">GUADAGNO OGGI</p>
+                    <p className="text-5xl lg:text-6xl font-black text-[#1c1c1e] dark:text-white tracking-tighter">€{Math.round(dailyEarnings)}</p>
                     <button
                       onClick={onOpenTargetCalculator}
-                      className="mt-4 p-3 bg-white/5 dark:bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl transition-all active:scale-95 mx-auto"
+                      className="mt-6 p-3.5 bg-black/[0.03] dark:bg-white/10 hover:bg-blue-500 hover:text-white rounded-2xl transition-all active:scale-95 mx-auto border border-white/20"
                     >
-                      <Calculator className="w-5 h-5 text-blue-500" />
+                      <Calculator className="w-6 h-6" />
                     </button>
                     <div className="mt-3 flex flex-col items-center gap-2">
                       <svg className="absolute inset-[-1.5rem] w-[calc(100%+3rem)] h-[calc(100%+3rem)] -rotate-90">
@@ -539,7 +538,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           strokeWidth="1.5rem"
                           strokeDasharray={`${Math.min(dailyEarnings / 10, 100) * 3} 1000`}
                           strokeLinecap="round"
-                          className="drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-1000"
+                          className="drop-shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all duration-1000"
                         />
                         <defs>
                           <linearGradient id="hubGradientDashboard" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -553,13 +552,13 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 {/* SCRIPT LIBRARY BUTTON */}
-                <div className="mt-12 relative z-20">
+                <div className="mt-14 relative z-20">
                   <button
                     onClick={onOpenObjectionHandler}
-                    className="flex items-center gap-3 px-10 py-4 bg-[#007aff] hover:bg-[#0063cc] text-white rounded-3xl shadow-xl shadow-blue-500/30 transition-all active:scale-95 group border border-blue-400/30"
+                    className="flex items-center gap-4 px-10 py-5 bg-blue-500 hover:bg-blue-600 text-white rounded-[2rem] shadow-2xl shadow-blue-500/20 transition-all active:scale-95 group border border-white/20"
                   >
-                    <Sparkles size={22} className="text-white group-hover:animate-pulse" />
-                    <span className="font-black text-sm uppercase tracking-[0.2em]">Script Library</span>
+                    <Sparkles size={24} className="group-hover:animate-pulse" />
+                    <span className="font-black text-[11px] uppercase tracking-[0.25em]">Script Library</span>
                   </button>
                 </div>
               </div>

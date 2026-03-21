@@ -60,6 +60,7 @@ interface ActivityInputProps {
     setViewMode: (mode: ViewMode) => void;
     goals: Goals;
     activeTab?: 'inserimento' | 'risultati';
+    onOpenClients?: () => void;
 }
 
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
@@ -118,7 +119,8 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     viewMode,
     setViewMode,
     goals,
-    activeTab = 'inserimento'
+    activeTab = 'inserimento',
+    onOpenClients
 }) => {
     const { user } = useAuth();
     const [isFooterVisible, setIsFooterVisible] = React.useState(true);
@@ -296,50 +298,55 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
             
             {/* Date Navigator Pill — always visible */}
             <div className="mb-8 flex flex-col items-center">
-                <div className="w-full max-w-5xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-700 px-4 py-4">
+                <div className="w-full max-w-7xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl shadow-black/[0.03] border-2 border-black/10 dark:border-white/20 px-6 py-5">
                     {/* Row: < Date OGGI > */}
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-4">
                         <button
                             onClick={() => changeDate(-1)}
-                            className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
+                            className="w-11 h-11 flex items-center justify-center rounded-2xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all active:scale-90"
                         >
-                            <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
+                            <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
                         </button>
 
-                        <div className="flex items-center gap-2 flex-1 justify-center">
-                            <span className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
-                                {selectedDateFormatted}
-                            </span>
-                            {isToday ? (
-                                <span className="text-[10px] font-black uppercase tracking-widest bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full">
-                                    OGGI
+                        <div className="flex flex-col items-center gap-1 flex-1">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl font-black text-[#1c1c1e] dark:text-white tracking-tight">
+                                    {selectedDateFormatted}
                                 </span>
-                            ) : (
+                                {isToday && (
+                                    <span className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-2.5 py-1 rounded-lg shadow-lg shadow-blue-500/20">
+                                        OGGI
+                                    </span>
+                                )}
+                            </div>
+                            {!isToday && (
                                 <button
                                     onClick={() => onDateChange(new Date())}
-                                    className="text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-blue-100 hover:text-blue-600 px-2.5 py-1 rounded-full transition-all"
+                                    className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:opacity-70 transition-all"
                                 >
-                                    OGGI
+                                    TORNA AD OGGI
                                 </button>
                             )}
                         </div>
 
                         <button
                             onClick={() => changeDate(1)}
-                            className="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
+                            className="w-11 h-11 flex items-center justify-center rounded-2xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all active:scale-90"
                         >
-                            <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
+                            <ChevronRight className="w-6 h-6" strokeWidth={2.5} />
                         </button>
                     </div>
 
                     {/* Row: CAMBIA DATA */}
-                    <div className="mt-3 flex justify-center">
+                    <div className="mt-4 pt-4 border-t border-black/[0.03] dark:border-white/[0.03] flex justify-center">
                         <button
                             onClick={onOpenCalendar}
-                            className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-500 transition-colors"
+                            className="flex items-center gap-2 group"
                         >
-                            <Calendar className="w-3.5 h-3.5" />
-                            CAMBIA DATA
+                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:text-blue-500 group-hover:bg-blue-50 transition-all">
+                                <Calendar className="w-4 h-4" />
+                            </div>
+                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 group-hover:text-blue-500 transition-colors">CAMBIA DATA</span>
                         </button>
                     </div>
                 </div>
@@ -348,6 +355,16 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 <div className="flex items-center gap-3 mt-2 text-xs font-medium">
                     <span className="px-2 py-0.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300">{commercialMonthStr}</span>
                     <span className="font-bold text-orange-500 dark:text-orange-400">{daysRemaining} gg alla fine mese</span>
+                    
+                    {onOpenClients && (
+                        <button
+                            onClick={onOpenClients}
+                            className="ml-auto flex items-center gap-1.5 px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-sm transition-all active:scale-95 font-bold text-[10px] uppercase tracking-wider"
+                        >
+                            <Users size={12} strokeWidth={3} />
+                            Rubrica Clienti
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -418,30 +435,28 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                 
                                 {/* Period Selector Pill */}
                                 <div className="flex justify-center">
-                                    <div className="inline-flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-800/80 rounded-[1.25rem] border border-slate-300 dark:border-slate-700 shadow-inner">
-                                        <button 
-                                            onClick={() => setViewMode('daily')} 
-                                            className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'daily' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                                        >
-                                            Giorno
-                                        </button>
-                                        <button 
-                                            onClick={() => setViewMode('weekly')} 
-                                            className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'weekly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                                        >
-                                            Settimana
-                                        </button>
-                                        <button 
-                                            onClick={() => setViewMode('monthly')} 
-                                            className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${viewMode === 'monthly' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
-                                        >
-                                            Mese
-                                        </button>
+                                    <div className="relative inline-flex p-1 bg-black/[0.03] dark:bg-white/[0.05] rounded-2xl border-2 border-black/10 dark:border-white/20">
+                                        {(['daily', 'weekly', 'monthly'] as ViewMode[]).map((mode) => (
+                                            <button
+                                                key={mode}
+                                                onClick={() => setViewMode(mode)}
+                                                className={`relative px-8 py-2.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all duration-300 z-10 ${viewMode === mode ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+                                            >
+                                                {mode === 'daily' ? 'Giorno' : mode === 'weekly' ? 'Settimana' : 'Mese'}
+                                                {viewMode === mode && (
+                                                    <motion.div
+                                                        layoutId="activePeriod"
+                                                        className="absolute inset-0 bg-blue-500 rounded-xl -z-10 shadow-lg shadow-blue-500/30"
+                                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                                    />
+                                                )}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 ${isHubMode ? 'xl:grid-cols-5' : ''} gap-4 lg:gap-6 w-full max-w-5xl mx-auto`}>
+                        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 ${isHubMode ? 'xl:grid-cols-3' : ''} gap-4 lg:gap-6 w-full max-w-7xl mx-auto`}>
                             {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
                                 const count = todayCounts[activity] || 0;
                                 let label = customLabels?.[activity] || ACTIVITY_LABELS[activity];
@@ -451,63 +466,70 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                 const styles = CARD_STYLES[activity];
 
                                 return (
-                                    <div key={activity} className={`group relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200 dark:border-slate-700 ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2rem] p-5 lg:p-8'} shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none transition-all duration-500 hover:scale-[1.05] hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] relative overflow-hidden`}>
+                                    <motion.div 
+                                        key={activity} 
+                                        whileHover={{ y: -5 }}
+                                        className={`group relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border-2 border-black/10 dark:border-white/20 ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2.5rem] p-6 lg:p-8'} shadow-2xl shadow-black/[0.03] transition-all duration-500 overflow-hidden`}
+                                    >
+                                        {/* Background Glow */}
+                                        <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[80px] opacity-10 group-hover:opacity-20 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
                                         
                                         <AnimatePresence>
                                             {pulsingActivity === activity && (
                                                 <motion.div
                                                     initial={{ opacity: 0.8, scale: 0.95 }}
-                                                    animate={{ opacity: 0, scale: 1.05 }}
+                                                    animate={{ opacity: 0, scale: 1.1 }}
                                                     transition={{ duration: 0.8, ease: "easeOut" }}
-                                                    className={`absolute inset-0 z-0 bg-gradient-to-br ${styles.gradient} mix-blend-overlay opacity-30 pointer-events-none rounded-[inherit]`}
+                                                    className={`absolute inset-0 z-0 bg-white dark:bg-slate-700 opacity-20 pointer-events-none rounded-[inherit]`}
                                                 />
                                             )}
                                         </AnimatePresence>
 
-                                        <div className="flex flex-col h-full justify-between gap-6 relative z-10">
+                                        <div className="flex flex-col h-full justify-between gap-8 relative z-10">
                                             <div className="flex justify-between items-start">
-                                                <div className={`h-10 w-10 ${isHubMode ? 'lg:h-12 lg:w-12' : 'lg:h-12 lg:w-12'} rounded-xl ${styles.iconBg} flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12`}>
-                                                    <div className={isHubMode ? "scale-90 lg:scale-100" : "scale-90 lg:scale-95"}>
+                                                <div className={`h-12 w-12 rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-xl shadow-current/20 transition-transform group-hover:rotate-12`}>
+                                                    <div className="scale-100">
                                                         {activityIcons[activity]}
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    {activity === ActivityType.APPOINTMENTS && (
+                                                <div className="flex gap-3">
+                                                    {(activity === ActivityType.APPOINTMENTS || activity === ActivityType.CONTACTS) && (
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); setIsAppointmentsOverviewOpen(true); }}
-                                                            className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
-                                                            title="Vedi appuntamenti"
+                                                            onClick={(e) => { 
+                                                                e.stopPropagation(); 
+                                                                if (activity === ActivityType.APPOINTMENTS) setIsAppointmentsOverviewOpen(true);
+                                                                else setIsContactsOverviewOpen(true);
+                                                            }}
+                                                            className="w-12 h-12 rounded-2xl flex items-center justify-center text-[#8e8e93] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.01] dark:border-white/[0.01] shadow-lg hover:bg-blue-500 hover:text-white transition-all active:scale-90"
+                                                            title="Vedi lista"
                                                         >
-                                                            <ListChecks className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                                                            <ListChecks className="w-6 h-6" strokeWidth={3} />
                                                         </button>
                                                     )}
-                                                    {activity === ActivityType.CONTACTS && (
+                                                    {activity === ActivityType.APPOINTMENTS && onOpenClients && (
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); setIsContactsOverviewOpen(true); }}
-                                                            className="w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-900/40 border-2 border-blue-100 dark:border-blue-800 shadow-xl hover:shadow-2xl hover:bg-blue-100 transition-all active:scale-90 group-hover:scale-110"
-                                                            title="Vedi contatti"
+                                                            onClick={(e) => { e.stopPropagation(); onOpenClients(); }}
+                                                            className="w-12 h-12 rounded-2xl flex items-center justify-center text-[#8e8e93] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.01] dark:border-white/[0.01] shadow-lg hover:bg-emerald-500 hover:text-white transition-all active:scale-90"
+                                                            title="Rubrica Clienti"
                                                         >
-                                                            <Users className="w-7 h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                                                            <Users className="w-6 h-6" strokeWidth={3} />
                                                         </button>
                                                     )}
                                                     <button
                                                         onClick={(e) => handlePlusClick(e, activity)}
-                                                        className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-xl hover:shadow-2xl transition-all active:scale-90 animate-pulse-slow ring-4 ring-white/30 group-hover:scale-110`}
+                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-xl shadow-current/20 transition-all active:scale-90 group-hover:scale-110`}
                                                     >
-                                                        <Plus className="w-7 h-7 lg:w-10 lg:h-10 drop-shadow-md" strokeWidth={4} />
+                                                        <Plus className="w-7 h-7" strokeWidth={4} />
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <h3 className="text-xs lg:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{label}</h3>
+                                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{label}</h3>
                                                 <div className="flex items-baseline gap-2">
                                                     <motion.span 
                                                         key={`${activity}-${getPeriodTotals[activity]}`}
-                                                        initial={{ scale: 0.9, color: '#3b82f6' }}
-                                                        animate={{ scale: pulsingActivity === activity ? [1, 1.4, 1] : 1, color: 'inherit' }}
-                                                        transition={{ duration: 0.5 }}
-                                                        className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-5xl lg:text-6xl' : 'text-4xl lg:text-5xl'}`}
+                                                        className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-6xl' : 'text-5xl'}`}
                                                     >
                                                         {getPeriodTotals[activity]}
                                                     </motion.span>
@@ -525,28 +547,28 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                     const remaining = Math.max(0, goalValue - current);
                                                     
                                                     return (
-                                                        <div className="mt-2 flex items-center gap-1.5">
-                                                            <Target className={`w-3 h-3 ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
-                                                            <span className={`text-xs font-black uppercase tracking-tight ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                                                {remaining === 0 ? 'Target Raggiunto!' : `Mancano ${remaining} per l'obiettivo`}
+                                                        <div className="mt-3 flex items-center gap-1.5">
+                                                            <Target className={`w-3.5 h-3.5 ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
+                                                            <span className={`text-[10px] font-black uppercase tracking-wider ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                                {remaining === 0 ? 'Target Raggiunto!' : `Mancano ${remaining}`}
                                                             </span>
                                                         </div>
                                                     );
                                                 })()}
                                             </div>
 
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-4">
                                                 <button
                                                     onClick={() => onUpdateActivity(activity, -1, selectedDateStr)}
-                                                    className="p-2 sm:p-2.5 rounded-xl text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 transition-all disabled:opacity-40 disabled:bg-red-600 disabled:text-white disabled:shadow-none active:scale-95"
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
                                                     disabled={(todayCounts[activity] || 0) === 0}
                                                 >
-                                                    <Minus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" strokeWidth={3} />
+                                                    <Minus className="w-5 h-5" strokeWidth={3} />
                                                 </button>
-                                                <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                    <div
-                                                        className={`h-full bg-gradient-to-r ${styles.gradient} transition-all duration-700`}
-                                                        style={{ 
+                                                <div className="flex-1 h-1.5 bg-black/[0.03] dark:bg-white/[0.05] rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ 
                                                             width: (() => {
                                                                 const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
                                                                                 viewMode === 'weekly' ? goals.weekly[activity] : 
@@ -556,11 +578,13 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                                 return `${Math.min((current / goalValue) * 100, 100)}%`;
                                                             })()
                                                         }}
+                                                        transition={{ duration: 1, ease: "easeOut" }}
+                                                        className={`h-full bg-gradient-to-r ${styles.gradient} rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]`}
                                                     />
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 );
                             })}
                         </div>

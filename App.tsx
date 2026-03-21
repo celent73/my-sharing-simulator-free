@@ -36,7 +36,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.3.1";
+const APP_VERSION = "v1.3.12";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -696,6 +696,7 @@ const AppContent = () => {
                   isSharyActive={isActive}
                   onOpenTarget={handleTargetClick}
                   onOpenDailyCheck={() => openModal('DAILY_CHECK')}
+                  onOpenClients={() => openModal('DAILY_CHECK', { initialView: 'clients' })}
                   onOpenGuide={() => openModal('GUIDE')}
                   onOpenInstall={() => openModal('INSTALL_PROMPT', { installPrompt })}
                   isPremium={isPremium}

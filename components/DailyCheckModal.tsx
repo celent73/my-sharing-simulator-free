@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp } from 'lucide-react';
 import DailyCheckApp from '../src_daily_check/App';
 
-export const DailyCheckModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+export const DailyCheckModal: React.FC<{ isOpen: boolean; onClose: () => void; initialView?: string }> = ({ isOpen, onClose, initialView }) => {
     // Body scroll lock
     useEffect(() => {
         if (isOpen) {
@@ -45,7 +45,7 @@ export const DailyCheckModal: React.FC<{ isOpen: boolean; onClose: () => void }>
                     >
                         {/* CONTENT: Daily Check App */}
                         <div className="flex-grow overflow-hidden w-full h-full relative scroll-smooth custom-scrollbar">
-                            <DailyCheckApp onClose={onClose} />
+                            <DailyCheckApp onClose={onClose} initialView={initialView} />
                         </div>
 
                     </motion.div>

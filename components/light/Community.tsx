@@ -38,14 +38,14 @@ const Community: React.FC<CommunityProps> = ({ personalUnits }) => {
     };
 
     return (
-        <div className="space-y-8 text-slate-800 dark:text-white pb-24 sm:pb-0">
+        <div className="space-y-4 text-slate-800 dark:text-white pb-24 sm:pb-0">
             {/* Header Community Premium */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl p-6 sm:p-8 rounded-[3rem] border border-white/50 dark:border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.05)] relative overflow-hidden"
             >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-5">
                         <div className="w-14 h-14 rounded-[1.2rem] bg-gradient-to-br from-union-green-400 to-union-green-600 text-white flex items-center justify-center shadow-lg shadow-union-green-500/30">
                             <Users size={26} />
@@ -76,7 +76,7 @@ const Community: React.FC<CommunityProps> = ({ personalUnits }) => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="flex flex-wrap items-center justify-between gap-4 mb-8 p-2 pr-2 bg-white/40 dark:bg-white/5 rounded-full border border-white/40 dark:border-white/5 shadow-sm backdrop-blur-md"
+                    className="flex flex-wrap items-center justify-between gap-4 mb-2 p-2 pr-2 bg-white/40 dark:bg-white/5 rounded-full border border-white/40 dark:border-white/5 shadow-sm backdrop-blur-md"
                 >
                     <div className="flex items-center gap-1 pl-2">
                         <div className="flex bg-gray-100/80 dark:bg-black/20 p-1 rounded-full border border-white/20 shadow-inner">
@@ -87,16 +87,6 @@ const Community: React.FC<CommunityProps> = ({ personalUnits }) => {
                                 <div className="w-3 h-3 rounded-full bg-slate-900 border border-yellow-500/50"></div>
                             </button>
                         </div>
-
-                        <div className="w-px h-6 bg-gray-300/50 mx-2"></div>
-
-                        <button
-                            onClick={() => setIsProjection(!isProjection)}
-                            className={`px-5 py-2 rounded-full transition-all font-bold text-xs uppercase tracking-wide flex items-center gap-2 ${isProjection ? 'bg-union-green-500 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-white/40'}`}
-                        >
-                            {isProjection ? <EyeOff size={14} /> : <Eye size={14} />}
-                            <span>{isProjection ? 'Reale' : 'Proiezione'}</span>
-                        </button>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -126,11 +116,11 @@ const Community: React.FC<CommunityProps> = ({ personalUnits }) => {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
                     id="export-card-tree"
-                    className={`p-1 pt-4 rounded-[2.5rem] relative overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-white/40 text-slate-800'}`}
+                    className={`p-1 pt-1 rounded-[2.5rem] relative overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-white/40 text-slate-800'}`}
                 >
                     {theme === 'dark' && <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>}
 
-                    <div className="flex justify-between items-start mb-6 px-6 no-export relative z-10">
+                    <div className="flex justify-between items-start mb-2 px-6 no-export relative z-10">
                         <div>
                             <h3 className={`text-xl font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{t('comm_sync.visualizer_pro')}</h3>
                             <p className="text-xs font-bold opacity-50 mt-1 tracking-wide">{t('comm_sync.visualizer_desc')}</p>
@@ -142,7 +132,7 @@ const Community: React.FC<CommunityProps> = ({ personalUnits }) => {
                                 animate={{ scale: 1, opacity: 1 }}
                                 className={`text-5xl font-black tracking-tighter ${theme === 'dark' ? 'text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 to-amber-600' : 'text-transparent bg-clip-text bg-gradient-to-br from-union-green-600 to-emerald-800'}`}
                             >
-                                {isProjection ? '20+' : '12'}
+                                {theme === 'dark' ? '12' : '12'}
                             </motion.p>
                             <p className="text-[9px] opacity-40 uppercase font-black tracking-widest mt-1">{t('comm_sync.total_members')}</p>
                         </div>
