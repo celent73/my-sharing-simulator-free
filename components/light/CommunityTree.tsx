@@ -300,7 +300,7 @@ const TreeNodeComponent = ({ node, theme, onAdd, onDelete, onUpdate, isProjectio
                 className={[
                     'relative rounded-[1.5rem] border z-20 transition-all duration-300 cursor-pointer',
                     isMain ? (roleColorClass + ' shadow-xl border-white/20') : nodeStyles[theme as keyof typeof nodeStyles],
-                    isMain ? 'p-5 min-w-[150px]' : isLevel3 ? 'p-2 min-w-[80px]' : node.level === 0 ? 'p-3 min-w-[110px]' : 'p-3 min-w-[120px]',
+                    isMain ? 'p-4 sm:p-5 min-w-[140px] sm:min-w-[150px]' : isLevel3 ? 'p-2 min-w-[80px]' : node.level === 0 ? 'p-2 sm:p-3 min-w-[100px] sm:min-w-[110px]' : 'p-2 sm:p-3 min-w-[100px] sm:min-w-[120px]',
                     isProjection && !isMain ? 'opacity-50 grayscale scale-95 border-dashed' : '',
                     'flex flex-col items-center group hover:scale-105 hover:shadow-xl',
                 ].join(' ')}
@@ -390,14 +390,14 @@ const TreeNodeComponent = ({ node, theme, onAdd, onDelete, onUpdate, isProjectio
                         animate={{ opacity: 1, height: 'auto', scale: 1 }}
                         exit={{ opacity: 0, height: 0, scale: 0.95 }}
                         transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                        className={`flex gap-6 sm:gap-16 relative justify-center px-4 ${isLevel3 ? 'mt-8' : 'mt-16'}`}
+                        className={`flex gap-6 sm:gap-16 relative justify-center px-4 ${isLevel3 ? 'mt-6 sm:mt-8' : 'mt-8 sm:mt-16'}`}
                     >
-                        <svg className={`absolute left-0 w-full pointer-events-none overflow-visible z-10 no-export ${isLevel3 ? 'top-[-32px] h-8' : 'top-[-64px] h-16'}`}>
+                        <svg className={`absolute left-0 w-full pointer-events-none overflow-visible z-10 no-export ${isLevel3 ? 'top-[-24px] sm:top-[-32px] h-6 sm:h-8' : 'top-[-32px] sm:top-[-64px] h-8 sm:h-16'}`}>
                             {node.children!.map((_, idx) => {
                                 const total = node.children!.length;
                                 const step = 100 / total;
                                 const targetX = idx * step + step / 2;
-                                const h = isLevel3 ? 32 : 64;
+                                const h = isLevel3 ? (window.innerWidth < 640 ? 24 : 32) : (window.innerWidth < 640 ? 32 : 64);
                                 return (
                                     <path
                                         key={idx}
