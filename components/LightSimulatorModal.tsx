@@ -129,33 +129,44 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
     return (
         <div className="fixed inset-0 z-[120] bg-slate-50 dark:bg-black/95 backdrop-blur-xl flex flex-col animate-in fade-in duration-300">
 
-            {/* ── Top Header ── */}
-            <div className="shrink-0 h-20 bg-[#166534] px-6 flex items-center justify-between z-50 shadow-md">
-                <div className="flex items-center gap-4">
+            {/* ── Top Header (Floating Dark style) ── */}
+            <motion.header 
+                animate={{ 
+                    y: isVisible ? 0 : -100, 
+                    opacity: isVisible ? 1 : 0 
+                }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                className="shrink-0 mx-4 mt-4 bg-[#1c1c1e]/95 backdrop-blur-3xl px-6 py-5 flex items-center justify-between z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2.5rem] border border-white/10"
+            >
+                <div className="flex items-center gap-5">
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-white/20 text-white transition-colors"
+                        className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5 shadow-inner"
                     >
                         <ChevronLeft size={24} />
                     </button>
                     <div>
-                        <h1 className="text-xl font-black text-white leading-none">
+                        <h1 className="text-xl md:text-2xl font-black text-white leading-tight tracking-tight">
                             {t('academy.title')}
                         </h1>
-                        <p className="text-xs text-green-200 font-medium mt-1">
+                        <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mt-0.5">
                             {t('academy.subtitle')}
                         </p>
                     </div>
                 </div>
 
-                <button
-                    onClick={onClose}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white transition-colors font-bold text-sm"
-                >
-                    <span className="hidden sm:inline">{t('common.close') || 'Chiudi'}</span>
-                    <X size={18} />
-                </button>
-            </div>
+                <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-black text-white/30 tracking-widest uppercase mb-1">
+                        v1.3.24
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all border border-red-500/10 shadow-lg"
+                    >
+                        <X size={20} strokeWidth={3} />
+                    </button>
+                </div>
+            </motion.header>
 
             {/* ── Main Content Area ── */}
             <div className="flex-1 overflow-hidden relative bg-slate-50 dark:bg-black/50">
