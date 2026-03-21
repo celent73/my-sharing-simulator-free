@@ -24,15 +24,15 @@ const LegalFooter: React.FC<LegalFooterProps> = ({ onOpenLegal }) => {
           {/* Copyright e Versione */}
           <div className="text-left">
             <p className="font-semibold" style={{ color: 'var(--footer-text)' }}>
-              Tutti i diritti riservati © 2026 My Sharing Simulator • v1.3.25
+              Tutti i diritti riservati © 2026 Union Energia - My Sharing Simulator • v1.3.26
             </p>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-              Applicazione indipendente non affiliata o sponsorizzata da terze parti.
+            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 uppercase tracking-tighter">
+              App Ufficiale Union Energia. Proprietà Intellettuale di Luca Celentano (L.C.)
             </p>
           </div>
 
           <div className="text-xs font-mono text-gray-600 dark:text-gray-200 bg-gray-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-full border border-gray-200 dark:border-white/10 backdrop-blur-md">
-            v1.3.25 - Protetto da crittografia SSL a 256 bit 🔒
+            v1.3.26 - Protetto da crittografia SSL a 256 bit 🔒
           </div>
         </div>
       </div>

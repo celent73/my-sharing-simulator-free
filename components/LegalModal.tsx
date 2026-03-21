@@ -18,11 +18,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, onAccep
       title: "Privacy Policy",
       icon: <Shield size={24} className="text-emerald-400" />,
       text: (
-        <div className="space-y-4">
-          <p><strong>1. Titolare del Trattamento</strong><br />Il titolare del trattamento è <strong>Luca Celentano</strong>.<br />Per qualsiasi informazione o richiesta, puoi contattare il titolare all'indirizzo email: <strong>celesharing@gmail.com</strong></p>
-          <p><strong>2. Dati Raccolti e Conservazione</strong><br />Questa applicazione raccoglie esclusivamente i dati tecnici strettamente necessari al funzionamento del simulatore (es. preferenze di calcolo inserite localmente nel tuo dispositivo). I dati possono essere memorizzati in cloud tramite infrastrutture sicure (es. Supabase) al solo scopo di permettere la persistenza delle simulazioni. I dati vengono conservati fino a quando non decidi di cancellarli tramite la funzione Reset o cancellazione della cache del browser.</p>
-          <p><strong>3. Finalità del Trattamento</strong><br />I dati vengono utilizzati unicamente per fornire il servizio di simulazione economica e per migliorare l'esperienza utente. Nessun dato viene ceduto a terzi per finalità di marketing.</p>
-          <p><strong>4. Diritti dell'Utente</strong><br />In conformità al GDPR, hai il diritto di chiedere l'accesso, la rettifica o la cancellazione dei tuoi dati contattando il titolare all'indirizzo sopra indicato.</p>
+        <div className="space-y-4 text-justify">
+          <p><strong>1. Titolare del Trattamento e Proprietà Intellettuale</strong><br />Il Titolare del trattamento dei dati, nonché autore e proprietario esclusivo della proprietà intellettuale (IP) della presente applicazione, è <strong>Luca Celentano (L.C.)</strong>.<br />Contatti: <strong>celesharing@gmail.com</strong></p>
+          <p><strong>2. Inquadramento dell'Applicazione</strong><br />"My Sharing Simulator" è l'applicazione ufficiale di supporto al network <strong>Union Energia S.r.l.</strong>. Il trattamento dei dati avviene nel pieno rispetto del GDPR e delle policy di sicurezza Union.</p>
+          <p><strong>3. Dati Raccolti e Conservazione</strong><br />L'applicativo elabora esclusivamente dati tecnici e preferenze di calcolo necessari alla simulazione. La persistenza dei dati è garantita tramite infrastrutture cloud protette (es. Supabase). I dati risiedono sul dispositivo dell'utente fino a esplicita cancellazione (Reset/Cache).</p>
+          <p><strong>4. Finalità e Diritti</strong><br />I dati sono finalizzati unicamente alla fornitura del servizio di simulazione economica. L'utente può esercitare i diritti di accesso, rettifica o oblio contattando il Titolare ai recapiti sopra indicati.</p>
         </div>
       )
     },
@@ -30,13 +30,12 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, onAccep
       title: "Termini e Condizioni",
       icon: <FileText size={24} className="text-blue-400" />,
       text: (
-        <div className="space-y-4">
-          <p><strong>1. Accettazione dei Termini</strong><br />Utilizzando questa applicazione ("My Sharing Simulator"), accetti di essere vincolato dai presenti Termini e Condizioni. Se non accetti, ti invitiamo a non utilizzare l'app.</p>
-          <p><strong>2. Scopo dell'App</strong><br />L'applicazione è uno strumento di simulazione matematica a scopo puramente illustrativo ed educativo. I risultati generati sono stime basate sui dati inseriti dall'utente e non costituiscono in alcun modo una promessa di guadagno, un'offerta finanziaria o una garanzia di risultato.</p>
-          <p className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20 text-red-200"><strong>3. Limitazione di Responsabilità</strong><br />L'autore (Luca Celentano) non è responsabile per eventuali decisioni economiche prese sulla base delle simulazioni fornite. L'utente si assume la piena responsabilità dell'uso delle informazioni. <strong>Questa app NON è un prodotto ufficiale di Union Energia S.r.l.</strong></p>
-          <p><strong>4. Rapporto con il Brand</strong><br />My Sharing Simulator è un'iniziativa privata di Luca Celentano, promoter indipendente. L'uso del nome 'Union Energia' all'interno del simulatore è fatto a scopo puramente descrittivo per identificare la natura dei servizi simulati. I marchi e i nomi commerciali citati appartengono ai rispettivi proprietari.</p>
-          <p><strong>5. Volatilità del Piano Compensi e del Mercato</strong><br />I calcoli si basano sui parametri del piano compensi correnti al momento dell'ultimo aggiornamento. L'autore non garantisce che tali parametri rimangano invariati. Le simulazioni riguardanti <strong>Union Park</strong> sono basate su un valore PUN (Prezzo Zonale) stimato; il mercato energetico è volatile e i risultati reali potrebbero differire sensibilmente.</p>
-          <p><strong>6. Proprietà Intellettuale</strong><br />Tutti i contenuti, il codice, il design e la logica di calcolo sono di proprietà esclusiva di Luca Celentano. È vietata la copia, la ridistribuzione o il reverse engineering senza autorizzazione.</p>
+        <div className="space-y-4 text-justify">
+          <p><strong>1. Natura del Servizio</strong><br />L'applicazione "My Sharing Simulator" è lo strumento ufficiale di Union Energia S.r.l. destinato all'illustrazione delle potenzialità del piano compensi. L'utilizzo implica l'accettazione incondizionata del presente regolamento.</p>
+          <p><strong>2. Finalità Illustrativa</strong><br />Il simulatore assolve a una funzione puramente educativa e di proiezione matematica. I risultati generati costituiscono stime ipotetiche e non integrano promesse di guadagno o garanzie di reddito futuro.</p>
+          <p className="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 text-blue-100 italic"><strong>3. Responsabilità e Inquadramento</strong><br />In virtù del suo carattere ufficiale, My Sharing Simulator è lo strumento autorizzato per la rete Union Energia. Luca Celentano (L.C.), autore dell'opera, ne garantisce la conformità alle logiche di calcolo del network.</p>
+          <p><strong>4. Limitazione di Responsabilità</strong><br />L'utente è l'unico responsabile delle decisioni intraprese in base alle proiezioni fornite. L'uso dei dati simulati riguardanti Union Park o parametri di mercato (PUN) è soggetto alla volatilità del settore energetico.</p>
+          <p><strong>5. Proprietà Intellettuale (IP) e Copyright</strong><br /><strong>Luca Celentano (L.C.)</strong> detiene la proprietà esclusiva di tutti i diritti d'autore, codice sorgente, design grafico e algoritmi proprietari. È severamente vietata la copia, il reverse engineering o la distribuzione non autorizzata dei contenuti protetti.</p>
         </div>
       )
     },
@@ -44,10 +43,9 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, onAccep
       title: "Cookie Policy",
       icon: <Cookie size={24} className="text-amber-400" />,
       text: (
-        <div className="space-y-4">
-          <p><strong>1. Cosa sono i cookie</strong><br />I cookie sono piccoli file di testo che i siti salvano sul tuo dispositivo per ricordare le tue preferenze.</p>
-          <p><strong>2. Cookie Tecnici (Essenziali)</strong><br />Questa applicazione utilizza esclusivamente cookie tecnici e di sessione (LocalStorage) necessari per salvare le tue impostazioni (es. modalità scura, dati della simulazione) e garantire il corretto funzionamento dell'app. Non utilizziamo cookie di profilazione o di terze parti per tracciamento pubblicitario.</p>
-          <p><strong>3. Gestione dei Cookie</strong><br />Puoi cancellare i dati salvati in qualsiasi momento tramite le impostazioni del tuo browser o utilizzando la funzione "Reset" all'interno dell'applicazione.</p>
+        <div className="space-y-4 text-justify">
+          <p><strong>1. Cookie Tecnici Strettamente Necessari</strong><br />In ossequio alla vigente normativa, l'applicazione utilizza esclusivamente cookie tecnici e memorie locali (LocalStorage) finalizzati all'erogazione del servizio e alla personalizzazione dei calcoli.</p>
+          <p><strong>2. Privacy e Proprietà</strong><br />I cookie generati non sono finalizzati a scopi di profilazione commerciale o cessione a terzi. La logica di gestione dei cookie è parte integrante della proprietà intellettuale protetta di <strong>Luca Celentano (L.C.)</strong>.</p>
         </div>
       )
     },
@@ -58,11 +56,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, onAccep
       text: (
         <div className="space-y-6">
           <div className="p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
-            <p className="font-bold text-red-400 mb-2">⚠️ DISCLAIMER NON UFFICIALE</p>
-            <p className="text-gray-300 text-sm leading-relaxed">Questo strumento è un simulatore indipendente creato da Luca Celentano per scopi illustrativi. I risultati non garantiscono guadagni reali.</p>
+            <p className="font-bold text-blue-400 mb-2 uppercase tracking-widest">App Ufficiale Union</p>
+            <p className="text-gray-300 text-sm leading-relaxed">Benvenuto nello strumento ufficiale per lo sviluppo del network. Proprietà Intellettuale di Luca Celentano (L.C.).</p>
           </div>
-          <p className="text-gray-400 text-sm text-center px-4">
-            Continuando, dichiari di accettare i <span className="text-white font-medium">Termini e Condizioni</span> e di aver preso visione della <span className="text-white font-medium">Privacy Policy</span>.
+          <p className="text-gray-400 text-sm text-center px-4 leading-normal italic">
+            Proseguendo nell'utilizzo, si dichiarano accettate le disposizioni in materia di Privacy e Termini di Servizio.
           </p>
         </div>
       )
