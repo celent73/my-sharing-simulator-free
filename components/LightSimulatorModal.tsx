@@ -192,7 +192,7 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 28 }}
-                    className="flex items-center gap-1 p-2 bg-[#1c1c1e]/90 backdrop-blur-2xl rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10 pointer-events-auto"
+                    className="flex items-center gap-3 p-3 bg-[#1c1c1e]/90 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/10 pointer-events-auto"
                 >
                     {dockItems.map(item => {
                         const Icon = item.icon;
@@ -203,16 +203,16 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
                                 onClick={item.action}
                                 disabled={item.disabled}
                                 className={[
-                                    'flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap',
+                                    'flex items-center gap-3 px-10 py-5 rounded-[2rem] text-sm md:text-base font-black transition-all duration-300 whitespace-nowrap uppercase tracking-widest',
                                     active
-                                        ? 'bg-[#166534] text-white shadow-md'
+                                        ? 'bg-[#166534] text-white shadow-[0_10px_30px_rgba(22,101,52,0.5)] scale-105'
                                         : item.disabled
                                             ? 'text-white/30 cursor-not-allowed'
                                             : 'text-white/70 hover:text-white hover:bg-white/10',
                                 ].join(' ')}
                                 title={item.disabled ? 'Coming soon' : undefined}
                             >
-                                <Icon size={16} />
+                                <Icon size={24} />
                                 <span className="hidden sm:inline">{item.label}</span>
                             </button>
                         );

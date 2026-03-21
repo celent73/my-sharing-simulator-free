@@ -24,7 +24,7 @@ const LegalFooter: React.FC<LegalFooterProps> = ({ onOpenLegal }) => {
           {/* Copyright e Versione */}
           <div className="text-left">
             <p className="font-semibold" style={{ color: 'var(--footer-text)' }}>
-              Tutti i diritti riservati © 2026 My Sharing Simulator • v1.3.21
+              Tutti i diritti riservati © 2026 My Sharing Simulator • v1.3.22
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
               Applicazione indipendente non affiliata o sponsorizzata da terze parti.
@@ -32,7 +32,7 @@ const LegalFooter: React.FC<LegalFooterProps> = ({ onOpenLegal }) => {
           </div>
 
           <div className="text-xs font-mono text-gray-600 dark:text-gray-200 bg-gray-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-full border border-gray-200 dark:border-white/10 backdrop-blur-md">
-            v1.3.21 - Protetto da crittografia SSL a 256 bit 🔒
+            v1.3.22 - Protetto da crittografia SSL a 256 bit 🔒
           </div>
         </div>
       </div>
