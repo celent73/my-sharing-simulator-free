@@ -55,9 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const signOut = async () => {
         try {
-            // Rimuoviamo la sincronizzazione pesante al logout per evitare crash
-            // I dati sono già stati salvati durante l'editing.
-            
+            // Rimuoviamo SOLO le chiavi di autenticazione per preservare i dati locali (logs/settings)
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('sb-') || key.includes('supabase.auth.token')) {
                     localStorage.removeItem(key);
@@ -66,11 +64,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             await supabase.auth.signOut();
             localStorage.removeItem('arena_team_id');
             
-            // Usiamo di nuovo il redirect pulito alla home
+            // Redirect alla home
             window.location.href = '/';
         } catch (error) {
             console.error('Sign out error:', error);
-            localStorage.clear();
+            // Anche in caso di errore, NON puliamo tutto il localStorage.
+            // Ci limitiamo a forzare l'uscita rimuovendo i token noti.
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase.auth.token')) {
+                    localStorage.removeItem(key);
+                }
+            });
             window.location.href = '/';
         }
     };

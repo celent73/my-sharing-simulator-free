@@ -183,29 +183,29 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
     if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
       console.error("Error loading settings:", error);
       return localSettings;
-    }
-    if (data) {
+    }    if (data) {
       // Reconstruct AppSettings object conforming to interface
+      // LOGIC V1.3.13: Robust Merge. Cloud wins for defined fields, but local is the anchor for persistence.
       const cloudSettings: AppSettings = {
-        theme: data.theme as 'light' | 'dark',
-        goals: data.goals || { daily: {}, weekly: {}, monthly: {} },
-        commercialMonthStartDay: data.commercial_month_start_day || 1,
-        customLabels: data.custom_labels || {},
-        notificationSettings: data.notification_settings || {},
-        visionBoard: data.vision_board || localSettings?.visionBoard || [],
-        acknowledgedDeadlines: data.acknowledged_deadlines || localSettings?.acknowledgedDeadlines || {},
+        theme: data.theme || localSettings?.theme || 'light',
+        goals: (data.goals && Object.keys(data.goals).length > 0) ? data.goals : (localSettings?.goals || { daily: {}, weekly: {}, monthly: {} }),
+        commercialMonthStartDay: data.commercial_month_start_day || localSettings?.commercialMonthStartDay || 1,
+        customLabels: (data.custom_labels && Object.keys(data.custom_labels).length > 0) ? data.custom_labels : (localSettings?.customLabels || {}),
+        notificationSettings: (data.notification_settings && Object.keys(data.notification_settings).length > 0) ? data.notification_settings : (localSettings?.notificationSettings || {}),
+        visionBoard: (data.vision_board && (Array.isArray(data.vision_board) ? data.vision_board.length > 0 : Object.keys(data.vision_board).length > 0)) ? data.vision_board : (localSettings?.visionBoard || []),
+        acknowledgedDeadlines: (data.acknowledged_deadlines && Object.keys(data.acknowledged_deadlines).length > 0) ? data.acknowledged_deadlines : (localSettings?.acknowledgedDeadlines || {}),
         userProfile: localSettings?.userProfile || { firstName: '', lastName: '' }, 
-        // Recuperiamo i campi non inclusi nel DB usando localStorage come fallback
         enableGoals: data.enable_goals !== undefined ? data.enable_goals : (localSettings?.enableGoals !== undefined ? localSettings.enableGoals : true),
         enableCustomLabels: data.enable_custom_labels !== undefined ? data.enable_custom_labels : (localSettings?.enableCustomLabels !== undefined ? localSettings.enableCustomLabels : true),
         nextAppointment: data.next_appointment || localSettings?.nextAppointment,
-        careerPathDates: data.career_path_dates || localSettings?.careerPathDates || {},
+        careerPathDates: (data.career_path_dates && Object.keys(data.career_path_dates).length > 0) ? data.career_path_dates : (localSettings?.careerPathDates || {}),
       };
       
-      // Persist to local for refresh consistency
+      // Update local storage to stay in sync with best-known state
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(cloudSettings));
       return cloudSettings;
     }
+
     // FALLBACK: Se non trovato nel cloud, usa il locale (fondamentale per primo login o glitch)
     return localSettings;
   } else {
