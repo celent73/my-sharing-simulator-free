@@ -136,7 +136,7 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
                     opacity: isVisible ? 1 : 0 
                 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                className="shrink-0 mx-4 mt-4 bg-[#1c1c1e]/95 backdrop-blur-3xl px-6 py-5 flex items-center justify-between z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2.5rem] border border-white/10"
+                className="shrink-0 mx-4 mt-4 bg-[#1c1c1e]/90 backdrop-blur-3xl px-6 py-5 flex items-center justify-between z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2.5rem] border border-white/10"
             >
                 <div className="flex items-center gap-5">
                     <button
@@ -149,7 +149,7 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
                         <h1 className="text-xl md:text-2xl font-black text-white leading-tight tracking-tight">
                             {t('academy.title')}
                         </h1>
-                        <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mt-0.5">
+                        <p className="text-[10px] md:text-xs text-[#22c55e] font-black uppercase tracking-[0.2em] mt-0.5 drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]">
                             {t('academy.subtitle')}
                         </p>
                     </div>
@@ -157,7 +157,7 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex items-center gap-3">
                     <div className="hidden sm:flex items-center px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-black text-white/30 tracking-widest uppercase mb-1">
-                        v1.3.24
+                        v1.3.25
                     </div>
                     <button
                         onClick={onClose}

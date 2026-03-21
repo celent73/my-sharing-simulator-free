@@ -117,7 +117,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                     className="flex flex-col items-center gap-4"
                 >
                     <div className="h-[2px] w-24 bg-gradient-to-r from-transparent via-blue-500 to-transparent self-center"></div>
-                    <p className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">Versione v1.3.24</p>
+                    <p className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">Versione v1.3.25</p>
                     <p className="text-slate-400 font-bold tracking-[0.3em] text-[10px] md:text-xs uppercase">
                         Experience the Future of Sharing
                     </p>
@@ -153,7 +153,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 animate={{ opacity: 0.5 }}
                 transition={{ delay: 2 }}
             >
-                © 2026 My Sharing Simulator • v1.3.24
+                © 2026 My Sharing Simulator • v1.3.25
             </motion.div>
         </motion.div>
     );
