@@ -298,9 +298,9 @@ const TreeNodeComponent = ({ node, theme, onAdd, onDelete, onUpdate, isProjectio
                 transition={{ type: 'spring', stiffness: 260, damping: 22, delay: animDelay }}
                 onClick={() => !isGhost && !isProjection && setShowDetail(true)}
                 className={[
-                    'relative rounded-[1.5rem] border z-20 transition-all duration-300 cursor-pointer',
+                    'relative rounded-[1rem] sm:rounded-[1.5rem] border z-20 transition-all duration-300 cursor-pointer',
                     isMain ? (roleColorClass + ' shadow-xl border-white/20') : nodeStyles[theme as keyof typeof nodeStyles],
-                    isMain ? 'p-3 sm:p-5 min-w-[130px] sm:min-w-[150px]' : isLevel3 ? 'p-1.5 min-w-[70px]' : node.level === 0 ? 'p-1.5 sm:p-3 min-w-[90px] sm:min-w-[110px]' : 'p-1.5 sm:p-3 min-w-[90px] sm:min-w-[120px]',
+                    isMain ? 'p-3 sm:p-5 min-w-[130px] sm:min-w-[150px]' : (node.level >= 1) ? 'p-1 sm:p-2 min-w-[32px] sm:min-w-[80px]' : node.level === 0 ? 'p-1.5 sm:p-3 min-w-[90px] sm:min-w-[110px]' : 'p-1.5 sm:p-3 min-w-[90px] sm:min-w-[120px]',
                     isProjection && !isMain ? 'opacity-50 grayscale scale-95 border-dashed' : '',
                     'flex flex-col items-center group hover:scale-105 hover:shadow-xl',
                 ].join(' ')}
@@ -325,21 +325,22 @@ const TreeNodeComponent = ({ node, theme, onAdd, onDelete, onUpdate, isProjectio
                 )}
                 {/* User icon */}
                 <div className={[
-                    'p-1.5 sm:p-2.5 rounded-full mb-1 sm:mb-2 shadow-inner transition-transform group-hover:scale-110',
+                    'p-1 sm:p-2.5 rounded-full mb-0 sm:mb-2 shadow-inner transition-transform group-hover:scale-110',
+                    node.level >= 1 ? 'hidden sm:flex' : 'flex',
                     isMain ? 'bg-white/20 text-white' : theme === 'dark' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-green-500/10 text-green-600',
                     isLevel3 ? 'scale-75 mb-0' : '',
                 ].join(' ')}>
-                    {isMain ? <User size={22} /> : <Users size={isLevel3 ? 14 : 20} />}
+                    {isMain ? <User size={22} /> : <Users size={node.level >= 1 ? 14 : 18} />}
                 </div>
 
-                {/* Name + role badge */}
-                <span className={`font-black ${isLevel3 ? 'text-[11px]' : 'text-sm'} tracking-tight leading-tight mb-0.5 text-center`}>
-                    {node.label}
+                {/* Name */}
+                <span className={`font-black ${node.level >= 1 ? 'text-[8px] sm:text-[11px]' : 'text-xs sm:text-sm'} tracking-tight leading-tight mb-0.5 text-center px-0.5 overflow-hidden text-ellipsis whitespace-nowrap max-w-full`}>
+                    {node.level >= 1 && window.innerWidth < 640 ? "P" + (node.id.split('-').pop()) : node.label}
                 </span>
 
                 {/* Colored qualification badge */}
-                {!isLevel3 && !isMain && (
-                    <span className={`text-[8px] uppercase font-black px-2 py-0.5 rounded-full mt-1 ${cfg.color}`}>
+                {(node.level < 1 || window.innerWidth >= 640) && !isLevel3 && !isMain && (
+                    <span className={`text-[8px] uppercase font-black px-1.5 sm:px-2 py-0.5 rounded-full mt-0.5 sm:mt-1 ${cfg.color}`}>
                         {node.role}
                     </span>
                 )}
@@ -390,7 +391,7 @@ const TreeNodeComponent = ({ node, theme, onAdd, onDelete, onUpdate, isProjectio
                         animate={{ opacity: 1, height: 'auto', scale: 1 }}
                         exit={{ opacity: 0, height: 0, scale: 0.95 }}
                         transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                        className={`flex gap-4 sm:gap-16 relative justify-center px-4 ${isLevel3 ? 'mt-3 sm:mt-8' : 'mt-4 sm:mt-16'}`}
+                        className={`flex gap-1 sm:gap-16 relative justify-center px-2 ${isLevel3 ? 'mt-3 sm:mt-8' : 'mt-4 sm:mt-16'}`}
                     >
                         <svg className={`absolute left-0 w-full pointer-events-none overflow-visible z-10 no-export ${isLevel3 ? 'top-[-12px] sm:top-[-32px] h-3 sm:h-8' : 'top-[-16px] sm:top-[-64px] h-4 sm:h-16'}`}>
                             {node.children!.map((_, idx) => {
