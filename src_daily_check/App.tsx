@@ -53,7 +53,7 @@ import { useDailyStats } from '../hooks/useDailyStats';
 import GoalRecoveryWidget from './components/GoalRecoveryWidget';
 import ConversionFunnel from './components/ConversionFunnel';
 import StatCard from './components/StatCard';
-const APP_VERSION = "v1.3.15";
+const APP_VERSION = "v1.3.16";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
 const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
