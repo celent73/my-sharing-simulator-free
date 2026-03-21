@@ -49,18 +49,18 @@ export const FocusNavigation: React.FC<FocusNavigationProps> = ({ activeView, on
     return (
         <>
             {/* Desktop Sidebar (Left) */}
-            <aside className="hidden lg:flex flex-col w-20 fixed left-0 top-0 h-screen bg-white/10 dark:bg-black/20 backdrop-blur-xl border-r border-white/10 dark:border-white/5 z-50 items-center py-10 transition-all hover:w-24 group">
+            <aside className="hidden lg:flex flex-col w-24 fixed left-0 top-0 h-screen bg-white/10 dark:bg-black/20 backdrop-blur-xl border-r border-white/10 dark:border-white/5 z-50 items-center py-10 transition-all hover:w-28 group">
                 <div className="flex flex-col gap-8 w-full px-2">
                     {navItems.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => onViewChange(item.id as ActiveView)}
-                            className={`relative group flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 ${activeView === item.id
+                            className={`relative group flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${activeView === item.id
                                 ? (item.id === 'focus' ? 'bg-[#39ff14] text-black shadow-[0_0_20px_rgba(57,255,20,0.5)]' : 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]')
                                 : (item.id === 'focus' ? 'text-[#39ff14] hover:bg-white/10' : 'text-slate-400 hover:bg-white/10 hover:text-white')
                                 }`}
                         >
-                            <item.icon className={`h-7 w-7 transition-transform duration-300 ${activeView === item.id ? 'scale-110' : 'group-hover:scale-110'}`} />
+                            <item.icon className={`h-8 w-8 transition-transform duration-300 ${activeView === item.id ? 'scale-110' : 'group-hover:scale-110'}`} />
                             <span className="text-[10px] font-bold mt-1.5 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
                                 {item.label}
                             </span>
@@ -76,17 +76,17 @@ export const FocusNavigation: React.FC<FocusNavigationProps> = ({ activeView, on
             </aside>
 
             {/* Mobile Floating Tab Bar (Bottom) */}
-            <nav className={`lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-16 bg-[#1c1c1e] backdrop-blur-3xl rounded-full border border-white/10 shadow-[0_32px_80px_0_rgba(0,0,0,0.8)] z-[100] px-2 flex items-center justify-around transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-[200%] opacity-0 pointer-events-none'}`}>
+            <nav className={`lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-md h-20 bg-[#1c1c1e] backdrop-blur-3xl rounded-full border border-white/10 shadow-[0_32px_80px_0_rgba(0,0,0,0.8)] z-[100] px-2 flex items-center justify-around transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-[200%] opacity-0 pointer-events-none'}`}>
                 {navItems.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => onViewChange(item.id as ActiveView)}
-                        className={`relative flex flex-col items-center justify-center h-12 w-12 rounded-full transition-all duration-300 ${activeView === item.id
+                        className={`relative flex flex-col items-center justify-center h-16 w-16 rounded-full transition-all duration-300 ${activeView === item.id
                             ? (item.id === 'focus' ? 'text-[#39ff14] bg-[#39ff14]/10 shadow-[0_0_15px_rgba(57,255,20,0.3)]' : 'text-white bg-white/10')
                             : (item.id === 'focus' ? 'text-[#39ff14] opacity-80 hover:opacity-100 hover:bg-white/5 drop-shadow-[0_0_8px_rgba(57,255,20,0.4)]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5')
                             }`}
                     >
-                        <item.icon className={`h-5 w-5 ${activeView === item.id ? (item.id === 'focus' ? 'drop-shadow-[0_0_10px_rgba(57,255,20,0.8)] scale-110' : 'scale-110 drop-shadow-md') : ''}`} />
+                        <item.icon className={`h-7 w-7 ${activeView === item.id ? (item.id === 'focus' ? 'drop-shadow-[0_0_10px_rgba(57,255,20,0.8)] scale-110' : 'scale-110 drop-shadow-md') : ''}`} />
                     </button>
                 ))}
             </nav>
