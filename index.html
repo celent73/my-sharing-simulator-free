@@ -35,6 +35,19 @@
       console.log('beforeinstallprompt captured in index.html');
     });
 
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js?v=1.3.14')
+          .then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -76,20 +89,6 @@
           }
         }
       }
-    }
-  </script>
-  <script>
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js?v=1.3.14')
-          .then(registration => {
-            console.log('Service Worker registered with scope:', registration.scope);
-          })
-          .catch(error => {
-            console.error('Service Worker registration failed:', error);
-          });
-      });
     }
   </script>
   <style>
