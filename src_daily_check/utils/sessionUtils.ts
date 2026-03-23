@@ -23,6 +23,7 @@ export const calculateAggregateStats = (logs: ActivityLog[], days: number = 30):
     let appointmentsTotal = 0;
 
     recentLogs.forEach(log => {
+        if (!log || !log.counts) return;
         totalContacts += log.counts[ActivityType.CONTACTS] || 0;
         totalContracts += log.counts[ActivityType.NEW_CONTRACTS] || 0;
         newFamilyUtilityTotal += log.counts[ActivityType.NEW_FAMILY_UTILITY] || 0;
@@ -33,7 +34,7 @@ export const calculateAggregateStats = (logs: ActivityLog[], days: number = 30):
 
     // Per la media mensile, usiamo tutti i log divisi per il numero di mesi unici
     const uniqueMonths = new Set(logs.map(log => log.date.substring(0, 7)));
-    const totalAllContracts = logs.reduce((sum, log) => sum + (log.counts[ActivityType.NEW_CONTRACTS] || 0), 0);
+    const totalAllContracts = logs.reduce((sum, log) => sum + (log?.counts?.[ActivityType.NEW_CONTRACTS] || 0), 0);
     const avgMonthlyContracts = uniqueMonths.size > 0 ? Math.round(totalAllContracts / uniqueMonths.size) : totalAllContracts;
 
     return {
