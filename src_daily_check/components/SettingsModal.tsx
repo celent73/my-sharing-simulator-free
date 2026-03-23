@@ -378,32 +378,52 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 {(settings.habitStacks || []).map(stack => (
                                     <div key={stack.id} className="bg-white dark:bg-slate-700/50 p-4 rounded-2xl border shadow-sm relative">
                                         <button onClick={() => handleRemoveStack(stack.id)} className="absolute top-3 right-3 text-slate-300 hover:text-red-500">×</button>
-                                        <div className="space-y-3">
-                                            <input type="text" placeholder="Dopo..." className="w-full bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border" value={stack.trigger} onChange={e => handleUpdateStack(stack.id, { trigger: e.target.value })} />
-                                            <div className="flex gap-2">
-                                                <div className="flex-grow flex flex-col sm:flex-row gap-2">
-                                                    <select className="flex-grow bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border" value={stack.action} onChange={e => handleUpdateStack(stack.id, { action: e.target.value as ActivityType | 'CUSTOM' })}>
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col gap-1">
+                                                <label className="text-[10px] uppercase font-black tracking-wider text-slate-400 pl-1">Abitudine di partenza</label>
+                                                <input type="text" placeholder="Es: Dopo colazione..." className="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" value={stack.trigger} onChange={e => handleUpdateStack(stack.id, { trigger: e.target.value })} />
+                                            </div>
+                                            
+                                            <div className="flex flex-col gap-1">
+                                                <label className="text-[10px] uppercase font-black tracking-wider text-slate-400 pl-1">Azione da eseguire</label>
+                                                <div className="flex flex-col sm:flex-row gap-2">
+                                                    <select className="flex-grow bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" value={stack.action} onChange={e => handleUpdateStack(stack.id, { action: e.target.value as ActivityType | 'CUSTOM' })}>
                                                         {Object.values(ActivityType).map(t => <option key={t} value={t}>{ACTIVITY_LABELS[t]}</option>)}
                                                         <option value="CUSTOM">Testo Libero</option>
                                                     </select>
                                                     {stack.action === 'CUSTOM' && (
                                                         <input 
                                                             type="text" 
-                                                            placeholder="es: Leggere" 
-                                                            className="flex-grow bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border" 
+                                                            placeholder="Azione personalizzata" 
+                                                            className="flex-grow bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" 
                                                             value={stack.customActionName || ''} 
                                                             onChange={e => handleUpdateStack(stack.id, { customActionName: e.target.value })} 
                                                         />
                                                     )}
                                                 </div>
-                                                <input 
-                                                    type="number" 
-                                                    min="1"
-                                                    className="w-20 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border text-center" 
-                                                    value={stack.targetCount === 0 ? '' : stack.targetCount} 
-                                                    onChange={e => handleUpdateStack(stack.id, { targetCount: e.target.value === '' ? 0 : Math.abs(parseInt(e.target.value)) || 0 })} 
-                                                    placeholder="0"
-                                                />
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-[10px] uppercase font-black tracking-wider text-slate-400 pl-1">Quantità</label>
+                                                    <input 
+                                                        type="number" 
+                                                        min="1"
+                                                        className="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border text-center transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" 
+                                                        value={stack.targetCount === 0 ? '' : stack.targetCount} 
+                                                        onChange={e => handleUpdateStack(stack.id, { targetCount: e.target.value === '' ? 0 : Math.abs(parseInt(e.target.value)) || 0 })} 
+                                                        placeholder="0"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-[10px] uppercase font-black tracking-wider text-orange-500 pl-1 flex items-center gap-1">⏰ Promemoria</label>
+                                                    <input 
+                                                        type="time" 
+                                                        className="w-full bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 p-3 rounded-xl font-black border border-orange-200 dark:border-orange-500/30 text-center transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+                                                        value={stack.time || ''}
+                                                        onChange={e => handleUpdateStack(stack.id, { time: e.target.value })}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

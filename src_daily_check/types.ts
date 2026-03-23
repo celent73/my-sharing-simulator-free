@@ -168,6 +168,8 @@ export interface HabitStack {
   action: ActivityType | 'CUSTOM'; // Sales action to link or custom
   customActionName?: string;
   targetCount: number; // Goal for this stack
+  time?: string; // "HH:mm" time for the initial reminder
+  snoozedUntil?: number; // Timestamp (ms) for the next reminder
   lastCompletedDate?: string; // YYYY-MM-DD
 }
 

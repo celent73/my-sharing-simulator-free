@@ -40,6 +40,7 @@ import CareerDeadlineAlertModal from './components/CareerDeadlineAlertModal';
 import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import GoalReminderModal, { ReminderType } from './components/GoalReminderModal';
+import HabitReminderModal from './components/HabitReminderModal';
 import { ChevronRight, Calendar, User, ArrowUp, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, Target, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon
 } from 'lucide-react';
 
@@ -302,6 +303,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   const [isResetGoalsModalOpen, setResetGoalsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [remainingTrialDays] = useState<number | null>(null);
+  const [activeReminderStack, setActiveReminderStack] = useState<import('./types').HabitStack | null>(null);
 
   const effectiveCustomLabels = (settings.enableCustomLabels ?? true) ? (settings.customLabels || ACTIVITY_LABELS) : ACTIVITY_LABELS;
   const effectiveGoals = useMemo(() => {
@@ -384,6 +386,62 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     return () => clearInterval(interval);
   }, [activityLogs, settings.goals.weekly, lastReminderShownDate, lastWeeklyReminderShownWeek, lastMorningReminderShownDate]);
 
+
+  // Habit Stacking Reminders
+  useEffect(() => {
+    if (!settings.enableHabitStacking || !settings.habitStacks?.length) return;
+
+    const checkHabitReminders = () => {
+      if (activeReminderStack) return;
+
+      const now = new Date();
+      const todayStr = getTodayDateString();
+
+      const stackToRemind = settings.habitStacks!.find(stack => {
+        if (!stack.time) return false;
+        
+        if (stack.lastCompletedDate === todayStr) return false;
+
+        if (stack.snoozedUntil && stack.snoozedUntil > now.getTime()) {
+           return false;
+        }
+
+        const [hours, minutes] = stack.time.split(':').map(Number);
+        const stackTime = new Date();
+        stackTime.setHours(hours, minutes, 0, 0);
+
+        if (now.getTime() >= stackTime.getTime()) {
+           return true; 
+        }
+        return false;
+      });
+
+      if (stackToRemind && !activeReminderStack) {
+          setActiveReminderStack(stackToRemind);
+      }
+    };
+
+    const interval = setInterval(checkHabitReminders, 60 * 1000);
+    checkHabitReminders();
+
+    return () => clearInterval(interval);
+  }, [settings.enableHabitStacking, settings.habitStacks, activeReminderStack]);
+
+  const handleHabitComplete = (stackId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      habitStacks: prev.habitStacks?.map(s => s.id === stackId ? { ...s, lastCompletedDate: getTodayDateString(), snoozedUntil: undefined } : s)
+    }));
+    setActiveReminderStack(null);
+  };
+
+  const handleHabitSnooze = (stackId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      habitStacks: prev.habitStacks?.map(s => s.id === stackId ? { ...s, snoozedUntil: Date.now() + 30 * 60 * 1000 } : s)
+    }));
+    setActiveReminderStack(null);
+  };
 
   const removeNotification = useCallback((id: number) => setNotifications(prev => prev.filter(n => n.id !== id)), []);
 
@@ -1634,6 +1692,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
       <ClientsModal 
         isOpen={isClientsModalOpen} 
         onClose={() => setIsClientsModalOpen(false)} 
+      />
+      
+      <HabitReminderModal
+        isOpen={!!activeReminderStack}
+        stack={activeReminderStack}
+        customLabels={effectiveCustomLabels}
+        onComplete={handleHabitComplete}
+        onSnooze={handleHabitSnooze}
+        onClose={() => setActiveReminderStack(null)}
       />
     </>
   );
