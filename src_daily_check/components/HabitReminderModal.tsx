@@ -40,18 +40,16 @@ const HabitReminderModal: React.FC<HabitReminderModalProps> = ({
     const fullActionText = `${countText}${actionText}`.trim();
 
     const handleComplete = () => {
-        setShowSuccess(true);
         confetti({
             particleCount: 150,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#f97316', '#eab308', '#3b82f6'] // orange, yellow, blue
+            colors: ['#f97316', '#eab308', '#3b82f6'],
+            zIndex: 999999
         });
         
-        setTimeout(() => {
-            onComplete(stack.id);
-            onClose();
-        }, 2000);
+        onComplete(stack.id);
+        onClose();
     };
 
     const handleSnooze = () => {
@@ -81,24 +79,6 @@ const HabitReminderModal: React.FC<HabitReminderModalProps> = ({
                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2"></div>
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/10 rounded-full blur-[40px] translate-y-1/2 -translate-x-1/2"></div>
 
-                        {showSuccess ? (
-                            <motion.div 
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="flex flex-col items-center py-8"
-                            >
-                                <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center text-white mb-6 shadow-xl shadow-orange-500/30">
-                                    <Sparkles className="w-10 h-10" />
-                                </div>
-                                <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                                    OTTIMO LAVORO!
-                                </h2>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium mt-2">
-                                    Abitudine registrata con successo.
-                                </p>
-                            </motion.div>
-                        ) : (
-                            <>
                                 <button 
                                     onClick={handleSnooze}
                                     className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
@@ -140,8 +120,6 @@ const HabitReminderModal: React.FC<HabitReminderModalProps> = ({
                                     </button>
                                     <p className="text-[10px] text-slate-400 -mt-1 font-bold">(Ricordamelo tra 30 minuti)</p>
                                 </div>
-                            </>
-                        )}
                     </motion.div>
                 </div>
             )}
