@@ -344,9 +344,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     </select>
                                 </div>
                                 <div className="flex justify-center bg-white dark:bg-slate-700/50 p-1 rounded-xl shadow-sm mb-4">
-                                    {['daily', 'weekly', 'monthly'].map(view => (
-                                        <button key={view} onClick={() => setActiveGoalTab(view as GoalView)} className={`px-4 py-2 rounded-lg text-xs font-bold ${activeGoalTab === view ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>
-                                            {view.toUpperCase()}
+                                    {[
+                                        { id: 'daily', label: 'GIORNALIERO' },
+                                        { id: 'weekly', label: 'SETTIMANALE' },
+                                        { id: 'monthly', label: 'MENSILE' }
+                                    ].map(view => (
+                                        <button 
+                                            key={view.id} 
+                                            onClick={() => setActiveGoalTab(view.id as GoalView)} 
+                                            className={`flex-1 px-4 py-2 rounded-lg text-[11px] sm:text-xs font-black transition-all duration-200 ${
+                                                activeGoalTab === view.id 
+                                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' 
+                                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600'
+                                            }`}
+                                        >
+                                            {view.label}
                                         </button>
                                     ))}
                                 </div>
