@@ -11,12 +11,12 @@ interface SettingsModalProps {
     currentSettings: AppSettings;
     addNotification: (message: string, type: NotificationVariant) => void;
     onDataRestore?: () => void;
-    initialTab?: 'profile' | 'goals' | 'labels' | 'notifications';
+    initialTab?: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking';
     onLogout?: () => void;
 }
 
 type GoalView = 'daily' | 'weekly' | 'monthly';
-type TabView = 'profile' | 'goals' | 'labels' | 'notifications';
+type TabView = 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking';
 
 // --- Icons ---
 const CloseIcon = () => (
@@ -32,17 +32,6 @@ const UserIcon = () => (
 const BellIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
         <path d="M10 2a6 6 0 00-6 6v3.586l-1.707 1.707A1 1 0 003 15v4a1 1 0 001 1h12a1 1 0 001-1v-4a1 1 0 00-.293-.707L16 11.586V8a6 6 0 00-6-6zM5 15h10v3H5v-3z" />
-    </svg>
-);
-const CalendarIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-    </svg>
-);
-const CloudIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
-        <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
     </svg>
 );
 const TagIcon = () => (
@@ -65,16 +54,20 @@ const MinusIcon = () => (
         <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
     </svg>
 );
-
 const LogoutIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
     </svg>
 );
-
 const DownloadIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+);
+const CloudIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+        <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
     </svg>
 );
 
@@ -105,7 +98,6 @@ const ToggleSwitch: React.FC<{
     </div>
 );
 
-// Fallback for empty goals to prevent crash
 const DEFAULT_GOALS_STRUCTURE: Goals = {
     daily: {},
     weekly: {},
@@ -122,7 +114,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        // Merge defensively to ensure goals and customLabels exist
         setSettings(prev => ({
             ...prev,
             ...currentSettings,
@@ -132,7 +123,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     }, [currentSettings, isOpen]);
 
     useEffect(() => {
-        if (isOpen && initialTab && ['profile', 'goals', 'labels', 'notifications'].includes(initialTab)) {
+        if (isOpen && initialTab) {
             setActiveMainTab(initialTab);
         }
     }, [isOpen, initialTab]);
@@ -146,7 +137,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
     const handleStatusChange = (status: CommissionStatus) => {
         setSettings(prev => ({ ...prev, userProfile: { ...prev.userProfile, commissionStatus: status } }));
-    }
+    };
 
     const handleNotificationChange = (key: 'goalReached' | 'milestones', value: boolean) => {
         setSettings(prev => ({ ...prev, notificationSettings: { ...prev.notificationSettings, [key]: value } }));
@@ -171,13 +162,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         }));
     };
 
-    const handleEnableGoalsChange = (enabled: boolean) => {
-        setSettings(prev => ({ ...prev, enableGoals: enabled }));
-    }
-
-    const handleEnableLabelsChange = (enabled: boolean) => {
-        setSettings(prev => ({ ...prev, enableCustomLabels: enabled }));
-    }
+    const handleEnableGoalsChange = (enabled: boolean) => setSettings(prev => ({ ...prev, enableGoals: enabled }));
+    const handleEnableLabelsChange = (enabled: boolean) => setSettings(prev => ({ ...prev, enableCustomLabels: enabled }));
+    const handleEnableHabitStackingChange = (enabled: boolean) => setSettings(prev => ({ ...prev, enableHabitStacking: enabled }));
 
     const handleGoalChange = (period: GoalView, activity: ActivityType, value: string) => {
         const numValue = parseInt(value, 10);
@@ -185,10 +172,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
         setSettings(prev => {
             const newSettings = JSON.parse(JSON.stringify(prev));
-            // Defensive check
             if (!newSettings.goals) newSettings.goals = DEFAULT_GOALS_STRUCTURE;
             if (!newSettings.goals[period]) newSettings.goals[period] = {};
-
             newSettings.goals[period][activity] = cleanValue;
 
             if (period === 'daily') {
@@ -198,7 +183,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     newSettings.goals.weekly[activity] = calculatedWeekly;
                 }
             }
-
             const weeklyVal = newSettings.goals.weekly?.[activity] || 0;
             const calculatedMonthly = Math.round(weeklyVal * 4.5);
             if (!newSettings.goals.monthly) newSettings.goals.monthly = {};
@@ -214,10 +198,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         handleGoalChange(period, activity, newValue.toString());
     };
 
+    const handleAddStack = () => {
+        const newStack = { id: crypto.randomUUID(), trigger: '', action: ActivityType.CONTACTS, targetCount: 5 };
+        setSettings(prev => ({ ...prev, habitStacks: [...(prev.habitStacks || []), newStack] }));
+    };
+
+    const handleUpdateStack = (id: string, updates: Partial<any>) => {
+        setSettings(prev => ({ ...prev, habitStacks: (prev.habitStacks || []).map(s => s.id === id ? { ...s, ...updates } : s) }));
+    };
+
+    const handleRemoveStack = (id: string) => {
+        setSettings(prev => ({ ...prev, habitStacks: (prev.habitStacks || []).filter(s => s.id !== id) }));
+    };
+
     const handleSave = () => {
         onSaveSettings(settings);
         onClose();
-        addNotification('Impostazioni salvate con successo!', 'success');
+        addNotification('Impostazioni salvate!', 'success');
     };
 
     const handleDownloadBackup = () => {
@@ -231,10 +228,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        addNotification('Backup scaricato correttamente!', 'success');
+        addNotification('Backup scaricato!', 'success');
     };
 
-    const handleRestoreClick = () => { fileInputRef.current?.click(); };
+    const handleRestoreClick = () => fileInputRef.current?.click();
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -242,15 +239,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                const content = e.target?.result as string;
-                const data = JSON.parse(content);
+                const data = JSON.parse(e.target?.result as string);
                 restoreBackupData(null, data);
-                addNotification('Dati ripristinati con successo!', 'success');
+                addNotification('Dati ripristinati!', 'success');
                 if (onDataRestore) onDataRestore();
                 onClose();
             } catch (error) {
-                console.error("Error restoring backup:", error);
-                addNotification('Errore nel ripristino del file.', 'info');
+                addNotification('Errore ripristino.', 'info');
             }
         };
         reader.readAsText(file);
@@ -258,12 +253,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div
-                className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl h-[85vh] flex flex-col border border-white/20 dark:border-slate-700 overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header - Fixed */}
+        <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl h-[85vh] flex flex-col border border-white/20 dark:border-slate-700 overflow-hidden" onClick={e => e.stopPropagation()}>
+                {/* Header */}
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
@@ -279,21 +271,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     </button>
                 </div>
 
-                {/* Tabs - Fixed */}
-                <div className="flex border-b border-slate-100 dark:border-slate-700 shrink-0">
-                    <button onClick={() => setActiveMainTab('profile')} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeMainTab === 'profile' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>Profilo</button>
-                    <button onClick={() => setActiveMainTab('goals')} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeMainTab === 'goals' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>Obiettivi</button>
-                    <button onClick={() => setActiveMainTab('labels')} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeMainTab === 'labels' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>Etichette</button>
-                    <button onClick={() => setActiveMainTab('notifications')} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeMainTab === 'notifications' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>Notifiche</button>
+                {/* Tabs */}
+                <div className="flex border-b border-slate-100 dark:border-slate-700 shrink-0 overflow-x-auto">
+                    <button onClick={() => setActiveMainTab('profile')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'profile' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Profilo</button>
+                    <button onClick={() => setActiveMainTab('goals')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'goals' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Obiettivi</button>
+                    <button onClick={() => setActiveMainTab('stacking')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'stacking' ? 'border-orange-500 text-orange-500' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Habit Stacking</button>
+                    <button onClick={() => setActiveMainTab('labels')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'labels' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Etichette</button>
+                    <button onClick={() => setActiveMainTab('notifications')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'notifications' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Notifiche</button>
                 </div>
 
-                {/* Scrollable Content */}
+                {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-800/50">
-
-                    {/* PROFILE TAB */}
+                    {/* PROFILE */}
                     {activeMainTab === 'profile' && (
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600">
+                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600 shadow-sm">
                                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><span className="text-blue-500"><UserIcon /></span> Anagrafica</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
@@ -306,293 +298,155 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     </div>
                                 </div>
                                 <div className="mt-4">
-                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Qualifica Attuale</label>
-                                    <select 
-                                        name="currentQualification" 
-                                        className="w-full mt-1.5 px-4 py-3 border-2 border-slate-100 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 dark:text-white font-bold text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none cursor-pointer shadow-sm"
-                                        value={settings.userProfile.currentQualification || ''}
-                                        onChange={handleProfileChange}
-                                    >
-                                        <option value="">Automatica (base contratti)</option>
-                                        {Object.values(Qualification).map(q => (
-                                            <option key={q} value={q}>{q}</option>
-                                        ))}
+                                    <label className="text-xs font-bold text-slate-400 uppercase">Qualifica Attuale</label>
+                                    <select name="currentQualification" className="w-full mt-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent dark:text-white" value={settings.userProfile.currentQualification || ''} onChange={handleProfileChange}>
+                                        <option value="">Automatica</option>
+                                        {Object.values(Qualification).map(q => <option key={q} value={q}>{q}</option>)}
                                     </select>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-medium">Imposta manualmente il tuo livello attuale se sei già un utente esperto.</p>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-600 flex justify-between items-center">
-                                    <div>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Giorno Inizio Mese Commerciale</p>
-                                        <p className="text-xs text-slate-500">Es: Il 16 del mese</p>
-                                    </div>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="28"
-                                        value={settings.commercialMonthStartDay || 16}
-                                        onChange={handleStartDayChange}
-                                        className="w-20 h-12 text-center font-black text-xl bg-white text-slate-900 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
-                                    />
+                                <div className="mt-4 flex justify-between items-center bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Giorno Inizio Mese Comm.</span>
+                                    <input type="number" value={settings.commercialMonthStartDay || 16} onChange={handleStartDayChange} className="w-16 h-10 text-center font-bold border rounded-lg bg-white dark:bg-slate-700 dark:text-white" />
                                 </div>
                             </div>
-
-                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600">
+                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600 shadow-sm">
                                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><span className="text-emerald-500"><CashIcon /></span> Status Provvigionale</h3>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button onClick={() => handleStatusChange(CommissionStatus.PRIVILEGIATO)} className={`p-3 rounded-xl border-2 text-left ${settings.userProfile.commissionStatus === CommissionStatus.PRIVILEGIATO ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-transparent bg-slate-100 dark:bg-slate-800'}`}>
-                                        <div className="font-bold text-slate-800 dark:text-white">Cliente Privilegiato</div>
-                                        <div className="text-xs text-slate-500">Guadagni base</div>
+                                        <div className="font-bold text-slate-800 dark:text-white text-xs">Cliente Privilegiato</div>
                                     </button>
                                     <button onClick={() => handleStatusChange(CommissionStatus.FAMILY_UTILITY)} className={`p-3 rounded-xl border-2 text-left ${settings.userProfile.commissionStatus === CommissionStatus.FAMILY_UTILITY ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-transparent bg-slate-100 dark:bg-slate-800'}`}>
-                                        <div className="font-bold text-slate-800 dark:text-white">Family Utility</div>
-                                        <div className="text-xs text-slate-500">Guadagni doppi</div>
+                                        <div className="font-bold text-slate-800 dark:text-white text-xs">Family Utility</div>
                                     </button>
                                 </div>
                             </div>
-
-                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600">
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                    <span className="text-cyan-500"><CloudIcon /></span> Protezione e Backup Dati
-                                </h3>
-                                
-                                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl mb-4">
-                                    <p className="text-[11px] text-amber-800 dark:text-amber-200 leading-tight">
-                                        <strong>⚠️ IMPORTANTE:</strong> Se non sei loggato, i tuoi dati sono salvati solo in questo browser. Esporta un backup prima di pulire la cache o cambiare dispositivo per non perdere nulla.
-                                    </p>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={handleDownloadBackup} 
-                                        className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black text-white shadow-lg transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <DownloadIcon /> Esporta Backup (.json)
-                                    </button>
-                                    <button 
-                                        onClick={handleRestoreClick} 
-                                        className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <CloudIcon /> Importa Dati
-                                    </button>
-                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" />
-                                </div>
+                            <div className="flex gap-3 mt-6">
+                                <button onClick={handleDownloadBackup} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"><DownloadIcon /> Backup</button>
+                                <button onClick={handleRestoreClick} className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2"><CloudIcon /> Ripristina</button>
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" />
                             </div>
-
                             {onLogout && (
-                                <div className="bg-red-50 dark:bg-red-900/10 p-5 rounded-2xl border border-red-100 dark:border-red-900/30">
-                                    <h3 className="text-lg font-bold text-red-800 dark:text-red-400 mb-4 flex items-center gap-2">
-                                        <LogoutIcon /> Account
-                                    </h3>
-                                    <button
-                                        onClick={async () => {
-                                            // direct logout, no confirm to test if it's the picker
-                                            onLogout();
-                                            onClose();
-                                        }}
-                                        className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <LogoutIcon /> Conferma Logout
-                                    </button>
-                                    <p className="text-[10px] text-red-500 dark:text-red-400/60 mt-3 text-center font-medium">
-                                        Dovrai accedere nuovamente per sincronizzare i tuoi dati.
-                                    </p>
-                                </div>
+                                <button onClick={() => { onLogout(); onClose(); }} className="w-full py-3 mt-4 bg-red-50 text-red-600 border border-red-100 font-bold rounded-xl text-xs flex items-center justify-center gap-2"><LogoutIcon /> Logout</button>
                             )}
                         </div>
                     )}
 
-                    {/* GOALS TAB */}
+                    {/* GOALS */}
                     {activeMainTab === 'goals' && (
                         <div className="space-y-6">
-                            <ToggleSwitch
-                                label="Abilita Obiettivi"
-                                description="Se disabilitato, i contatori degli obiettivi non verranno mostrati."
-                                enabled={settings.enableGoals ?? true}
-                                onChange={handleEnableGoalsChange}
-                            />
-
-                            <div className="bg-white dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600">
-                                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
-                                    <span className="text-yellow-500">🏆</span> Target Qualifica
-                                </h4>
-                                <select
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-blue-500 transition-colors"
-                                    value={settings.userProfile.targetQualification || ''}
-                                    onChange={handleTargetQualificationChange}
-                                >
-                                    <option value="">Seleziona Target...</option>
-                                    {Object.values(Qualification).map(q => (
-                                        <option key={q} value={q}>{q}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className={`space-y-6 transition-all duration-300 ${!(settings.enableGoals ?? true) ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                                <div className="flex justify-center bg-white dark:bg-slate-700/50 p-1 rounded-xl shadow-sm">
-                                    {['daily', 'weekly', 'monthly'].map((view) => (
-                                        <button key={view} onClick={() => setActiveGoalTab(view as GoalView)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeGoalTab === view ? 'bg-blue-100 dark:bg-blue-600 text-blue-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'}`}>
-                                            {view === 'daily' ? 'Giornalieri' : view === 'weekly' ? 'Settimanali' : 'Mensili'}
+                            <ToggleSwitch label="Abilita Obiettivi" enabled={settings.enableGoals ?? true} onChange={handleEnableGoalsChange} />
+                            <div className={!(settings.enableGoals ?? true) ? 'opacity-50 pointer-events-none' : ''}>
+                                <div className="bg-white dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 mb-6 font-bold text-sm">
+                                    <label className="text-xs text-slate-400 block mb-2">TARGET QUALIFICA</label>
+                                    <select className="w-full bg-slate-50 dark:bg-slate-800 border p-2 rounded-lg dark:text-white" value={settings.userProfile.targetQualification || ''} onChange={handleTargetQualificationChange}>
+                                        <option value="">Seleziona...</option>
+                                        {Object.values(Qualification).map(q => <option key={q} value={q}>{q}</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex justify-center bg-white dark:bg-slate-700/50 p-1 rounded-xl shadow-sm mb-4">
+                                    {['daily', 'weekly', 'monthly'].map(view => (
+                                        <button key={view} onClick={() => setActiveGoalTab(view as GoalView)} className={`px-4 py-2 rounded-lg text-xs font-bold ${activeGoalTab === view ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>
+                                            {view.toUpperCase()}
                                         </button>
                                     ))}
                                 </div>
-                                <button
-                                    onClick={() => setIsGoalsShareModalOpen(true)}
-                                    className="w-full py-3 font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                                    </svg>
-                                    Condividi Obiettivi WOW
-                                </button>
-
                                 <div className="space-y-3">
-                                    {Object.values(ActivityType)
-                                        .filter(activity => {
-                                            if (activeGoalTab === 'daily') {
-                                                return activity !== ActivityType.NEW_CONTRACTS && activity !== ActivityType.NEW_FAMILY_UTILITY;
-                                            }
-                                            return true;
-                                        })
-                                        .map((activity) => {
-                                            const val = settings.goals?.[activeGoalTab]?.[activity] || 0;
-                                            const label = SETTINGS_ACTIVITY_LABELS[activity];
-                                            const color = ACTIVITY_COLORS[activity];
-
-                                            return (
-                                                <div key={activity} className="bg-white dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 flex justify-between items-center">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: color }}>
-                                                            {activityIcons[activity]}
-                                                        </div>
-                                                        <span className="font-bold text-sm text-slate-700 dark:text-white">{label}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        {activeGoalTab !== 'monthly' && (
-                                                            <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, -1)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-slate-500 hover:bg-slate-200"><MinusIcon /></button>
-                                                        )}
-                                                        <input
-                                                            type="number"
-                                                            className="w-16 text-center font-bold bg-transparent dark:text-white outline-none border-b border-transparent focus:border-blue-500"
-                                                            value={val}
-                                                            onChange={(e) => handleGoalChange(activeGoalTab, activity, e.target.value)}
-                                                            readOnly={activeGoalTab === 'monthly'}
-                                                        />
-                                                        {activeGoalTab !== 'monthly' && (
-                                                            <button onClick={() => handleGoalButtonClick(activeGoalTab, activity, 1)} className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 hover:bg-blue-200"><PlusIcon /></button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* LABELS TAB */}
-                    {activeMainTab === 'labels' && (
-                        <div className="space-y-4">
-                            <ToggleSwitch
-                                label="Abilita Etichette Personalizzate"
-                                description="Se disabilitato, verranno usati i nomi standard delle attività."
-                                enabled={settings.enableCustomLabels ?? true}
-                                onChange={handleEnableLabelsChange}
-                            />
-
-                            <div className={`space-y-4 transition-all duration-300 ${!(settings.enableCustomLabels ?? true) ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-sm text-blue-800 dark:text-blue-200 mb-4 flex items-start gap-2">
-                                    <TagIcon />
-                                    <p>Rinomina le attività in base al tuo metodo di lavoro.</p>
-                                </div>
-
-                                {Object.values(ActivityType).map((activity) => {
-                                    const label = settings.customLabels?.[activity] || ACTIVITY_LABELS[activity];
-                                    const color = ACTIVITY_COLORS[activity];
-                                    const isLocked = activity === ActivityType.NEW_CONTRACTS;
-
-                                    return (
-                                        <div key={activity} className={`bg-white dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 flex items-center gap-4 ${isLocked ? 'opacity-75' : ''}`}>
-                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0" style={{ backgroundColor: color }}>
-                                                {activityIcons[activity]}
-                                            </div>
-                                            <div className="flex-grow">
-                                                <p className="text-xs text-slate-400 uppercase font-bold mb-1">{ACTIVITY_LABELS[activity]} (Originale)</p>
-                                                <input
-                                                    type="text"
-                                                    className="w-full font-bold bg-transparent border-b border-slate-200 dark:border-slate-600 focus:border-blue-500 outline-none pb-1 dark:text-white"
-                                                    value={label}
-                                                    onChange={(e) => !isLocked && handleLabelChange(activity, e.target.value)}
-                                                    disabled={isLocked}
-                                                />
-                                                {isLocked && <p className="text-[10px] text-amber-500 mt-1">Non modificabile per calcoli sistema</p>}
+                                    {Object.values(ActivityType).filter(a => activeGoalTab === 'daily' ? (a !== ActivityType.NEW_CONTRACTS && a !== ActivityType.NEW_FAMILY_UTILITY) : true).map(a => (
+                                        <div key={a} className="bg-white dark:bg-slate-700/50 p-3 rounded-xl border flex justify-between items-center">
+                                            <span className="font-bold text-sm dark:text-white text-slate-700">{SETTINGS_ACTIVITY_LABELS[a]}</span>
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => handleGoalButtonClick(activeGoalTab, a, -1)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shadow-sm">－</button>
+                                                <span className="w-12 text-center font-bold dark:text-white">{settings.goals?.[activeGoalTab]?.[a] || 0}</span>
+                                                <button onClick={() => handleGoalButtonClick(activeGoalTab, a, 1)} className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm">＋</button>
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* NOTIFICATIONS TAB */}
+                    {/* HABIT STACKING */}
+                    {activeMainTab === 'stacking' && (
+                        <div className="space-y-6">
+                            <ToggleSwitch label="Abilita Habit Stacking" description="Collega abitudini a vendite" enabled={settings.enableHabitStacking ?? false} onChange={handleEnableHabitStackingChange} />
+                            <div className={`space-y-6 ${!(settings.enableHabitStacking ?? false) ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+                                <div className="bg-gradient-to-br from-orange-500 to-amber-600 p-6 rounded-3xl text-white shadow-lg">
+                                    <h3 className="text-xl font-black mb-1">🚀 Habit Stacking</h3>
+                                    <p className="text-xs opacity-90">"Dopo [Abitudine], farò [Azione]"</p>
+                                </div>
+                                {(settings.habitStacks || []).map(stack => (
+                                    <div key={stack.id} className="bg-white dark:bg-slate-700/50 p-4 rounded-2xl border shadow-sm relative">
+                                        <button onClick={() => handleRemoveStack(stack.id)} className="absolute top-3 right-3 text-slate-300 hover:text-red-500">×</button>
+                                        <div className="space-y-3">
+                                            <input type="text" placeholder="Dopo..." className="w-full bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border" value={stack.trigger} onChange={e => handleUpdateStack(stack.id, { trigger: e.target.value })} />
+                                            <div className="flex gap-2">
+                                                <div className="flex-grow flex flex-col sm:flex-row gap-2">
+                                                    <select className="flex-grow bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border" value={stack.action} onChange={e => handleUpdateStack(stack.id, { action: e.target.value as ActivityType | 'CUSTOM' })}>
+                                                        {Object.values(ActivityType).map(t => <option key={t} value={t}>{ACTIVITY_LABELS[t]}</option>)}
+                                                        <option value="CUSTOM">Testo Libero</option>
+                                                    </select>
+                                                    {stack.action === 'CUSTOM' && (
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="es: Leggere" 
+                                                            className="flex-grow bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border" 
+                                                            value={stack.customActionName || ''} 
+                                                            onChange={e => handleUpdateStack(stack.id, { customActionName: e.target.value })} 
+                                                        />
+                                                    )}
+                                                </div>
+                                                <input 
+                                                    type="number" 
+                                                    min="1"
+                                                    className="w-20 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg font-bold border text-center" 
+                                                    value={stack.targetCount === 0 ? '' : stack.targetCount} 
+                                                    onChange={e => handleUpdateStack(stack.id, { targetCount: e.target.value === '' ? 0 : Math.abs(parseInt(e.target.value)) || 0 })} 
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button onClick={handleAddStack} className="w-full py-4 border-2 border-dashed rounded-2xl text-slate-400 font-bold hover:text-orange-500 hover:border-orange-500">＋ Nuovo Stack</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* LABELS */}
+                    {activeMainTab === 'labels' && (
+                        <div className="space-y-6">
+                            <ToggleSwitch label="Etichette Personalizzate" enabled={settings.enableCustomLabels ?? true} onChange={handleEnableLabelsChange} />
+                            <div className={!(settings.enableCustomLabels ?? true) ? 'opacity-50 pointer-events-none' : 'space-y-3'}>
+                                {Object.values(ActivityType).map(a => (
+                                    <div key={a} className="bg-white dark:bg-slate-700/50 p-4 rounded-xl border flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: ACTIVITY_COLORS[a] }}>{activityIcons[a]}</div>
+                                        <input type="text" className="flex-grow font-bold border-b bg-transparent dark:text-white" value={settings.customLabels?.[a] || ACTIVITY_LABELS[a]} onChange={e => handleLabelChange(a, e.target.value)} disabled={a === ActivityType.NEW_CONTRACTS} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* NOTIFICATIONS */}
                     {activeMainTab === 'notifications' && (
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600">
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                    <span className="text-amber-500"><BellIcon /></span> Preferenze Notifiche
-                                </h3>
-                                <div className="space-y-2">
-                                    <ToggleSwitch
-                                        label="Raggiungimento Obiettivo"
-                                        description="Ricevi una notifica quando completi un obiettivo (100%)"
-                                        enabled={settings.notificationSettings.goalReached}
-                                        onChange={(val) => handleNotificationChange('goalReached', val)}
-                                    />
-                                    <ToggleSwitch
-                                        label="Progressi (Milestones)"
-                                        description="Ricevi incoraggiamenti quando sei a metà strada o quasi alla fine"
-                                        enabled={settings.notificationSettings.milestones}
-                                        onChange={(val) => handleNotificationChange('milestones', val)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-600">
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                    <span className="text-blue-500">🧪</span> Anteprima Promemoria
-                                </h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-medium">Usa questi tasti per vedere come appariranno i pop-up di notifica quando il sistema li attiverà automaticamente.</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <button 
-                                        onClick={() => window.dispatchEvent(new CustomEvent('test-reminder', { detail: { type: 'MORNING_MOTIVATION' } }))}
-                                        className="py-3 px-4 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl font-bold text-xs hover:bg-blue-200 transition-all flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800"
-                                    >
-                                        Test Mattutino
-                                    </button>
-                                    <button 
-                                        onClick={() => window.dispatchEvent(new CustomEvent('test-reminder', { detail: { type: 'DAILY_MISSING' } }))}
-                                        className="py-3 px-4 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 rounded-xl font-bold text-xs hover:bg-orange-200 transition-all flex items-center justify-center gap-2 border border-orange-200 dark:border-orange-800"
-                                    >
-                                        Test Giornaliero
-                                    </button>
-                                    <button 
-                                        onClick={() => window.dispatchEvent(new CustomEvent('test-reminder', { detail: { type: 'WEEKLY_GOAL_NOT_REACHED' } }))}
-                                        className="py-3 px-4 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-xl font-bold text-xs hover:bg-indigo-200 transition-all flex items-center justify-center gap-2 border border-indigo-200 dark:border-indigo-800"
-                                    >
-                                        Test Settimanale
-                                    </button>
-                                </div>
+                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-2xl border shadow-sm">
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Notifiche</h3>
+                                <ToggleSwitch label="Raggiungimento Obiettivo" enabled={settings.notificationSettings.goalReached} onChange={v => handleNotificationChange('goalReached', v)} />
+                                <ToggleSwitch label="Milestones" enabled={settings.notificationSettings.milestones} onChange={v => handleNotificationChange('milestones', v)} />
                             </div>
                         </div>
                     )}
-
                 </div>
 
-                {/* Footer - Fixed */}
-                <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3 shrink-0">
-                    <button onClick={onClose} className="px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors">Annulla</button>
-                    <button onClick={handleSave} className="px-6 py-2 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all">Salva</button>
+                {/* Footer */}
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 border-t flex justify-end gap-3 shrink-0">
+                    <button onClick={onClose} className="px-6 py-2 font-bold text-slate-500">Annulla</button>
+                    <button onClick={handleSave} className="px-8 py-2 font-bold text-white bg-blue-600 rounded-xl shadow-lg">Salva</button>
                 </div>
             </div>
+
             <GoalsShareModal
                 isOpen={isGoalsShareModalOpen}
                 onClose={() => setIsGoalsShareModalOpen(false)}
@@ -601,7 +455,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 userProfile={settings.userProfile}
                 customLabels={settings.customLabels}
             />
-        </div >
+        </div>
     );
 };
 

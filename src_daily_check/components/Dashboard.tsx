@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 
 // Importazioni base
-import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead, ViewMode, VisionBoardData, NextAppointment } from '../types';
+import { ActivityLog, ActivityType, Goals, GoalPeriod, UserProfile, Qualification, Lead, ViewMode, VisionBoardData, NextAppointment, HabitStack } from '../types';
 import {
   getWeekIdentifier,
   getMonthIdentifier,
@@ -10,7 +10,8 @@ import {
   getMonthProgress,
   getCommercialMonthRange,
   getCommercialMonthProgress,
-  getYearProgress
+  getYearProgress,
+  getDaysUntilCommercialMonthEnd
 } from '../utils/dateUtils';
 
 // Importazione Grafici e Componenti
@@ -22,6 +23,7 @@ import ConversionFunnel from './ConversionFunnel';
 import GoalCalendar from './GoalCalendar';
 import DreamTrackerWidget from './DreamTrackerWidget';
 import { calculateCareerStatus } from '../utils/careerUtils';
+import HabitStackWidget from './HabitStackWidget';
 import { Calculator, Sparkles, ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 
 interface DashboardProps {
@@ -51,6 +53,8 @@ interface DashboardProps {
   onOpenTargetCalculator: () => void;
   nextAppointment?: NextAppointment;
   nextFollowUp?: Lead | null;
+  habitStacks?: HabitStack[];
+  enableHabitStacking?: boolean;
 }
 
 type DashboardTab = 'overview' | 'stats';
@@ -67,34 +71,34 @@ const TrophyIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5
 
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
   [ActivityType.CONTACTS]: {
-    gradient: 'from-blue-500 to-blue-600',
-    shadow: 'shadow-[0_8px_30px_rgb(59,130,246,0.12)]',
-    iconBg: 'bg-blue-500',
-    border: 'border-transparent'
+    gradient: 'from-[#007AFF] to-[#00C6FF]',
+    shadow: 'shadow-[0_20px_40px_rgba(0,122,255,0.12)]',
+    iconBg: 'bg-gradient-to-br from-[#007AFF] to-[#00C6FF]',
+    border: 'border-[#007AFF]/20'
   },
   [ActivityType.VIDEOS_SENT]: {
-    gradient: 'from-violet-500 to-purple-600',
-    shadow: 'shadow-[0_8px_30px_rgb(139,92,246,0.12)]',
-    iconBg: 'bg-[#a855f7]',
-    border: 'border-transparent'
+    gradient: 'from-[#AF52DE] to-[#FF2D55]',
+    shadow: 'shadow-[0_20px_40px_rgba(175,82,222,0.12)]',
+    iconBg: 'bg-gradient-to-br from-[#AF52DE] to-[#FF2D55]',
+    border: 'border-[#AF52DE]/20'
   },
   [ActivityType.APPOINTMENTS]: {
-    gradient: 'from-emerald-400 to-teal-500',
-    shadow: 'shadow-[0_8px_30px_rgb(16,185,129,0.12)]',
-    iconBg: 'bg-[#10b981]',
-    border: 'border-transparent'
+    gradient: 'from-[#34C759] to-[#30B0C7]',
+    shadow: 'shadow-[0_20px_40px_rgba(52,199,89,0.12)]',
+    iconBg: 'bg-gradient-to-br from-[#34C759] to-[#30B0C7]',
+    border: 'border-[#34C759]/20'
   },
   [ActivityType.NEW_CONTRACTS]: {
-    gradient: 'from-orange-400 to-red-500',
-    shadow: 'shadow-[0_8px_30px_rgb(249,115,22,0.12)]',
-    iconBg: 'bg-[#f59e0b]',
-    border: 'border-transparent'
+    gradient: 'from-[#FF9500] to-[#FF3B30]',
+    shadow: 'shadow-[0_20px_40px_rgba(255,149,0,0.12)]',
+    iconBg: 'bg-gradient-to-br from-[#FF9500] to-[#FF3B30]',
+    border: 'border-[#FF9500]/20'
   },
   [ActivityType.NEW_FAMILY_UTILITY]: {
-    gradient: 'from-cyan-400 to-blue-500',
-    shadow: 'shadow-[0_8px_30px_rgb(6,182,212,0.12)]',
-    iconBg: 'bg-[#0ea5e9]',
-    border: 'border-transparent'
+    gradient: 'from-[#5856D6] to-[#007AFF]',
+    shadow: 'shadow-[0_20px_40px_rgba(88,86,214,0.12)]',
+    iconBg: 'bg-gradient-to-br from-[#5856D6] to-[#007AFF]',
+    border: 'border-[#5856D6]/20'
   },
 };
 
@@ -124,7 +128,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   onOpenCalendar,
   onOpenTargetCalculator,
   nextAppointment,
-  nextFollowUp
+  nextFollowUp,
+  habitStacks = [],
+  enableHabitStacking = false
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
@@ -488,6 +494,16 @@ const Dashboard: React.FC<DashboardProps> = ({
                 />
               </div>
 
+              {/* HABIT STACKING WIDGET */}
+              {enableHabitStacking && habitStacks.length > 0 && (
+                <div className="w-full">
+                  <HabitStackWidget 
+                    stacks={habitStacks} 
+                    customLabels={customLabels} 
+                  />
+                </div>
+              )}
+
               {/* PROSSIMO FOLLOW-UP ALERT */}
               {nextFollowUp && (
                 <div className="w-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-6 shadow-2xl shadow-black/[0.03] border-2 border-black/10 dark:border-white/20 flex items-center justify-between group overflow-hidden relative transition-all hover:scale-[1.01]">
@@ -516,14 +532,26 @@ const Dashboard: React.FC<DashboardProps> = ({
 
               {/* POWER RING (Guadagno Oggi) */}
               <div className="relative group flex flex-col items-center py-12">
-                <div className="absolute inset-0 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-                <div className="relative w-72 h-72 lg:w-80 lg:h-80 rounded-full border-[1.5rem] border-white/40 dark:border-white/5 flex items-center justify-center shadow-2xl shadow-black/[0.02] bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl">
-                  <div className="text-center">
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent blur-sm"></div>
+                <div className="absolute inset-0 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none group-hover:bg-blue-500/10 transition-all duration-1000"></div>
+                
+                <div className="relative w-72 h-72 lg:w-80 lg:h-80 rounded-full border-[1.5rem] border-white/40 dark:border-white/5 flex items-center justify-center shadow-[0_0_50px_rgba(0,0,0,0.05)] bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                  <div className="text-center relative z-10">
                     <p className="text-[10px] lg:text-xs font-black text-[#8e8e93] dark:text-slate-500 uppercase tracking-[0.25em] mb-2">GUADAGNO OGGI</p>
                     <p className="text-5xl lg:text-6xl font-black text-[#1c1c1e] dark:text-white tracking-tighter">€{Math.round(dailyEarnings)}</p>
+                    
+                    {/* Proiezione Mese */}
+                    <div className="mt-2 flex flex-col items-center">
+                      <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">PROIEZIONE MESE</p>
+                      <p className="text-lg font-black text-slate-700 dark:text-slate-300">
+                        €{Math.round(dailyEarnings * getDaysUntilCommercialMonthEnd(new Date(), commercialMonthStartDay))}
+                      </p>
+                    </div>
+
                     <button
                       onClick={onOpenTargetCalculator}
-                      className="mt-6 p-3.5 bg-black/[0.03] dark:bg-white/10 hover:bg-blue-500 hover:text-white rounded-2xl transition-all active:scale-95 mx-auto border border-white/20"
+                      className="mt-6 p-3.5 bg-black/[0.03] dark:bg-white/10 hover:bg-blue-500 hover:text-white rounded-2xl transition-all active:scale-95 mx-auto border border-white/20 shadow-lg shadow-black/5"
                     >
                       <Calculator className="w-6 h-6" />
                     </button>
@@ -538,7 +566,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           strokeWidth="1.5rem"
                           strokeDasharray={`${Math.min(dailyEarnings / 10, 100) * 3} 1000`}
                           strokeLinecap="round"
-                          className="drop-shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all duration-1000"
+                          className="drop-shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-all duration-1000 ease-out"
                         />
                         <defs>
                           <linearGradient id="hubGradientDashboard" x1="0%" y1="0%" x2="100%" y2="0%">

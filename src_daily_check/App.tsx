@@ -84,7 +84,9 @@ const DEFAULT_SETTINGS: AppSettings = {
     imageData: null
   },
   enableGoals: true,
-  enableCustomLabels: true
+  enableCustomLabels: true,
+  enableHabitStacking: false,
+  habitStacks: []
 };
 
 const NotificationItem: React.FC<{ notification: Notification; onClose: () => void }> = ({ notification, onClose }) => {
@@ -1297,6 +1299,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               viewMode={viewMode} setViewMode={setViewMode}
                               goals={effectiveGoals}
                               onOpenClients={() => setIsClientsModalOpen(true)}
+                              habitStacks={settings.habitStacks}
+                              enableHabitStacking={settings.enableHabitStacking}
                             />
                           </motion.div>
                         ) : (
@@ -1360,6 +1364,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
                               nextAppointment={settings.nextAppointment}
                               nextFollowUp={nextFollowUp}
+                              habitStacks={settings.habitStacks}
+                              enableHabitStacking={settings.enableHabitStacking}
                             />
                           </motion.div>
                         )}

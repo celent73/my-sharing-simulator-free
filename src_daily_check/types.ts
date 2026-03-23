@@ -129,8 +129,10 @@ export interface AppSettings {
   nextAppointment?: NextAppointment; // New field for smart planning
   enableGoals?: boolean;
   enableCustomLabels?: boolean;
+  enableHabitStacking?: boolean; // motivational habit stacking toggle
   acknowledgedDeadlines?: Record<string, string>; // Stage Name -> Date string (when it was shown)
   careerPathDates?: Record<string, string>; // Stage Name -> Reached Date string
+  habitStacks?: HabitStack[]; // motivational habit stacking
 }
 
 export type NotificationVariant = 'success' | 'info';
@@ -159,6 +161,15 @@ export interface DriveCredentials {
 }
 
 export type SyncState = 'IDLE' | 'SYNCING' | 'LOADING' | 'SUCCESS' | 'ERROR';
+
+export interface HabitStack {
+  id: string;
+  trigger: string; // Existing habit (e.g., "Dopo il caffè")
+  action: ActivityType | 'CUSTOM'; // Sales action to link or custom
+  customActionName?: string;
+  targetCount: number; // Goal for this stack
+  lastCompletedDate?: string; // YYYY-MM-DD
+}
 
 export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'commercial_monthly' | 'yearly' | 'custom';
 

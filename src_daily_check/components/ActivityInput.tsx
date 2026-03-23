@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
 import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType, Lead, ViewMode, Goals } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
@@ -45,7 +46,7 @@ interface ActivityInputProps {
     onOpenAppointmentModal?: (step?: 'choice' | 'schedule') => void;
     visionBoardData?: VisionBoardData;
     nextAppointment?: NextAppointment;
-    onOpenSettings?: (tab: 'profile' | 'goals' | 'labels') => void;
+    onOpenSettings?: (tab: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking') => void;
     onOpenVisionBoardSettings?: () => void;
     onOpenLeadCapture?: (type: ActivityType) => void;
     onOpenCalendar?: () => void;
@@ -61,38 +62,45 @@ interface ActivityInputProps {
     goals: Goals;
     activeTab?: 'inserimento' | 'risultati';
     onOpenClients?: () => void;
+    habitStacks?: import('../types').HabitStack[];
+    enableHabitStacking?: boolean;
 }
 
-const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string }> = {
+const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string, glow: string }> = {
     [ActivityType.CONTACTS]: {
-        gradient: 'from-blue-500 to-blue-600',
-        shadow: 'shadow-blue-100 dark:shadow-blue-900/10 hover:shadow-blue-200 dark:hover:shadow-blue-900/20',
-        iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
-        border: 'border-blue-100 dark:border-blue-900'
+        gradient: 'from-[#007AFF] to-[#00C6FF]',
+        shadow: 'shadow-[0_8px_30px_rgba(0,122,255,0.15)]',
+        iconBg: 'bg-gradient-to-br from-[#007AFF] to-[#00C6FF]',
+        border: 'border-[#007AFF]/20',
+        glow: 'rgba(0, 122, 255, 0.4)'
     },
     [ActivityType.VIDEOS_SENT]: {
-        gradient: 'from-violet-500 to-purple-600',
-        shadow: 'shadow-violet-100 dark:shadow-violet-900/10 hover:shadow-violet-200 dark:hover:shadow-violet-900/20',
-        iconBg: 'bg-gradient-to-br from-violet-400 to-purple-600',
-        border: 'border-violet-100 dark:border-violet-900'
+        gradient: 'from-[#AF52DE] to-[#FF2D55]',
+        shadow: 'shadow-[0_8px_30px_rgba(175,82,222,0.15)]',
+        iconBg: 'bg-gradient-to-br from-[#AF52DE] to-[#FF2D55]',
+        border: 'border-[#AF52DE]/20',
+        glow: 'rgba(175, 82, 222, 0.4)'
     },
     [ActivityType.APPOINTMENTS]: {
-        gradient: 'from-emerald-400 to-teal-500',
-        shadow: 'shadow-emerald-100 dark:shadow-emerald-900/10 hover:shadow-emerald-200 dark:hover:shadow-emerald-900/20',
-        iconBg: 'bg-gradient-to-br from-emerald-400 to-teal-500',
-        border: 'border-emerald-100 dark:border-emerald-900'
+        gradient: 'from-[#34C759] to-[#30B0C7]',
+        shadow: 'shadow-[0_8px_30px_rgba(52,199,89,0.15)]',
+        iconBg: 'bg-gradient-to-br from-[#34C759] to-[#30B0C7]',
+        border: 'border-[#34C759]/20',
+        glow: 'rgba(52, 199, 89, 0.4)'
     },
     [ActivityType.NEW_CONTRACTS]: {
-        gradient: 'from-orange-400 to-red-500',
-        shadow: 'shadow-orange-100 dark:shadow-orange-900/10 hover:shadow-orange-200 dark:hover:shadow-orange-900/20',
-        iconBg: 'bg-gradient-to-br from-orange-400 to-red-500',
-        border: 'border-orange-100 dark:border-orange-900'
+        gradient: 'from-[#FF9500] to-[#FF3B30]',
+        shadow: 'shadow-[0_8px_30px_rgba(255,149,0,0.15)]',
+        iconBg: 'bg-gradient-to-br from-[#FF9500] to-[#FF3B30]',
+        border: 'border-[#FF9500]/20',
+        glow: 'rgba(255, 149, 0, 0.4)'
     },
     [ActivityType.NEW_FAMILY_UTILITY]: {
-        gradient: 'from-cyan-400 to-blue-500',
-        shadow: 'shadow-cyan-100 dark:shadow-cyan-900/10 hover:shadow-cyan-200 dark:hover:shadow-cyan-900/20',
-        iconBg: 'bg-gradient-to-br from-cyan-400 to-blue-500',
-        border: 'border-cyan-100 dark:border-cyan-900'
+        gradient: 'from-[#5856D6] to-[#007AFF]',
+        shadow: 'shadow-[0_8px_30px_rgba(88,86,214,0.15)]',
+        iconBg: 'bg-gradient-to-br from-[#5856D6] to-[#007AFF]',
+        border: 'border-[#5856D6]/20',
+        glow: 'rgba(88, 86, 214, 0.4)'
     },
 };
 
@@ -120,7 +128,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     setViewMode,
     goals,
     activeTab = 'inserimento',
-    onOpenClients
+    onOpenClients,
+    habitStacks = [],
+    enableHabitStacking = false,
+    onOpenSettings
 }) => {
     const { user } = useAuth();
     const [isFooterVisible, setIsFooterVisible] = React.useState(true);
@@ -245,13 +256,35 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     useEffect(() => {
         Object.keys(getPeriodTotals).forEach((key) => {
             const activity = key as ActivityType;
-            if (getPeriodTotals[activity] > (prevTotalsRef.current[activity] || 0)) {
+            const current = getPeriodTotals[activity];
+            const previous = prevTotalsRef.current[activity] || 0;
+
+            if (current > previous) {
                 setPulsingActivity(activity);
                 setTimeout(() => setPulsingActivity(null), 1000);
+
+                // Goal Completion Confetti Logic
+                const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
+                                 viewMode === 'weekly' ? goals.weekly[activity] : 
+                                 goals.monthly[activity];
+                
+                if (goalValue && goalValue > 0 && current >= goalValue && previous < goalValue) {
+                    // Trigger confetti!
+                    const scalar = 2;
+                    const shapes = [confetti.shapeFromText({ text: '🏆', scalar }), confetti.shapeFromText({ text: '✨', scalar })];
+                    
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        shapes: shapes,
+                        colors: [CARD_STYLES[activity].glow || '#3b82f6', '#ffffff']
+                    });
+                }
             }
         });
         prevTotalsRef.current = getPeriodTotals;
-    }, [getPeriodTotals]);
+    }, [getPeriodTotals, goals, viewMode]);
 
     React.useEffect(() => {
         if (!isHubMode) return;
@@ -456,6 +489,44 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                 </div>
                             </div>
                         </div>
+
+                        {/* HABIT STACKING SUGGESTIONS */}
+                        {enableHabitStacking && habitStacks.length > 0 && (
+                            <div className="w-full max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-2 duration-700">
+                                <div 
+                                    className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 border-2 border-orange-500/20 rounded-[2rem] p-4 flex flex-col items-center gap-3 relative overflow-hidden group cursor-pointer hover:from-orange-500/20 hover:to-amber-500/20 transition-all shadow-sm hover:shadow-orange-500/10"
+                                    onClick={() => onOpenSettings?.('stacking')}
+                                    title="Modifica le tue abitudini"
+                                >
+                                    <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
+                                        <Sparkles className="w-8 h-8 text-orange-500 group-hover:scale-110 transition-transform" />
+                                    </div>
+                                    <div className="flex items-center gap-2 relative z-10">
+                                        <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center text-white">
+                                            <Star className="w-3.5 h-3.5 fill-current" />
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Suggerimento Habit Stacking</span>
+                                    </div>
+                                    <div className="flex flex-wrap justify-center gap-4">
+                                        {habitStacks.slice(0, 2).map((stack, idx) => (
+                                            <div key={stack.id} className="text-center">
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                    Dopo <span className="text-orange-600 dark:text-orange-400">"{stack.trigger}"</span> → 
+                                                    <span className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                                                        {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
+                                                        {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-[9px] font-bold text-slate-400 group-hover:text-orange-500 uppercase tracking-widest italic mt-1 transition-colors relative z-10">
+                                        {habitStacks.length > 2 ? `e altri ${habitStacks.length - 2} stack attivi... Clicca per modificare` : 'Clicca per modificare i tuoi stack'}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 ${isHubMode ? 'xl:grid-cols-3' : ''} gap-4 lg:gap-6 w-full max-w-7xl mx-auto`}>
                             {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
                                 const count = todayCounts[activity] || 0;
@@ -472,23 +543,25 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                         className={`group relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border-2 border-black/10 dark:border-white/20 ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2.5rem] p-6 lg:p-8'} shadow-2xl shadow-black/[0.03] transition-all duration-500 overflow-hidden`}
                                     >
                                         {/* Background Glow */}
-                                        <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[80px] opacity-10 group-hover:opacity-20 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
+                                        <div className={`absolute -top-24 -right-24 w-60 h-60 blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
+                                        <div className={`absolute -bottom-24 -left-24 w-40 h-40 blur-[80px] opacity-10 group-hover:opacity-15 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
                                         
                                         <AnimatePresence>
                                             {pulsingActivity === activity && (
                                                 <motion.div
-                                                    initial={{ opacity: 0.8, scale: 0.95 }}
-                                                    animate={{ opacity: 0, scale: 1.1 }}
-                                                    transition={{ duration: 0.8, ease: "easeOut" }}
-                                                    className={`absolute inset-0 z-0 bg-white dark:bg-slate-700 opacity-20 pointer-events-none rounded-[inherit]`}
+                                                    initial={{ opacity: 1, scale: 1 }}
+                                                    animate={{ opacity: 0, scale: 1.2 }}
+                                                    exit={{ opacity: 0 }}
+                                                    transition={{ duration: 1, ease: "circOut" }}
+                                                    className="absolute inset-0 z-0 bg-white/40 dark:bg-white/10 pointer-events-none rounded-[inherit]"
                                                 />
                                             )}
                                         </AnimatePresence>
 
                                         <div className="flex flex-col h-full justify-between gap-8 relative z-10">
                                             <div className="flex justify-between items-start">
-                                                <div className={`h-12 w-12 rounded-2xl ${styles.iconBg} flex items-center justify-center text-white shadow-xl shadow-current/20 transition-transform group-hover:rotate-12`}>
-                                                    <div className="scale-100">
+                                                <div className={`h-14 w-14 rounded-[1.25rem] ${styles.iconBg} flex items-center justify-center text-white shadow-xl shadow-current/20 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
+                                                    <div className="scale-110">
                                                         {activityIcons[activity]}
                                                     </div>
                                                 </div>
@@ -522,6 +595,24 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                         <Plus className="w-7 h-7" strokeWidth={4} />
                                                     </button>
                                                 </div>
+                                            </div>
+
+                                            {/* Quick Note Placeholder - New feature */}
+                                            <div className="absolute top-20 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // In a real implementation, this would open a mini-inline-input
+                                                        // or trigger the lead capture modal for that day.
+                                                        if (activity === ActivityType.CONTACTS || activity === ActivityType.APPOINTMENTS) {
+                                                            onOpenLeadCapture?.(activity);
+                                                        }
+                                                    }}
+                                                    className="p-2 bg-white/20 dark:bg-white/10 rounded-xl hover:bg-white/30 text-white/70 hover:text-white transition-all"
+                                                    title="Aggiungi nota rapida"
+                                                >
+                                                    <Sparkles size={16} />
+                                                </button>
                                             </div>
 
                                             <div>
