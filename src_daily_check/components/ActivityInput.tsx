@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ActivityType, VisionBoardData, NextAppointment, ActivityLog, ContractType, Lead, ViewMode, Goals } from '../types';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
 import { format } from 'date-fns';
-import { formatItalianDate, getCommercialMonthString, getDaysUntilCommercialMonthEnd, getCommercialMonthProgress } from '../utils/dateUtils';
+import { formatItalianDate, getCommercialMonthString, getDaysUntilCommercialMonthEnd, getCommercialMonthProgress, getTodayDateString } from '../utils/dateUtils';
 import LeadCaptureModal from './LeadCaptureModal';
 import AppointmentsOverviewModal from './AppointmentsOverviewModal';
 import HistoryListModal from './HistoryListModal';
@@ -491,41 +491,49 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         </div>
 
                         {/* HABIT STACKING SUGGESTIONS */}
-                        {enableHabitStacking && habitStacks.length > 0 && (
-                            <div className="w-full max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-2 duration-700">
-                                <div 
-                                    className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 border-2 border-orange-500/20 rounded-[2rem] p-4 flex flex-col items-center gap-3 relative overflow-hidden group cursor-pointer hover:from-orange-500/20 hover:to-amber-500/20 transition-all shadow-sm hover:shadow-orange-500/10"
-                                    onClick={() => onOpenSettings?.('stacking')}
-                                    title="Modifica le tue abitudini"
-                                >
-                                    <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
-                                        <Sparkles className="w-8 h-8 text-orange-500 group-hover:scale-110 transition-transform" />
-                                    </div>
-                                    <div className="flex items-center gap-2 relative z-10">
-                                        <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center text-white">
-                                            <Star className="w-3.5 h-3.5 fill-current" />
+                        {(() => {
+                            if (!enableHabitStacking || !habitStacks || habitStacks.length === 0) return null;
+                            const todayStr = getTodayDateString();
+                            const incompleteStacks = habitStacks.filter(s => s.lastCompletedDate !== todayStr);
+                            
+                            if (incompleteStacks.length === 0) return null;
+
+                            return (
+                                <div className="w-full max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-2 duration-700">
+                                    <div 
+                                        className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 border-2 border-orange-500/20 rounded-[2rem] p-4 flex flex-col items-center gap-3 relative overflow-hidden group cursor-pointer hover:from-orange-500/20 hover:to-amber-500/20 transition-all shadow-sm hover:shadow-orange-500/10"
+                                        onClick={() => onOpenSettings?.('stacking')}
+                                        title="Modifica le tue abitudini"
+                                    >
+                                        <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
+                                            <Sparkles className="w-8 h-8 text-orange-500 group-hover:scale-110 transition-transform" />
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Suggerimento Habit Stacking</span>
-                                    </div>
-                                    <div className="flex flex-wrap justify-center gap-4">
-                                        {habitStacks.slice(0, 2).map((stack, idx) => (
-                                            <div key={stack.id} className="text-center">
-                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                                    Dopo <span className="text-orange-600 dark:text-orange-400">"{stack.trigger}"</span> → 
-                                                    <span className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
-                                                        {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
-                                                        {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
-                                                    </span>
-                                                </p>
+                                        <div className="flex items-center gap-2 relative z-10">
+                                            <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center text-white">
+                                                <Star className="w-3.5 h-3.5 fill-current" />
                                             </div>
-                                        ))}
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Suggerimento Habit Stacking</span>
+                                        </div>
+                                        <div className="flex flex-wrap justify-center gap-4 relative z-10">
+                                            {incompleteStacks.slice(0, 2).map((stack, idx) => (
+                                                <div key={stack.id} className="text-center">
+                                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                        Dopo <span className="text-orange-600 dark:text-orange-400">"{stack.trigger}"</span> → 
+                                                        <span className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                                                            {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
+                                                            {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[9px] font-bold text-slate-400 group-hover:text-orange-500 uppercase tracking-widest italic mt-1 transition-colors relative z-10">
+                                            {incompleteStacks.length > 2 ? `e altri ${incompleteStacks.length - 2} stack da fare... Clicca per gestire` : 'Clicca per gestire i tuoi stack'}
+                                        </p>
                                     </div>
-                                    <p className="text-[9px] font-bold text-slate-400 group-hover:text-orange-500 uppercase tracking-widest italic mt-1 transition-colors relative z-10">
-                                        {habitStacks.length > 2 ? `e altri ${habitStacks.length - 2} stack attivi... Clicca per modificare` : 'Clicca per modificare i tuoi stack'}
-                                    </p>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 ${isHubMode ? 'xl:grid-cols-3' : ''} gap-4 lg:gap-6 w-full max-w-7xl mx-auto`}>
                             {(Object.values(ActivityType) as ActivityType[]).map((activity) => {
