@@ -45,10 +45,30 @@ const FollowUpRankingWidget: React.FC<FollowUpRankingWidgetProps> = ({ activityL
         return { lead, score };
       })
       .sort((a, b) => b.score - a.score)
-      .slice(0, 3); // Top 3
   }, [activityLogs]);
 
-  if (rankedLeads.length === 0) return null;
+  // Modificato per essere sempre visibile (come richiesto per ripristino)
+  if (rankedLeads.length === 0) {
+    return (
+      <div className="w-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-8 border-2 border-black/5 dark:border-white/10 shadow-xl text-center">
+        <div className="flex flex-col items-center gap-4 py-8">
+          <div className="w-16 h-16 bg-emerald-500/10 rounded-3xl flex items-center justify-center text-4xl text-emerald-500 shadow-inner">
+            ✨
+          </div>
+          <h4 className="text-sm font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400">Tutto in Ordine</h4>
+          <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mx-auto">
+            Non hai follow-up urgenti o lead pendenti per oggi. Continua così! 🚀
+          </p>
+          <button 
+            onClick={() => onEditLead(ActivityType.CONTACTS, {} as any)}
+            className="mt-2 px-8 py-3 bg-slate-950 dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-all active:scale-95"
+          >
+            Aggiungi Contatti
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-6 border-2 border-black/5 dark:border-white/10 shadow-xl">
