@@ -7,9 +7,17 @@ interface HabitStackWidgetProps {
   stacks: HabitStack[];
   customLabels?: Record<ActivityType, string>;
   currentCounts?: Record<string, number>;
+  onOpenLeadCapture?: (type: ActivityType) => void;
+  onOpenAppointmentModal?: (type: 'choice' | 'manual') => void;
 }
 
-const HabitStackWidget: React.FC<HabitStackWidgetProps> = ({ stacks, customLabels, currentCounts = {} }) => {
+const HabitStackWidget: React.FC<HabitStackWidgetProps> = ({ 
+  stacks, 
+  customLabels, 
+  currentCounts = {},
+  onOpenLeadCapture,
+  onOpenAppointmentModal
+}) => {
   if (!stacks || stacks.length === 0) return null;
 
   return (
@@ -37,7 +45,11 @@ const HabitStackWidget: React.FC<HabitStackWidgetProps> = ({ stacks, customLabel
             return (
               <div 
                 key={stack.id} 
-                className={`bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-4 rounded-2xl flex flex-col gap-3 hover:scale-[1.02] transition-all cursor-default ${isCompleted ? 'opacity-60 grayscale-[0.5]' : ''}`}
+                className={`bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-4 rounded-2xl flex flex-col gap-3 hover:scale-[1.02] transition-all ${isCompleted ? 'opacity-60 grayscale-[0.5]' : ''} ${(stack.action === ActivityType.CONTACTS || stack.action === ActivityType.APPOINTMENTS) ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'}`}
+                onClick={() => {
+                  if (stack.action === ActivityType.CONTACTS && onOpenLeadCapture) onOpenLeadCapture(ActivityType.CONTACTS);
+                  else if (stack.action === ActivityType.APPOINTMENTS && onOpenAppointmentModal) onOpenAppointmentModal('choice');
+                }}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">TRIGGER</span>

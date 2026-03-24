@@ -497,7 +497,18 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     // 1. Record the activity
     // For CUSTOM actions, we use the stackId as the activity key in the log
     const activityKey = stack.action === 'CUSTOM' ? stack.id : stack.action;
-    handleUpdateActivity(activityKey, count, todayStr);
+    
+    // v1.3.15: Decouple habit completion from activity logging for lead-based actions
+    // to prevent double-counting when the user manually logs the actual leads/appointments.
+    const isLeadBasedAction = stack.action === ActivityType.CONTACTS || stack.action === ActivityType.APPOINTMENTS;
+    
+    if (!isLeadBasedAction) {
+      handleUpdateActivity(activityKey, count, todayStr);
+    } else {
+      // v1.3.15: Instead of blind-incrementing, open the data entry modal
+      // This fulfills "non deve aumentare il numero progressivo... oppure... aprire le finestre"
+      handleOpenLeadCapture(stack.action as ActivityType);
+    }
 
     // 2. Check if total reached target to mark as fully completed for today
     // We must find the log for today specifically
@@ -1527,6 +1538,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               yesterdayScore={yesterdayScore}
                               dailyScore={dailyScore}
                               coachStreak={coachStreak}
+                              onOpenLeadCapture={handleOpenLeadCapture}
+                              onOpenAppointmentModal={(type) => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
                             />
                           </motion.div>
                         )}

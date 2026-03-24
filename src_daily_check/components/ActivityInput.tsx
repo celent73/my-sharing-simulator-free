@@ -536,7 +536,19 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                     <div key={stack.id} className="text-center">
                                                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
                                                             Dopo <span className="text-orange-600 dark:text-orange-400">"{stack.trigger}"</span> → 
-                                                            <span className="ml-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                                                            <span 
+                                                                className="ml-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight cursor-pointer hover:bg-white/60 dark:hover:bg-white/20 active:scale-95 transition-all" 
+                                                                style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (stack.action === ActivityType.CONTACTS || stack.action === ActivityType.APPOINTMENTS) {
+                                                                        onOpenLeadCapture?.(stack.action as ActivityType);
+                                                                    } else if (stack.action !== 'CUSTOM') {
+                                                                        onUpdateActivity(stack.action as ActivityType, 1, todayStr);
+                                                                    }
+                                                                }}
+                                                                title="Clicca per inserire"
+                                                            >
                                                                 <span className="opacity-60">{current}/</span>
                                                                 {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
                                                                 {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
@@ -642,7 +654,11 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                 </button>
                                             </div>
 
-                                            <div>
+                                            <div 
+                                                className="cursor-pointer group/card active:scale-[0.98] transition-transform"
+                                                onClick={(e) => handlePlusClick(e as any, activity)}
+                                                title={`Aggiungi ${label}`}
+                                            >
                                                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{label}</h3>
                                                 <div className="flex items-baseline gap-2">
                                                     <motion.span 

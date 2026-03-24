@@ -58,6 +58,8 @@ interface DashboardProps {
   habitStacks?: HabitStack[];
   enableHabitStacking?: boolean;
   dailyScore?: number;
+  onOpenLeadCapture?: (type: ActivityType) => void;
+  onOpenAppointmentModal?: (type: 'choice' | 'manual') => void;
   coachStreak?: number;
   yesterdayScore?: number;
 }
@@ -138,7 +140,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   enableHabitStacking = false,
   dailyScore = 0,
   coachStreak = 0,
-  yesterdayScore = 0
+  yesterdayScore = 0,
+  onOpenLeadCapture,
+  onOpenAppointmentModal
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
@@ -523,6 +527,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                     stacks={habitStacks} 
                     customLabels={customLabels} 
                     currentCounts={totals}
+                    onOpenLeadCapture={onOpenLeadCapture}
+                    onOpenAppointmentModal={onOpenAppointmentModal}
                   />
                 </div>
               )}

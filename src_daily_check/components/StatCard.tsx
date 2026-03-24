@@ -5,12 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface StatCardProps {
   icon: React.ReactNode;
   title: string;
-  value: string;
+  value: string | number;
   description: string;
   colorClass: string;
+  onClick?: () => void;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon, title, value, description, colorClass }) => {
+const StatCard: React.FC<StatCardProps> = ({ icon, title, value, description, colorClass, onClick }) => {
   const [isPulsing, setIsPulsing] = useState(false);
 
   useEffect(() => {
@@ -24,7 +25,8 @@ const StatCard: React.FC<StatCardProps> = ({ icon, title, value, description, co
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
-      className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl rounded-[2.5rem] p-8 sm:p-10 shadow-2xl shadow-black/[0.03] border-2 border-black/10 dark:border-white/20 transition-all flex flex-col items-center text-center group relative overflow-hidden h-full"
+      onClick={onClick}
+      className={`bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl rounded-[2.5rem] p-8 sm:p-10 shadow-2xl shadow-black/[0.03] border-2 border-black/10 dark:border-white/20 transition-all flex flex-col items-center text-center group relative overflow-hidden h-full ${onClick ? 'cursor-pointer active:scale-[0.98]' : ''}`}
     >
       {/* Background Glow */}
       <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity ${colorClass.includes('text') ? colorClass.replace('text', 'bg') : colorClass}`} />

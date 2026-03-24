@@ -34,7 +34,7 @@ const SyncIcon = ({ className }: { className?: string }) => (
 
 const StreakBadge = ({ count }: { count: number }) => {
     return (
-        <div className="flex items-center gap-1 bg-green-500/10 text-green-400 pl-3 pr-3 py-1.5 rounded-full text-[13px] font-black tracking-widest uppercase border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+        <div className="flex items-center gap-1 bg-green-500/10 text-green-400 px-2 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-[13px] font-black tracking-widest uppercase border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
             DAILY CHEK
         </div>
     );
@@ -140,43 +140,43 @@ const Header: React.FC<HeaderProps> = ({
     }, []);
 
     return (
-        <header className={`flex flex-col gap-4 mb-8 mx-4 mt-4 rounded-[2.5rem] p-4 sm:p-6 border border-white/10 shadow-2xl transition-all duration-500 relative z-50 bg-[#1c1c1e] ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
-            <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10 gap-4">
+        <header className={`flex flex-col gap-4 mb-8 mx-2 sm:mx-4 mt-4 rounded-[2.5rem] p-3 sm:p-6 border border-white/10 shadow-2xl transition-all duration-500 relative z-50 bg-[#1c1c1e] ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
+            <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10 gap-2 sm:gap-4">
 
                 <div className="flex-shrink-0">
                     <StreakBadge count={streak} />
                 </div>
 
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                <div className="flex items-center gap-1 sm:gap-2 py-1">
                     <InstallButton />
 
-                    <div className="flex gap-1.5 transition-all duration-500 ease-in-out">
+                    <div className="flex gap-1 sm:gap-1.5 transition-all duration-500 ease-in-out">
                         {onSync && (
                             <button 
                                 onClick={onSync} 
                                 disabled={isSyncing}
-                                className={`w-10 h-10 flex items-center justify-center rounded-xl text-blue-400 border border-blue-400/20 hover:bg-blue-500/10 transition-all ${isSyncing ? 'animate-spin' : ''}`}
+                                className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-blue-400 border border-blue-400/20 hover:bg-blue-500/10 transition-all ${isSyncing ? 'animate-spin' : ''}`}
                                 aria-label="Sincronizza"
                             >
                                 <SyncIcon />
                             </button>
                         )}
-                        <button onClick={toggleTheme} className="w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Tema">
+                        <button onClick={toggleTheme} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Tema">
                             {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
                         </button>
-                        <button onClick={onOpenGuide} className="w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Guida">
+                        <button onClick={onOpenGuide} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Guida">
                             <QuestionMarkIcon />
                         </button>
-                        <button onClick={onOpenMonthlyReport} className="w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Report">
+                        <button onClick={onOpenMonthlyReport} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-all font-medium" aria-label="Report">
                             <DocumentIcon />
                         </button>
-                        <button onClick={onOpenDeleteDataModal} className="w-10 h-10 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all font-medium" aria-label="Cancella Dati">
+                        <button onClick={onOpenDeleteDataModal} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all font-medium" aria-label="Cancella Dati">
                             <TrashIcon />
                         </button>
                         {isLoggedIn && onLogout && (
                             <button
                                 onClick={onLogout}
-                                className="w-10 h-10 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all"
+                                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition-all"
                                 aria-label="Disconnetti"
                             >
                                 <LogoutIcon />
