@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import WeeklyAIReportModal from './WeeklyAIReportModal';
 import { format } from 'date-fns';
 
 // Importazioni base
@@ -26,6 +27,7 @@ import { calculateCareerStatus } from '../utils/careerUtils';
 import HabitStackWidget from './HabitStackWidget';
 import CoachScoreWidget from './CoachScoreWidget';
 import CoachGreeting from './CoachGreeting';
+import FollowUpRankingWidget from './FollowUpRankingWidget';
 import { Calculator, Sparkles, ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 
 interface DashboardProps {
@@ -149,6 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   }
 
   const [currentTab, setCurrentTab] = useState<DashboardTab>(initialTab);
+  const [isWeeklyReportOpen, setIsWeeklyReportOpen] = useState(false);
 
   // STATO PER LA DATA SELEZIONATA (usata dal DateNavigator) - Fallback se non passata come prop
   const [internalSelectedDate, setInternalSelectedDate] = useState(new Date());
@@ -431,15 +434,26 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="animate-fade-in relative z-10 w-full space-y-6">
           {/* COACH GREETING & SCORE */}
           <div className="space-y-4">
-            <CoachGreeting 
-                firstName={userProfile.firstName} 
-                yesterdayScore={yesterdayScore} 
-                streak={coachStreak} 
-            />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <CoachGreeting 
+                  firstName={userProfile.firstName} 
+                  yesterdayScore={yesterdayScore} 
+                  streak={coachStreak} 
+              />
+              <button 
+                onClick={() => setIsWeeklyReportOpen(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 group font-black uppercase tracking-widest text-[10px]"
+              >
+                <Sparkles size={14} className="group-hover:animate-pulse" />
+                Report Strategico
+              </button>
+            </div>
             <CoachScoreWidget
               score={dailyScore}
               streak={coachStreak}
               firstName={userProfile.firstName}
+              counts={totals}
+              goals={goals}
             />
           </div>
 
@@ -655,6 +669,15 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       )}
+      {/* Smart Follow-up Ranking can also be rendered here or in the overview as done above */}
+
+      <WeeklyAIReportModal
+        isOpen={isWeeklyReportOpen}
+        onClose={() => setIsWeeklyReportOpen(false)}
+        logs={activityLogs || []}
+        goals={goals}
+        userName={userProfile.firstName}
+      />
     </div>
   );
 };

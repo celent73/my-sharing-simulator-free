@@ -238,3 +238,21 @@ export interface TeamNotification {
   metadata?: any;
   created_at: string;
 }
+export interface CareerLevel {
+  name: string;
+  minClients: number;
+  qualificationValue?: Qualification;
+  color?: string;
+}
+
+export interface CareerStatusInfo {
+  currentLevel: CareerLevel;
+  nextLevel: CareerLevel | null;
+  totalClients: number;
+  totalContracts: number;
+  progressPercentage: number;
+  clientsForNextLevel: number;
+  isMaxLevel: boolean;
+  specialStatus?: 'family_pro';
+  isManualOverride?: boolean;
+}

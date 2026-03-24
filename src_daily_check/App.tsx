@@ -57,6 +57,7 @@ import StatCard from './components/StatCard';
 import { requestNotificationPermission, sendLocalNotification } from './utils/notificationSystem';
 import { calculateDailyScore, calculateCoachStreak } from './utils/coachScoreUtils';
 import WeeklyReportModal from './components/WeeklyReportModal';
+import FollowUpRankingWidget from './components/FollowUpRankingWidget';
 const APP_VERSION = "v1.3.27";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
@@ -1481,11 +1482,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                             transition={{ duration: 0.2 }}
                             className="flex flex-col gap-6 w-full"
                           >
-                            <FollowUpBanner 
+                            <FollowUpRankingWidget 
                               activityLogs={activityLogs} 
-                              onEditLead={handleOpenLeadCapture} 
-                              onOpenChange={setIsFollowUpModalOpen}
-                              nextFollowUp={nextFollowUp}
+                              onEditLead={(type, lead) => handleOpenLeadCapture(type, lead)} 
                             />
 
                             <GoalRecoveryWidget 

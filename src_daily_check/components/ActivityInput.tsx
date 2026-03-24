@@ -329,6 +329,29 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
     const isToday = new Date().toDateString() === selectedDate.toDateString();
 
+    // Logic for "Golden Activity" (Focus for the day/period)
+    const goldenActivity = useMemo(() => {
+        const periodGoals = viewMode === 'daily' ? goals.daily : 
+                            viewMode === 'weekly' ? goals.weekly : 
+                            goals.monthly;
+        
+        let lowestRatio = 1.1; 
+        let bestCandidate: ActivityType | null = null;
+
+        (Object.entries(periodGoals) as [ActivityType, number][]).forEach(([type, target]) => {
+            if (target <= 0) return;
+            const current = getPeriodTotals[type as ActivityType] || 0;
+            const ratio = current / target;
+            if (ratio < lowestRatio) {
+                lowestRatio = ratio;
+                bestCandidate = type as ActivityType;
+            }
+        });
+        
+        if (lowestRatio >= 1) return null;
+        return bestCandidate;
+    }, [getPeriodTotals, goals, viewMode]);
+
     return (
         <div className={`transition-all duration-500 ${isHubMode ? 'scale-100' : ''}`}>
             
@@ -574,13 +597,20 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                     label = 'appuntamenti fissati';
                                 }
                                 const styles = CARD_STYLES[activity];
+                                const isGolden = goldenActivity === activity;
 
                                 return (
                                     <motion.div 
                                         key={activity} 
                                         whileHover={{ y: -5 }}
-                                        className={`group relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border-2 border-black/10 dark:border-white/20 ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2.5rem] p-6 lg:p-8'} shadow-2xl shadow-black/[0.03] transition-all duration-500 overflow-hidden`}
+                                        className={`group relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border-2 ${isGolden ? 'border-amber-400 dark:border-amber-500 shadow-[0_0_30px_rgba(251,191,36,0.15)] scale-[1.02]' : 'border-black/10 dark:border-white/20'} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2.5rem] p-6 lg:p-8'} shadow-2xl shadow-black/[0.03] transition-all duration-500 overflow-hidden`}
                                     >
+                                        {/* Golden Activity Badge */}
+                                        {isGolden && (
+                                            <div className="absolute top-4 left-4 z-20 flex items-center gap-1 bg-amber-400 text-white px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-amber-400/20 animate-pulse">
+                                                <Target className="w-3 h-3" /> Focus
+                                            </div>
+                                        )}
                                         {/* Background Glow */}
                                         <div className={`absolute -top-24 -right-24 w-60 h-60 blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
                                         <div className={`absolute -bottom-24 -left-24 w-40 h-40 blur-[80px] opacity-10 group-hover:opacity-15 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
