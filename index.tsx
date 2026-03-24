@@ -29,7 +29,8 @@ if ('serviceWorker' in navigator && !isDev) {
       }
 
       // Register new one with version query param
-      navigator.serviceWorker.register('/service-worker.js?v=1.3.26')
+      // Register new one with version query param
+      navigator.serviceWorker.register('/service-worker.js?v=1.3.27')
         .then((registration) => {
           console.log('ServiceWorker registration successful with scope: ', registration.scope);
 
@@ -40,10 +41,10 @@ if ('serviceWorker' in navigator && !isDev) {
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                  console.log('New content is available and will be used when all tabs for this page are closed.');
+                  // console.log('New content is available and will be used when all tabs for this page are closed.');
                   // Force reload could be done here but might be intrusive, let's rely on the fresh registration
                 } else {
-                  console.log('Content is cached for offline use.');
+                  // console.log('Content is cached for offline use.');
                 }
               }
             };

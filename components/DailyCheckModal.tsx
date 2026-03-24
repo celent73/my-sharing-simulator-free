@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp } from 'lucide-react';
-import DailyCheckApp from '../src_daily_check/App';
+
+const DailyCheckApp = lazy(() => import('../src_daily_check/App'));
 
 export const DailyCheckModal: React.FC<{ isOpen: boolean; onClose: () => void; initialView?: string }> = ({ isOpen, onClose, initialView }) => {
     // Body scroll lock
@@ -45,7 +46,9 @@ export const DailyCheckModal: React.FC<{ isOpen: boolean; onClose: () => void; i
                     >
                         {/* CONTENT: Daily Check App */}
                         <div className="flex-grow overflow-hidden w-full h-full relative scroll-smooth custom-scrollbar">
-                            <DailyCheckApp onClose={onClose} initialView={initialView} />
+                            <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div></div>}>
+                                <DailyCheckApp onClose={onClose} initialView={initialView} />
+                            </Suspense>
                         </div>
 
                     </motion.div>

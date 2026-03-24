@@ -41,7 +41,7 @@ import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import GoalReminderModal, { ReminderType } from './components/GoalReminderModal';
 import HabitReminderModal from './components/HabitReminderModal';
-import { ChevronRight, Calendar, User, ArrowUp, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, Target, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon
+import { ChevronRight, Calendar, User, ArrowUp, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon
 } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -54,7 +54,10 @@ import { useDailyStats } from '../hooks/useDailyStats';
 import GoalRecoveryWidget from './components/GoalRecoveryWidget';
 import ConversionFunnel from './components/ConversionFunnel';
 import StatCard from './components/StatCard';
-const APP_VERSION = "v1.3.26";
+import { requestNotificationPermission, sendLocalNotification } from './utils/notificationSystem';
+import { calculateDailyScore, calculateCoachStreak } from './utils/coachScoreUtils';
+import WeeklyReportModal from './components/WeeklyReportModal';
+const APP_VERSION = "v1.3.27";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
 const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -189,6 +192,19 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     return () => window.removeEventListener('scroll', handleScroll, { capture: true } as any);
   }, []);
 
+  // --- HABIT STACKING NOTIFICATIONS & EVENTS ---
+  useEffect(() => {
+    if (settings.enableHabitStacking) {
+      requestNotificationPermission();
+    }
+  }, [settings.enableHabitStacking]);
+
+  useEffect(() => {
+    if (!isInitializing) {
+      window.dispatchEvent(new CustomEvent('habit-stacks-updated'));
+    }
+  }, [settings.habitStacks, settings.enableHabitStacking, isInitializing]);
+
   const handleScrollToTop = () => {
     const anchor = document.getElementById('top-anchor');
     if (anchor) {
@@ -280,7 +296,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   }, []);
 
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'goals' | 'labels' | 'notifications'>('profile');
+  const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'goals' | 'labels' | 'notifications' | 'stacking'>('profile');
   const [isDeleteDataModalOpen, setDeleteDataModalOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -304,6 +320,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [remainingTrialDays] = useState<number | null>(null);
   const [activeReminderStack, setActiveReminderStack] = useState<import('./types').HabitStack | null>(null);
+  const [isWeeklyReportOpen, setIsWeeklyReportOpen] = useState(false);
 
   const effectiveCustomLabels = (settings.enableCustomLabels ?? true) ? (settings.customLabels || ACTIVITY_LABELS) : ACTIVITY_LABELS;
   const effectiveGoals = useMemo(() => {
@@ -317,6 +334,46 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
       }
     };
   }, [settings.enableGoals, settings.goals]);
+
+  const dailyScore = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayLog = activityLogs.find(l => l.date === todayStr);
+    return calculateDailyScore(todayLog, settings.goals, settings.habitStacks || [], todayStr);
+  }, [activityLogs, settings.goals, settings.habitStacks]);
+
+  const yesterdayScore = useMemo(() => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    const yesterdayLog = activityLogs.find(l => l.date === yesterdayStr);
+    return calculateDailyScore(yesterdayLog, settings.goals, settings.habitStacks || [], yesterdayStr);
+  }, [activityLogs, settings.goals, settings.habitStacks]);
+
+  const coachStreak = useMemo(() => {
+    return calculateCoachStreak(activityLogs, settings.goals, settings.habitStacks || []);
+  }, [activityLogs, settings.goals, settings.habitStacks]);
+
+  useEffect(() => {
+    if (!isInitializing && activityLogs.length > 0) {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
+      
+      if (dayOfWeek === 0 || dayOfWeek === 1) {
+        // Get ISO Week (simple version)
+        const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
+        const weekId = `${d.getUTCFullYear()}-W${weekNo}`;
+
+        if (settings.lastWeeklyReportShown !== weekId) {
+          setIsWeeklyReportOpen(true);
+          setSettings(prev => ({ ...prev, lastWeeklyReportShown: weekId }));
+        }
+      }
+    }
+  }, [isInitializing, activityLogs, settings.lastWeeklyReportShown]);
 
   useEffect(() => {
     const checkReminders = () => {
@@ -418,6 +475,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
       if (stackToRemind && !activeReminderStack) {
           setActiveReminderStack(stackToRemind);
+          sendLocalNotification(
+            `Habit Stacking: ${stackToRemind.trigger}`,
+            `È il momento di: ${stackToRemind.action === 'CUSTOM' ? stackToRemind.id : stackToRemind.action}. Sii focalizzato! 🎯`
+          );
       }
     };
 
@@ -427,25 +488,61 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     return () => clearInterval(interval);
   }, [settings.enableHabitStacking, settings.habitStacks, activeReminderStack]);
 
-  const handleHabitComplete = (stackId: string) => {
+  const handleHabitComplete = (stackId: string, count: number) => {
+    const stack = settings.habitStacks?.find(s => s.id === stackId);
+    if (!stack) return;
+
+    const todayStr = getTodayDateString();
+    
+    // 1. Record the activity
+    // For CUSTOM actions, we use the stackId as the activity key in the log
+    const activityKey = stack.action === 'CUSTOM' ? stack.id : stack.action;
+    handleUpdateActivity(activityKey, count, todayStr);
+
+    // 2. Check if total reached target to mark as fully completed for today
+    // We must find the log for today specifically
+    const todayLog = activityLogs.find(log => log.date === todayStr);
+    const existingCount = todayLog?.counts[activityKey] || 0;
+    const currentTotal = existingCount + count;
+    
+    const isFullyComplete = stack.targetCount > 0 && currentTotal >= stack.targetCount;
+
     setSettings(prev => ({
       ...prev,
-      habitStacks: prev.habitStacks?.map(s => s.id === stackId ? { ...s, lastCompletedDate: getTodayDateString(), snoozedUntil: undefined } : s)
+      habitStacks: prev.habitStacks?.map(s => 
+        s.id === stackId 
+          ? { 
+              ...s, 
+              lastCompletedDate: isFullyComplete ? todayStr : s.lastCompletedDate, 
+              snoozedUntil: isFullyComplete ? undefined : Date.now() + 30 * 60 * 1000 
+            } 
+          : s
+      )
     }));
     setActiveReminderStack(null);
+    
+    if (isFullyComplete) {
+      addNotification(`CAPOLAVORO! Abitudine "${stack.trigger}" completata per oggi! 🌟`, 'success');
+    } else {
+      addNotification(`BRAVO! Ma non basta: registrate ${count} azioni. Sii più focalizzato, ci rivediamo tra 30 minuti! 🎯`, 'info');
+    }
   };
 
   const handleHabitSnooze = (stackId: string) => {
+    const stack = settings.habitStacks?.find(s => s.id === stackId);
     setSettings(prev => ({
       ...prev,
       habitStacks: prev.habitStacks?.map(s => s.id === stackId ? { ...s, snoozedUntil: Date.now() + 30 * 60 * 1000 } : s)
     }));
+    if (stack) {
+      addNotification(`Sii più focalizzato! Riproviamo per "${stack.trigger}" tra 30 minuti. ⏱️`, 'info');
+    }
     setActiveReminderStack(null);
   };
 
   const removeNotification = useCallback((id: number) => setNotifications(prev => prev.filter(n => n.id !== id)), []);
 
-  const handleOpenSettings = (tab: 'profile' | 'goals' | 'labels' | 'notifications' = 'profile') => {
+  const handleOpenSettings = (tab: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking' = 'profile') => {
     setSettingsInitialTab(tab);
     setSettingsModalOpen(true);
   };
@@ -944,7 +1041,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     });
   }, [addNotification, effectiveCustomLabels, settings.enableGoals]);
 
-  const updateActivityLog = useCallback(async (updates: { activity: ActivityType, change: number, contractType?: ContractType }[], dateStr: string) => {
+  const updateActivityLog = useCallback(async (updates: { activity: string, change: number, contractType?: ContractType }[], dateStr: string) => {
     let updatedLog: ActivityLog | null = null;
     let updatedAllLogs: ActivityLog[] | null = null;
 
@@ -1003,7 +1100,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     });
   }, [userId]);
 
-  const handleUpdateActivity = (activity: ActivityType, change: number, dateStr: string = getTodayDateString(), contractType?: ContractType) => {
+  const handleUpdateActivity = (activity: string, change: number, dateStr: string = getTodayDateString(), contractType?: ContractType) => {
     updateActivityLog([{ activity, change, contractType }], dateStr);
   };
 
@@ -1359,6 +1456,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               onOpenClients={() => setIsClientsModalOpen(true)}
                               habitStacks={settings.habitStacks}
                               enableHabitStacking={settings.enableHabitStacking}
+                              yesterdayScore={yesterdayScore}
+                              dailyScore={dailyScore}
+                              coachStreak={coachStreak}
                             />
                           </motion.div>
                         ) : (
@@ -1424,6 +1524,9 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               nextFollowUp={nextFollowUp}
                               habitStacks={settings.habitStacks}
                               enableHabitStacking={settings.enableHabitStacking}
+                              yesterdayScore={yesterdayScore}
+                              dailyScore={dailyScore}
+                              coachStreak={coachStreak}
                             />
                           </motion.div>
                         )}
@@ -1523,7 +1626,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                           alt="Union Energia" 
                           className="h-8 w-auto opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all" 
                         />
-                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.3.26</p>
+                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.3.27</p>
                         <button onClick={signOut} className="px-10 py-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl font-black uppercase tracking-widest transition-all">Sconnetti</button>
                       </div>
                     </div>
@@ -1585,6 +1688,19 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                           <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
                         </button>
 
+                        <button onClick={() => handleOpenSettings('stacking')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                              <Sparkles size={28} />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-black text-slate-900 dark:text-white text-xl">Habit Stacking</p>
+                              <p className="text-sm font-medium text-slate-500">Collega abitudini ad azioni di vendita</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+
                         <button onClick={() => setDeleteDataModalOpen(true)} className="w-full flex items-center justify-between p-6 bg-red-500/5 dark:bg-red-500/5 rounded-3xl hover:bg-red-500/10 transition-all border border-red-500/10 group">
                           <div className="flex items-center gap-4">
                             <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform">
@@ -1639,6 +1755,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
         addNotification={addNotification}
         onLogout={signOut}
       />
+      <WeeklyReportModal isOpen={isWeeklyReportOpen} onClose={() => setIsWeeklyReportOpen(false)} activityLogs={activityLogs} goals={settings.goals} habitStacks={settings.habitStacks || []} userProfile={settings.userProfile} />
       <DeleteDataModal
         isOpen={isDeleteDataModalOpen}
         onClose={() => setDeleteDataModalOpen(false)}
@@ -1698,6 +1815,11 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
         isOpen={!!activeReminderStack}
         stack={activeReminderStack}
         customLabels={effectiveCustomLabels}
+        currentCount={activeReminderStack ? (
+          activityLogs.find(l => l.date === getTodayDateString())?.counts[
+            activeReminderStack.action === 'CUSTOM' ? activeReminderStack.id : activeReminderStack.action
+          ] || 0
+        ) : 0}
         onComplete={handleHabitComplete}
         onSnooze={handleHabitSnooze}
         onClose={() => setActiveReminderStack(null)}

@@ -199,6 +199,8 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
         enableCustomLabels: data.enable_custom_labels !== undefined ? data.enable_custom_labels : (localSettings?.enableCustomLabels !== undefined ? localSettings.enableCustomLabels : true),
         nextAppointment: data.next_appointment || localSettings?.nextAppointment,
         careerPathDates: (data.career_path_dates && Object.keys(data.career_path_dates).length > 0) ? data.career_path_dates : (localSettings?.careerPathDates || {}),
+        habitStacks: data.habit_stacks || localSettings?.habitStacks || [],
+        enableHabitStacking: data.enable_habit_stacking !== undefined ? data.enable_habit_stacking : (localSettings?.enableHabitStacking !== undefined ? localSettings.enableHabitStacking : true),
       };
       
       // Update local storage to stay in sync with best-known state
@@ -274,6 +276,8 @@ export const saveSettings = async (userId: string | null, settings: AppSettings)
       next_appointment: settings.nextAppointment,
       vision_board: settings.visionBoard,
       career_path_dates: settings.careerPathDates || {},
+      habit_stacks: settings.habitStacks || [],
+      enable_habit_stacking: settings.enableHabitStacking ?? true,
       updated_at: new Date().toISOString()
     });
 

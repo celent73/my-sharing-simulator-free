@@ -36,7 +36,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.3.26";
+const APP_VERSION = "v1.3.27";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -102,7 +102,8 @@ const initialCondoInputs: CondoInput = {
 };
 
 const AppContent = () => {
-  const { openModal, closeModal } = useModalDispatch();
+    console.log("AppContent Render Start - v1.3.27");
+    const { openModal, closeModal } = useModalDispatch();
   const { activeModal } = useModalState();
   const { isDarkMode, toggleTheme } = useTheme();
   const [isStandalone, setIsStandalone] = useState(false);
@@ -172,10 +173,16 @@ const AppContent = () => {
       localStorage.setItem('app_version', APP_VERSION);
 
       if ('serviceWorker' in navigator) {
+        // Unregister all existing service workers
         navigator.serviceWorker.getRegistrations().then(function (registrations) {
           for (let registration of registrations) {
             registration.unregister();
           }
+        }).then(() => {
+          // Register new one with version query param
+          navigator.serviceWorker.register('/service-worker.js?v=1.3.27')
+            .then(reg => console.log('Service Worker registered with new version:', reg))
+            .catch(err => console.error('Service Worker registration failed:', err));
         });
       }
 
@@ -623,7 +630,7 @@ const AppContent = () => {
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
                     <span>My Sharing</span>
                     <span className="text-main-accent">Simulator</span>
-                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2" style={{ color: 'var(--header-text)' }}>v1.3.26</span>
+                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2" style={{ color: 'var(--header-text)' }}>v1.3.27</span>
                     <img
                       src="/logo_v2_main.png"
                       alt="Logo"

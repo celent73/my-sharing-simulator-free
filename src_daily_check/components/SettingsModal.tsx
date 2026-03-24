@@ -70,6 +70,11 @@ const CloudIcon = () => (
         <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
     </svg>
 );
+const TrashIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+);
 
 const ToggleSwitch: React.FC<{
     label: string;
@@ -387,19 +392,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     <h3 className="text-xl font-black mb-1">🚀 Habit Stacking</h3>
                                     <p className="text-xs opacity-90">"Dopo [Abitudine], farò [Azione]"</p>
                                 </div>
+                                
                                 {(settings.habitStacks || []).map(stack => (
-                                    <div key={stack.id} className="bg-white dark:bg-slate-700/50 p-4 rounded-2xl border shadow-sm relative">
-                                        <button onClick={() => handleRemoveStack(stack.id)} className="absolute top-3 right-3 text-slate-300 hover:text-red-500">×</button>
+                                    <div key={stack.id} className="bg-white dark:bg-slate-700/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-600 shadow-sm relative group overflow-visible">
+                                        {/* Delete Button - Top Right */}
+                                        <button 
+                                            onClick={() => handleRemoveStack(stack.id)}
+                                            className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 active:scale-95 transition-all z-20 border-2 border-white dark:border-slate-800"
+                                            title="Elimina Stack"
+                                        >
+                                            <TrashIcon />
+                                        </button>
+
                                         <div className="space-y-4">
                                             <div className="flex flex-col gap-1">
                                                 <label className="text-[10px] uppercase font-black tracking-wider text-slate-400 pl-1">Abitudine di partenza</label>
-                                                <input type="text" placeholder="Es: Dopo colazione..." className="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" value={stack.trigger} onChange={e => handleUpdateStack(stack.id, { trigger: e.target.value })} />
+                                                <input type="text" placeholder="Es: Dopo colazione..." className="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border dark:border-slate-600 transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none dark:text-white" value={stack.trigger} onChange={e => handleUpdateStack(stack.id, { trigger: e.target.value })} />
                                             </div>
                                             
                                             <div className="flex flex-col gap-1">
                                                 <label className="text-[10px] uppercase font-black tracking-wider text-slate-400 pl-1">Azione da eseguire</label>
                                                 <div className="flex flex-col sm:flex-row gap-2">
-                                                    <select className="flex-grow bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" value={stack.action} onChange={e => handleUpdateStack(stack.id, { action: e.target.value as ActivityType | 'CUSTOM' })}>
+                                                    <select className="flex-grow bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border dark:border-slate-600 transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none dark:text-white" value={stack.action} onChange={e => handleUpdateStack(stack.id, { action: e.target.value as ActivityType | 'CUSTOM' })}>
                                                         {Object.values(ActivityType).map(t => <option key={t} value={t}>{ACTIVITY_LABELS[t]}</option>)}
                                                         <option value="CUSTOM">Testo Libero</option>
                                                     </select>
@@ -407,7 +421,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                         <input 
                                                             type="text" 
                                                             placeholder="Azione personalizzata" 
-                                                            className="flex-grow bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" 
+                                                            className="flex-grow bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border dark:border-slate-600 transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none dark:text-white" 
                                                             value={stack.customActionName || ''} 
                                                             onChange={e => handleUpdateStack(stack.id, { customActionName: e.target.value })} 
                                                         />
@@ -421,7 +435,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                     <input 
                                                         type="number" 
                                                         min="1"
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border text-center transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" 
+                                                        className="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl font-bold border dark:border-slate-600 text-center transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none dark:text-white" 
                                                         value={stack.targetCount === 0 ? '' : stack.targetCount} 
                                                         onChange={e => handleUpdateStack(stack.id, { targetCount: e.target.value === '' ? 0 : Math.abs(parseInt(e.target.value)) || 0 })} 
                                                         placeholder="0"
@@ -437,9 +451,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                     />
                                                 </div>
                                             </div>
+
+                                            {/* Footer content removed, moved to top right */}
                                         </div>
                                     </div>
                                 ))}
+                                
                                 <button onClick={handleAddStack} className="w-full py-4 border-2 border-dashed rounded-2xl text-slate-400 font-bold hover:text-orange-500 hover:border-orange-500">＋ Nuovo Stack</button>
                             </div>
                         </div>

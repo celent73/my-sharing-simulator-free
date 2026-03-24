@@ -41,9 +41,7 @@ export interface ContractDetails {
 
 export interface ActivityLog {
   date: string;
-  counts: {
-    [key in ActivityType]?: number;
-  };
+  counts: Record<string, number>;
   contractDetails?: ContractDetails; // Breakdown specific for contracts
   leads?: Lead[]; // List of leads captured on this day
 }
@@ -133,6 +131,7 @@ export interface AppSettings {
   acknowledgedDeadlines?: Record<string, string>; // Stage Name -> Date string (when it was shown)
   careerPathDates?: Record<string, string>; // Stage Name -> Reached Date string
   habitStacks?: HabitStack[]; // motivational habit stacking
+  lastWeeklyReportShown?: string; // ISO week identifier (e.g. "2024-W12")
 }
 
 export type NotificationVariant = 'success' | 'info';

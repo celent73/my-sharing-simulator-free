@@ -6,9 +6,10 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 interface HabitStackWidgetProps {
   stacks: HabitStack[];
   customLabels?: Record<ActivityType, string>;
+  currentCounts?: Record<string, number>;
 }
 
-const HabitStackWidget: React.FC<HabitStackWidgetProps> = ({ stacks, customLabels }) => {
+const HabitStackWidget: React.FC<HabitStackWidgetProps> = ({ stacks, customLabels, currentCounts = {} }) => {
   if (!stacks || stacks.length === 0) return null;
 
   return (
@@ -28,40 +29,57 @@ const HabitStackWidget: React.FC<HabitStackWidgetProps> = ({ stacks, customLabel
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {stacks.map((stack) => (
-            <div 
-              key={stack.id} 
-              className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-4 rounded-2xl flex flex-col gap-3 hover:scale-[1.02] transition-all cursor-default"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">TRIGGER</span>
-                <div className="h-px flex-grow bg-slate-100 dark:bg-white/5"></div>
-              </div>
-              
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">
-                Dopo <span className="text-orange-500">"{stack.trigger}"</span>
-              </p>
+          {stacks.map((stack) => {
+            const activityKey = stack.action === 'CUSTOM' ? stack.id : stack.action;
+            const current = currentCounts[activityKey] || 0;
+            const isCompleted = stack.lastCompletedDate === new Date().toISOString().split('T')[0] || (stack.targetCount > 0 && current >= stack.targetCount);
 
-              <div className="flex items-center gap-2 mt-1">
-                <ArrowRight className="w-4 h-4 text-slate-300" />
-                <div 
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl border-2"
-                  style={{ 
-                    borderColor: stack.action === 'CUSTOM' ? '#8b5cf620' : `${ACTIVITY_COLORS[stack.action as ActivityType]}20`,
-                    backgroundColor: stack.action === 'CUSTOM' ? '#8b5cf608' : `${ACTIVITY_COLORS[stack.action as ActivityType]}08`
-                  }}
-                >
-                  <div className="text-xs" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
-                    {stack.action === 'CUSTOM' ? <Sparkles className="w-4 h-4" /> : activityIcons[stack.action as ActivityType]}
+            return (
+              <div 
+                key={stack.id} 
+                className={`bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-4 rounded-2xl flex flex-col gap-3 hover:scale-[1.02] transition-all cursor-default ${isCompleted ? 'opacity-60 grayscale-[0.5]' : ''}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">TRIGGER</span>
+                  <div className="h-px flex-grow bg-slate-100 dark:bg-white/5"></div>
+                  {isCompleted && (
+                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-md">COMPLETATO</span>
+                  )}
+                </div>
+                
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">
+                  Dopo <span className="text-orange-500">"{stack.trigger}"</span>
+                </p>
+
+                <div className="flex items-center gap-2 mt-1">
+                  <ArrowRight className="w-4 h-4 text-slate-300" />
+                  <div 
+                    className="flex-grow flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border-2"
+                    style={{ 
+                      borderColor: stack.action === 'CUSTOM' ? '#8b5cf620' : `${ACTIVITY_COLORS[stack.action as ActivityType]}20`,
+                      backgroundColor: stack.action === 'CUSTOM' ? '#8b5cf608' : `${ACTIVITY_COLORS[stack.action as ActivityType]}08`
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                        {stack.action === 'CUSTOM' ? <Sparkles className="w-4 h-4" /> : activityIcons[stack.action as ActivityType]}
+                      </div>
+                      <span className="text-xs font-black uppercase tracking-wider" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                        {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
+                        {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
+                      </span>
+                    </div>
+
+                    {stack.targetCount > 0 && (
+                       <span className="text-[10px] font-black text-slate-400">
+                         {current}/{stack.targetCount}
+                       </span>
+                    )}
                   </div>
-                  <span className="text-xs font-black uppercase tracking-wider" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
-                    {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
-                    {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
-                  </span>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

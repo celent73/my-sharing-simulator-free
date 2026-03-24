@@ -24,6 +24,8 @@ import GoalCalendar from './GoalCalendar';
 import DreamTrackerWidget from './DreamTrackerWidget';
 import { calculateCareerStatus } from '../utils/careerUtils';
 import HabitStackWidget from './HabitStackWidget';
+import CoachScoreWidget from './CoachScoreWidget';
+import CoachGreeting from './CoachGreeting';
 import { Calculator, Sparkles, ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 
 interface DashboardProps {
@@ -55,6 +57,9 @@ interface DashboardProps {
   nextFollowUp?: Lead | null;
   habitStacks?: HabitStack[];
   enableHabitStacking?: boolean;
+  dailyScore?: number;
+  coachStreak?: number;
+  yesterdayScore?: number;
 }
 
 type DashboardTab = 'overview' | 'stats';
@@ -130,7 +135,10 @@ const Dashboard: React.FC<DashboardProps> = ({
   nextAppointment,
   nextFollowUp,
   habitStacks = [],
-  enableHabitStacking = false
+  enableHabitStacking = false,
+  dailyScore = 0,
+  coachStreak = 0,
+  yesterdayScore = 0
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
@@ -416,7 +424,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Tab Riepilogo */}
       {currentTab === 'overview' && (
-        <div className="animate-fade-in relative z-10 w-full">
+        <div className="animate-fade-in relative z-10 w-full space-y-6">
+          {/* COACH GREETING & SCORE */}
+          <div className="space-y-4">
+            <CoachGreeting 
+                firstName={userProfile.firstName} 
+                yesterdayScore={yesterdayScore} 
+                streak={coachStreak} 
+            />
+            <CoachScoreWidget
+              score={dailyScore}
+              streak={coachStreak}
+              firstName={userProfile.firstName}
+            />
+          </div>
+
           {/* Productivity Calendar */}
           <GoalCalendar
             activityLogs={activityLogs}
@@ -500,6 +522,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <HabitStackWidget 
                     stacks={habitStacks} 
                     customLabels={customLabels} 
+                    currentCounts={totals}
                   />
                 </div>
               )}

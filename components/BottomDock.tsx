@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, Users, Building2, GraduationCap, CalendarCheck, Sparkles, Lock } from 'lucide-react';
+import { User, Users, Building2, GraduationCap, CalendarCheck, Sparkles, Lock, Bell } from 'lucide-react';
 import { ClientModeIcon, FamilyModeIcon, CondoModeIcon } from './icons/ModeIcons';
 import { useLanguage } from '../contexts/LanguageContext';
+import { usePendingHabitStacks } from '../hooks/usePendingHabitStacks';
 
 interface BottomDockProps {
     viewMode: string;
@@ -20,6 +21,7 @@ const BottomDock: React.FC<BottomDockProps> = ({
 }) => {
     const { t } = useLanguage();
     const [isVisible, setIsVisible] = useState(true);
+    const hasPendingStacks = usePendingHabitStacks();
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
@@ -69,7 +71,7 @@ const BottomDock: React.FC<BottomDockProps> = ({
     return (
         <div className={`fixed bottom-4 left-2 right-2 z-[100] flex justify-center md:hidden transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-[200%] opacity-0 pointer-events-none'}`}>
             <div
-                className="flex items-center justify-between w-full max-w-xl md:max-w-2xl px-4 py-4 backdrop-blur-[64px] border border-white/10 shadow-[0_45px_100px_0_rgba(0,0,0,0.8)] rounded-[2.5rem] transition-all duration-300 relative overflow-hidden"
+                className="flex items-center justify-between w-full max-w-xl md:max-w-2xl px-4 py-4 backdrop-blur-[64px] border border-white/10 shadow-[0_45px_100px_0_rgba(0,0,0,0.8)] rounded-[2.5rem] transition-all duration-300 relative overflow-visible"
                 style={{ background: 'var(--footer-bg)' }}
             >
                 <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
@@ -80,7 +82,14 @@ const BottomDock: React.FC<BottomDockProps> = ({
                     onClick={onOpenDailyCheck}
                     className={getButtonClass(false)}
                 >
-                    <div className="group-hover:scale-110 transition-transform flex flex-col items-center">
+                    <div className="group-hover:scale-110 transition-transform flex flex-col items-center relative">
+                        {hasPendingStacks && (
+                            <div className="absolute -top-1.5 -right-1.5 z-20">
+                                <div className="bg-red-500 rounded-full p-1 shadow-lg border border-white/40 animate-pulse">
+                                    <Bell className="w-2.5 h-2.5 text-white fill-white" />
+                                </div>
+                            </div>
+                        )}
                         <CalendarCheck className="w-7 h-7 text-union-green-400 [.theme-union-colors_&]:!text-white" />
                         <span className="text-[7px] font-black uppercase tracking-tighter text-union-green-400 mt-0.5">Daily Chek</span>
                     </div>

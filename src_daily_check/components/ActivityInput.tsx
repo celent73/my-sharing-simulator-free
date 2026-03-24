@@ -64,6 +64,9 @@ interface ActivityInputProps {
     onOpenClients?: () => void;
     habitStacks?: import('../types').HabitStack[];
     enableHabitStacking?: boolean;
+    dailyScore?: number;
+    coachStreak?: number;
+    yesterdayScore?: number;
 }
 
 const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string, glow: string }> = {
@@ -494,7 +497,18 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                         {(() => {
                             if (!enableHabitStacking || !habitStacks || habitStacks.length === 0) return null;
                             const todayStr = getTodayDateString();
-                            const incompleteStacks = habitStacks.filter(s => s.lastCompletedDate !== todayStr);
+                            
+                            // Filter stacks that are NOT marked as done AND (if traceable) NOT yet reached target count
+                            const incompleteStacks = habitStacks.filter(s => {
+                                const isMarkedDone = s.lastCompletedDate === todayStr;
+                                if (isMarkedDone) return false;
+                                
+                                const activityKey = s.action === 'CUSTOM' ? s.id : s.action;
+                                const current = todayCounts[activityKey] || 0;
+                                if (s.targetCount > 0 && current >= s.targetCount) return false;
+                                
+                                return true;
+                            });
                             
                             if (incompleteStacks.length === 0) return null;
 
@@ -515,17 +529,22 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Suggerimento Habit Stacking</span>
                                         </div>
                                         <div className="flex flex-wrap justify-center gap-4 relative z-10">
-                                            {incompleteStacks.slice(0, 2).map((stack, idx) => (
-                                                <div key={stack.id} className="text-center">
-                                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                                        Dopo <span className="text-orange-600 dark:text-orange-400">"{stack.trigger}"</span> → 
-                                                        <span className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
-                                                            {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
-                                                            {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
-                                                        </span>
-                                                    </p>
-                                                </div>
-                                            ))}
+                                            {incompleteStacks.slice(0, 2).map((stack) => {
+                                                const activityKey = stack.action === 'CUSTOM' ? stack.id : stack.action;
+                                                const current = todayCounts[activityKey] || 0;
+                                                return (
+                                                    <div key={stack.id} className="text-center">
+                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                            Dopo <span className="text-orange-600 dark:text-orange-400">"{stack.trigger}"</span> → 
+                                                            <span className="ml-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                                                                <span className="opacity-60">{current}/</span>
+                                                                {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
+                                                                {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                         <p className="text-[9px] font-bold text-slate-400 group-hover:text-orange-500 uppercase tracking-widest italic mt-1 transition-colors relative z-10">
                                             {incompleteStacks.length > 2 ? `e altri ${incompleteStacks.length - 2} stack da fare... Clicca per gestire` : 'Clicca per gestire i tuoi stack'}
