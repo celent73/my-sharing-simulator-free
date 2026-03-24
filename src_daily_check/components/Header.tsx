@@ -140,22 +140,21 @@ const Header: React.FC<HeaderProps> = ({
     }, []);
 
     return (
-        <header className={`flex flex-col gap-4 mb-4 mx-1 sm:mx-4 mt-4 rounded-[2.5rem] p-4 sm:p-6 border border-white/10 shadow-2xl transition-all duration-500 relative z-50 bg-[#1c1c1e] ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
-            <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
+        <header className={`flex flex-col gap-3 mb-4 mx-1 sm:mx-4 mt-4 rounded-[2.5rem] p-4 sm:p-6 border border-white/10 shadow-2xl transition-all duration-500 relative z-50 bg-[#1c1c1e] ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
+            <div className="w-full flex flex-col items-center gap-4 relative z-10">
 
-                {/* Top Row on Mobile: Badge and Close Button */}
-                <div className="w-full sm:w-auto flex items-center justify-between gap-4">
-                    <div className="flex-shrink-0">
-                        <div className="flex items-center gap-1 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-full text-[13px] font-black tracking-widest uppercase border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                {/* Top Row: Centered DAILY CHEK and Absolute Right Close Button */}
+                <div className="w-full flex items-center justify-center relative min-h-[44px]">
+                    <div className="flex-shrink-0 mx-auto">
+                        <div className="flex items-center gap-1 bg-green-500/5 text-green-500 px-6 py-2 rounded-2xl text-base sm:text-lg font-black tracking-[0.15em] uppercase border-2 border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.15)] bg-clip-border">
                             DAILY CHEK
                         </div>
                     </div>
 
-                    {/* Show Close Icon here on Mobile */}
                     {onCloseApp && (
                         <button
                             onClick={onCloseApp}
-                            className="sm:hidden flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all border border-red-500/20"
+                            className="absolute right-0 flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all border border-red-500/20"
                             aria-label="Chiudi App"
                         >
                             <CloseIcon />
@@ -163,9 +162,9 @@ const Header: React.FC<HeaderProps> = ({
                     )}
                 </div>
 
-                {/* Middle Section: Functional Icons */}
-                <div className="flex-grow flex items-center justify-center py-1">
-                    <div className="flex items-center justify-center gap-2 sm:gap-2.5">
+                {/* Bottom Row: Functional Icons Centered */}
+                <div className="w-full flex items-center justify-center py-1">
+                    <div className="flex items-center justify-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar">
                         <InstallButton />
                         
                         {onSync && (
@@ -201,17 +200,6 @@ const Header: React.FC<HeaderProps> = ({
                         )}
                     </div>
                 </div>
-
-                {/* Fixed Close App Button for Desktop */}
-                {onCloseApp && (
-                    <button
-                        onClick={onCloseApp}
-                        className="hidden sm:flex flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all border border-red-500/20"
-                        aria-label="Chiudi App"
-                    >
-                        <CloseIcon />
-                    </button>
-                )}
             </div>
         </header>
     );
