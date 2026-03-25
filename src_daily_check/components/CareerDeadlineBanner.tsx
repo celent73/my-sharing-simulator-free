@@ -81,26 +81,27 @@ const CareerDeadlineBanner: React.FC<CareerDeadlineBannerProps> = ({ careerStatu
                 
                 <div
                     onClick={onOpenCareerPath}
-                    className={`relative flex items-center gap-6 ${colors.bg} backdrop-blur-2xl border ${colors.border} rounded-2xl px-6 py-8 w-full ${onOpenCareerPath ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                    className={`relative flex items-center gap-4 sm:gap-6 ${colors.bg} backdrop-blur-2xl border ${colors.border} rounded-2xl p-4 sm:p-6 md:p-8 w-full ${onOpenCareerPath ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
                 >
-                    {/* Dot animato */}
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-white/5`}>
-                        <div className={`w-4 h-4 rounded-full ${colors.dot} ${colors.dotGlow} animate-pulse`} />
+                    {/* Dot animato - Smaller on small screens */}
+                    <div className={`flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-white/5`}>
+                        <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${colors.dot} ${colors.dotGlow} animate-pulse`} />
                     </div>
                     
                     {/* Testo */}
                     <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-baseline mb-1">
-                            <p className={`text-[14px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none`}>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2 sm:mb-1 gap-1">
+                            <p className={`text-[11px] sm:text-[14px] font-black ${colors.label} uppercase tracking-[0.2em] leading-none`}>
                                 🏆 SCADENZA CARRIERA
                             </p>
                             {careerStatus && (
-                                <p className="text-[11px] font-bold text-white/50 uppercase">
-                                    {careerStatus.totalClients} / {careerStatus.clientsForNextLevel > 0 && careerStatus.clientsForNextLevel < 9000 ? careerStatus.clientsForNextLevel : 11}
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white/50 uppercase flex items-center gap-1.5">
+                                    <span className="opacity-50 tracking-tighter">Ottenuti:</span>
+                                    <span className="text-white">{careerStatus.totalClients} / {careerStatus.clientsForNextLevel > 0 && careerStatus.clientsForNextLevel < 9000 ? careerStatus.clientsForNextLevel : 11}</span>
                                 </p>
                             )}
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-white leading-snug truncate">
+                        <p className="text-[13px] sm:text-base md:text-lg font-bold text-white leading-snug">
                             {message}
                         </p>
                     </div>
