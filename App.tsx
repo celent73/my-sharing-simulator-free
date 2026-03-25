@@ -137,12 +137,14 @@ const AppContent = () => {
     }
 
     // Check broadcast modal (give it a bit of delay so it doesn't clash with other startups)
+    /* 
     const hasSeenBroadcast = localStorage.getItem('hasSeenBroadcastModal');
     if (!hasSeenBroadcast) {
       setTimeout(() => {
         openModal('BROADCAST');
       }, 2000); // 2 seconds delay
     }
+    */
 
     // Set a flag if the URL contains a password recovery hash, because Supabase
     // might clear the hash before the Daily Check modal is completely mounted.
