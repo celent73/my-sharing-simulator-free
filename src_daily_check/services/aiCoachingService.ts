@@ -1,8 +1,14 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { ActivityType, Goals } from "../types";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
+
+// Use Groq as primary if available, fallback to Gemini
+const groq = GROQ_KEY ? new Groq({
+  apiKey: GROQ_KEY,
+  dangerouslyAllowBrowser: true
+}) : null;
 
 export interface CoachingContext {
   score: number;
@@ -13,17 +19,15 @@ export interface CoachingContext {
 }
 
 export const generateCoachTip = async (context: CoachingContext): Promise<string | null> => {
-  if (!genAI) return null;
-
-  // 1. Check Cache (Cost Saving)
+  // 1. Check Cache
   const today = new Date().toISOString().split('T')[0];
   const cacheKey = `coach_tip_${context.userName}_${today}_${context.score}_${JSON.stringify(context.counts)}`;
   const cached = localStorage.getItem(cacheKey);
   if (cached) return cached;
 
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+  if (!groq) return null;
 
+  try {
     const prompt = `
       Sei un Coach esperto in network marketing e vendita. Il tuo compito è dare un consiglio BREVE (max 15 parole) e MOTIVANTE basato sui dati odierni dell'utente.
 
@@ -44,15 +48,20 @@ export const generateCoachTip = async (context: CoachingContext): Promise<string
       ESEMPIO: "Ottimi contatti! Ora trasforma quel calore in 2 appuntamenti fissi. Vai!"
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const tip = response.text().trim();
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 100,
+    });
+
+    const tip = completion.choices[0]?.message?.content?.trim() || null;
     
-    // 2. Save to Cache
-    localStorage.setItem(cacheKey, tip);
+    if (tip) {
+      localStorage.setItem(cacheKey, tip);
+    }
     return tip;
   } catch (error) {
-    console.error("Error generating coach tip:", error);
+    console.error("Error generating coach tip with Groq:", error);
     return null;
   }
 };
@@ -65,16 +74,14 @@ export interface WeeklyContext {
 }
 
 export const generateWeeklyReport = async (context: WeeklyContext): Promise<string | null> => {
-  if (!genAI) return null;
-
   // 1. Check Cache
   const cacheKey = `weekly_report_${context.weekId}`;
   const cached = localStorage.getItem(cacheKey);
   if (cached) return cached;
 
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+  if (!groq) return null;
 
+  try {
     const prompt = `
       Sei un Sales Director esperto. Analizza le performance settimanali di questo consulente e scrivi un REPORT STRATEGICO.
       
@@ -93,16 +100,21 @@ export const generateWeeklyReport = async (context: WeeklyContext): Promise<stri
       LINGUA: Italiano. Sii autorevole, energico e orientato ai risultati.
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const reportText = response.text().trim();
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 500,
+    });
+
+    const reportText = completion.choices[0]?.message?.content?.trim() || null;
     
-    // 2. Save to Cache
-    localStorage.setItem(cacheKey, reportText);
+    if (reportText) {
+      localStorage.setItem(cacheKey, reportText);
+    }
     
     return reportText;
   } catch (error) {
-    console.error("Error generating weekly report:", error);
+    console.error("Error generating weekly report with Groq:", error);
     return null;
   }
 };

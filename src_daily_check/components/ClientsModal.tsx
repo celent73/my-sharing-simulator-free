@@ -50,7 +50,7 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
     }, [clients, searchQuery, filterType]);
 
     const handleDelete = async (id: string) => {
-        if (window.confirm("Sei sicuro di voler eliminare questo cliente?")) {
+        if (window.confirm("Sei sicuro di voler eliminare questo cliente privilegiato?")) {
             try {
                 await deleteClient(user?.id || null, id);
                 setClients(prev => prev.filter(c => c.id !== id));
@@ -91,7 +91,7 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-1">Database Personale</span>
                                 <h2 className="text-5xl font-black text-white tracking-tighter leading-none">
-                                    Clienti
+                                    Clienti Privilegiati
                                 </h2>
                             </div>
                             <button
@@ -170,7 +170,7 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
                                 <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
                                     <Users className="w-10 h-10 text-white/20" />
                                 </div>
-                                <h3 className="text-white font-black text-xl mb-1 uppercase tracking-tight">Nessun cliente trovato</h3>
+                                <h3 className="text-white font-black text-xl mb-1 uppercase tracking-tight">Nessun cliente privilegiato trovato</h3>
                                 <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
                                     {searchQuery ? 'Prova a cambiare i criteri di ricerca' : 'I tuoi "Vinti" appariranno qui automaticamente'}
                                 </p>

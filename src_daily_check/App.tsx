@@ -58,6 +58,7 @@ import { requestNotificationPermission, sendLocalNotification } from './utils/no
 import { calculateDailyScore, calculateCoachStreak } from './utils/coachScoreUtils';
 import WeeklyReportModal from './components/WeeklyReportModal';
 import FollowUpRankingWidget from './components/FollowUpRankingWidget';
+import ResultsDashboard from './components/ResultsDashboard';
 const APP_VERSION = "v1.3.27";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
@@ -160,6 +161,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   const [lastReminderShownDate, setLastReminderShownDate] = useState<string | null>(null);
   const [lastWeeklyReminderShownWeek, setLastWeeklyReminderShownWeek] = useState<string | null>(null);
   const [lastMorningReminderShownDate, setLastMorningReminderShownDate] = useState<string | null>(null);
+  const notifiedTasksRef = useRef<Set<string>>(new Set());
 
   const addNotification = useCallback((message: string, type: NotificationVariant) => {
     setNotifications(prev => [...prev, { id: Date.now(), message, type }]);
@@ -315,10 +317,12 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   const [isContractSelectorModalOpen, setIsContractSelectorModalOpen] = useState(false);
   const [isLeadCaptureModalOpen, setIsLeadCaptureModalOpen] = useState(false);
   const [leadCaptureType, setLeadCaptureType] = useState<ActivityType>(ActivityType.CONTACTS);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [captureForceStatus, setCaptureForceStatus] = useState<'pending' | 'won' | 'lost' | undefined>(undefined);
+  const [captureForceWonType, setCaptureForceForceWonType] = useState<'partner' | 'cliente' | undefined>(undefined);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [isVoiceModeOpen, setIsVoiceModeOpen] = useState(false);
   const [isResetGoalsModalOpen, setResetGoalsModalOpen] = useState(false);
-  const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [remainingTrialDays] = useState<number | null>(null);
   const [activeReminderStack, setActiveReminderStack] = useState<import('./types').HabitStack | null>(null);
   const [isWeeklyReportOpen, setIsWeeklyReportOpen] = useState(false);
@@ -489,6 +493,81 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     return () => clearInterval(interval);
   }, [settings.enableHabitStacking, settings.habitStacks, activeReminderStack]);
 
+  // Follow-up & Appointment Notifications
+  useEffect(() => {
+    if (isInitializing) return;
+
+    const checkTasksAndNotify = () => {
+      const todayStr = getTodayDateString();
+      const now = new Date();
+      
+      // Load/Initialize notified IDs for today from localStorage to persist across refreshes
+      const storageKey = `notified-tasks-${todayStr}`;
+      const savedNotified = localStorage.getItem(storageKey);
+      if (savedNotified && notifiedTasksRef.current.size === 0) {
+        const ids = JSON.parse(savedNotified);
+        ids.forEach((id: string) => notifiedTasksRef.current.add(id));
+      }
+
+      const newNotifiedIds: string[] = [];
+
+      // 1. Check Leads for Follow-ups and Appointments
+      activityLogs.forEach(log => {
+        if (!log.leads) return;
+        
+        log.leads.forEach(lead => {
+          if (lead.status === 'won' || lead.status === 'lost') return;
+
+          // Check Follow-up
+          if (lead.followUpDate === todayStr && !notifiedTasksRef.current.has(`${lead.id}-followup`)) {
+            sendLocalNotification(
+              `Follow-up: ${lead.name}`,
+              `Hai un follow-up programmato per oggi con ${lead.name}. Non fartelo scappare! 📞`
+            );
+            notifiedTasksRef.current.add(`${lead.id}-followup`);
+            newNotifiedIds.push(`${lead.id}-followup`);
+          }
+
+          // Check Appointment
+          if (lead.appointmentDate) {
+             const appDate = lead.appointmentDate.split('T')[0];
+             if (appDate === todayStr && !notifiedTasksRef.current.has(`${lead.id}-appointment`)) {
+                sendLocalNotification(
+                  `Appuntamento: ${lead.name}`,
+                  `Oggi hai un appuntamento con ${lead.name}. Preparati al meglio! 🤝`
+                );
+                notifiedTasksRef.current.add(`${lead.id}-appointment`);
+                newNotifiedIds.push(`${lead.id}-appointment`);
+             }
+          }
+        });
+      });
+
+      // 2. Check "Next Appointment" in Settings (Global Smart Planning)
+      if (settings.nextAppointment) {
+        const nextAppDate = settings.nextAppointment.date.split('T')[0];
+        const nextAppId = `next-app-${settings.nextAppointment.title}-${nextAppDate}`;
+        if (nextAppDate === todayStr && !notifiedTasksRef.current.has(nextAppId)) {
+          sendLocalNotification(
+            `Promemoria Appuntamento`,
+            `Oggi: ${settings.nextAppointment.title}. Sii puntuale e focalizzato! 🎯`
+          );
+          notifiedTasksRef.current.add(nextAppId);
+          newNotifiedIds.push(nextAppId);
+        }
+      }
+
+      if (newNotifiedIds.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(Array.from(notifiedTasksRef.current)));
+      }
+    };
+
+    const intervalTask = setInterval(checkTasksAndNotify, 1000 * 60 * 15); // Check every 15 mins
+    checkTasksAndNotify(); // Initial check
+
+    return () => clearInterval(intervalTask);
+  }, [activityLogs, settings.nextAppointment, isInitializing]);
+
   const handleHabitComplete = (stackId: string, count: number) => {
     const stack = settings.habitStacks?.find(s => s.id === stackId);
     if (!stack) return;
@@ -559,9 +638,11 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     setSettingsModalOpen(true);
   };
 
-  const handleOpenLeadCapture = (type: ActivityType, lead?: Lead) => {
+  const handleOpenLeadCapture = (type: ActivityType, lead?: Lead, forceStatus?: 'pending' | 'won' | 'lost', forceWonType?: 'partner' | 'cliente') => {
     setLeadCaptureType(type);
     setEditingLead(lead || null);
+    setCaptureForceStatus(forceStatus);
+    setCaptureForceForceWonType(forceWonType);
     setIsLeadCaptureModalOpen(true);
   };
 
@@ -580,6 +661,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     contractType?: ContractType;
     linkedAppointment?: boolean;
     followUpDate?: string;
+    videoSent?: boolean;
+    videoType?: string;
   }) => {
     let updatedLog: ActivityLog | null = null;
     let updatedAllLogs: ActivityLog[] | null = null;
@@ -624,20 +707,35 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
               // Se sta diventando 'won' proprio ora, non incrementare qui, verrà gestito dal blocco 'won' successivo
               const isNewlyWon = leadData.status === 'won' && oldLead.status !== 'won';
-
               if (newType !== oldType && leadData.status !== 'lost' && !isNewlyWon) {
+                console.log(`[handleSaveLead] TYPE TRANSFORMATION DETECTED: ${oldType} -> ${newType} for date: ${dateStr}`);
+                
+                // Safety copy for mutation-free update
+                const currentCounts = { ...(todayLog.counts || {}) };
+                const newVal = (currentCounts[newType as ActivityType] || 0) + 1;
+                const oldVal = Math.max(0, (currentCounts[oldType as ActivityType] || 0) - 1);
+                
                 todayLog.counts = {
-                  ...todayLog.counts,
-                  [newType]: (todayLog.counts[newType] || 0) + 1
+                  ...currentCounts,
+                  [newType]: newVal,
+                  [oldType]: oldVal
                 };
+                
+                console.log(`[handleSaveLead] Counter Update Applied to ${dateStr}: ${newType}[${newVal}], ${oldType}[${oldVal}]`);
                 todayLogModified = true;
                 addNotification(`Contatto trasformato in ${newType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'}!`, 'info');
-              } else if (oldType === ActivityType.CONTACTS && leadData.linkedAppointment && !oldLead.linkedAppointment && leadData.status !== 'lost') {
+              }
+              
+              // --- GESTIONE VIDEO INVIATO (v1.3.28) ---
+              const isNewlyVideoSent = leadData.videoSent && !oldLead.videoSent;
+              if (isNewlyVideoSent) {
+                console.log(`[handleSaveLead] VIDEO SENT DETECTED. Incrementing for ${dateStr}`);
                 todayLog.counts = {
                   ...todayLog.counts,
-                  [ActivityType.APPOINTMENTS]: (todayLog.counts[ActivityType.APPOINTMENTS] || 0) + 1
+                  [ActivityType.VIDEOS_SENT]: (todayLog.counts[ActivityType.VIDEOS_SENT] || 0) + 1
                 };
                 todayLogModified = true;
+                addNotification(`Video inviato registrato! 🎥`, 'success');
               }
               // -----------------------------------------------------
 
@@ -646,43 +744,44 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
               const updatedLead = { 
                 ...oldLead, 
                 ...dataToSave as any,
-                id: effectiveId, // force retain correct ID
                 date: oldLead.date, // force retain original creation date
-                // Assicuriamoci che se è 'lost', mantenga il tipo originale per non sballare i tracciamenti futuri
-                type: (leadData.status === 'lost') ? oldType : (leadData.type || oldType)
+                id: effectiveId,
+                type: newType,
+                updatedAt: new Date().toISOString()
               };
 
-              console.log("[handleSaveLead] EDIT MODE: updatedLead ->", updatedLead);
+              // Update original log leads array
+              log.leads[leadIndex] = updatedLead;
+              newLogs[i] = { ...log, leads: [...log.leads] };
 
-              updatedLeads[leadIndex] = updatedLead;
-              newLogs[i] = { ...log, leads: updatedLeads };
-              
-              // Se lo stato cambia in 'won' ora (era pending o lost prima)
-              if (leadData.status === 'won' && oldLead.status !== 'won') {
-                const targetActivity = leadData.type || ActivityType.NEW_CONTRACTS;
-                const cType = leadData.contractType || (targetActivity === ActivityType.NEW_FAMILY_UTILITY ? ContractType.GREEN : ContractType.LIGHT);
+              // --- won logic moved slightly down to ensure it uses updatedLead ---
+              if (isNewlyWon) {
+                console.log(`[handleSaveLead] STATUS CHANGED TO WON. Converting lead ${effectiveId} to client/partner.`);
+                todayLogModified = true; // Win counts toward TODAY
+                const isFamilyUtility = newType === ActivityType.NEW_FAMILY_UTILITY;
                 
-                // AUTO-CREATE CLIENT (NEW persistency)
-                createClientFromLead(userId, updatedLead as Lead, targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'partner' : 'cliente')
-                  .catch(e => console.error("Error creating persistent client:", e));
-
+                // Increment specific counts for today
                 todayLog.counts = {
-                    ...todayLog.counts,
-                    [targetActivity]: (todayLog.counts[targetActivity] || 0) + 1,
-                    ...(cType === ContractType.GREEN && targetActivity !== ActivityType.NEW_FAMILY_UTILITY ? {
-                      [ActivityType.NEW_FAMILY_UTILITY]: (todayLog.counts[ActivityType.NEW_FAMILY_UTILITY] || 0) + 1
-                    } : {}),
-                    ...(targetActivity === ActivityType.NEW_FAMILY_UTILITY ? {
-                      [ActivityType.NEW_CONTRACTS]: (todayLog.counts[ActivityType.NEW_CONTRACTS] || 0) + 1
-                    } : {})
+                  ...todayLog.counts,
+                  [newType]: (todayLog.counts[newType] || 0) + 1
                 };
-                todayLog.contractDetails = {
-                    ...(todayLog.contractDetails || {}),
-                    [cType]: ((todayLog.contractDetails && todayLog.contractDetails[cType]) || 0) + 1
-                };
-                todayLogModified = true;
                 
-                addNotification(`Grande! ${leadData.name} è ora un ${targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'Family Utility' : 'Cliente'}! 🚀`, 'success');
+                const cType = leadData.contractType || (isFamilyUtility ? ContractType.GREEN : ContractType.LIGHT);
+                if (!todayLog.contractDetails) todayLog.contractDetails = {};
+                todayLog.contractDetails[cType] = (todayLog.contractDetails[cType] || 0) + 1;
+
+                // Extra logic for Green/Family Utility sync
+                if (cType === ContractType.GREEN && !isFamilyUtility) {
+                   todayLog.counts[ActivityType.NEW_FAMILY_UTILITY] = (todayLog.counts[ActivityType.NEW_FAMILY_UTILITY] || 0) + 1;
+                }
+                if (isFamilyUtility) {
+                   todayLog.counts[ActivityType.NEW_CONTRACTS] = (todayLog.counts[ActivityType.NEW_CONTRACTS] || 0) + 1;
+                }
+
+                createClientFromLead(userId, updatedLead, isFamilyUtility ? 'partner' : 'cliente')
+                  .catch(e => console.error("Error creating persistent client:", e));
+                
+                addNotification(`Grande! ${leadData.name} è ora un ${isFamilyUtility ? 'Family Utility' : 'Cliente Privilegiato'}! 🚀`, 'success');
               }
 
               // Salva i contatori aggiornati nel log di oggi
@@ -767,11 +866,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
           createClientFromLead(userId, newLead as Lead, targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'partner' : 'cliente')
             .catch(e => console.error("Error creating persistent client:", e));
         } else {
-          // FIX: Use the actual lead type (CONTACTS or APPOINTMENTS) for incrementing counts
           dateLog.counts[newLeadType] = (dateLog.counts[newLeadType] || 0) + 1;
 
           if (newLeadType === ActivityType.CONTACTS && (leadData as any).linkedAppointment) {
             dateLog.counts[ActivityType.APPOINTMENTS] = (dateLog.counts[ActivityType.APPOINTMENTS] || 0) + 1;
+          }
+
+          // Solo se non abbiamo già incrementato VIDEOS_SENT (perché era il tipo principale del lead)
+          if (leadData.videoSent && newLeadType !== ActivityType.VIDEOS_SENT) {
+            dateLog.counts[ActivityType.VIDEOS_SENT] = (dateLog.counts[ActivityType.VIDEOS_SENT] || 0) + 1;
           }
         }
 
@@ -845,21 +948,39 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   };
 
   const handleClearAllData = async () => {
-    await clearLogs(userId);
-    setActivityLogs([]);
-    
-    // Also clear goals and achievements for a truly clean slate
-    setSettings(prev => ({ 
-      ...prev, 
-      goals: { daily: {}, weekly: {}, monthly: {} } 
-    }));
-    setUnlockedAchievements({});
-    
-    setDeleteDataModalOpen(false);
-    addNotification('Tutto lo storico e gli obiettivi sono stati cancellati.', 'success');
-    
-    // Notify hooks to refresh
-    window.dispatchEvent(new CustomEvent('daily-check-updated'));
+    try {
+      // 1. Clear database logs and local storage logs
+      await clearLogs(userId);
+      setActivityLogs([]);
+      
+      // 2. Prepare reset settings
+      const resetSettings = { 
+        ...settings, 
+        goals: { daily: {}, weekly: {}, monthly: {} },
+        nextAppointment: undefined,
+        visionBoard: DEFAULT_SETTINGS.visionBoard,
+        habitStacks: [],
+        careerPathDates: {},
+        acknowledgedDeadlines: {}
+      };
+      
+      // 3. Clear cloud settings and local storage settings ATOMICALLY
+      setSettings(resetSettings);
+      await saveSettings(userId, resetSettings);
+
+      // 4. Clear achievements
+      setUnlockedAchievements({});
+      await saveUnlockedAchievements(userId, {});
+      
+      setDeleteDataModalOpen(false);
+      addNotification('Tutto lo storico e gli obiettivi sono stati cancellati.', 'success');
+      
+      // Notify hooks to refresh
+      window.dispatchEvent(new CustomEvent('daily-check-updated'));
+    } catch (err) {
+      console.error("Error clearing all data:", err);
+      addNotification("Errore durante la cancellazione totale.", "info");
+    }
   };
 
   const handleDeleteCurrentMonth = async () => {
@@ -868,20 +989,23 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     const endDateStr = end.toISOString().split('T')[0];
 
     try {
-      if (userId) {
-        await deleteLogsInRange(userId, startDateStr, endDateStr);
+      // 1. Clear database and local storage via unified service
+      await deleteLogsInRange(userId, startDateStr, endDateStr);
+
+      // 2. Update local state
+      const newLogs = activityLogs.filter(log => log.date < startDateStr || log.date > endDateStr);
+      setActivityLogs(newLogs);
+
+      // 3. Handle persistent appointment reminder
+      if (settings.nextAppointment) {
+          const apptDate = new Date(settings.nextAppointment.date).toISOString().split('T')[0];
+          if (apptDate >= startDateStr && apptDate <= endDateStr) {
+              const updatedSettings = { ...settings, nextAppointment: undefined };
+              setSettings(updatedSettings);
+              // Atomic sync to cloud
+              await saveSettings(userId, updatedSettings);
+          }
       }
-
-      setActivityLogs(prevLogs => {
-        const newLogs = prevLogs.filter(log => {
-          // Compare using date strings to avoid timezone/time issues
-          return log.date < startDateStr || log.date > endDateStr;
-        });
-
-        // Update local storage as well
-        localStorage.setItem('daily-check-app-logs', JSON.stringify(newLogs));
-        return newLogs;
-      });
 
       setDeleteDataModalOpen(false);
       addNotification('Dati mese eliminati.', 'success');
@@ -1029,7 +1153,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   useEffect(() => {
     if (!isInitializing && !authLoading) {
       saveLogs(userId, activityLogs).catch(err => console.error(err));
-      window.dispatchEvent(new Event('daily-check-updated'));
+      // Removed redundant event dispatch to prevent potential re-render loops with parent
     }
   }, [activityLogs, isInitializing, authLoading, userId]);
 
@@ -1162,14 +1286,16 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
       setActivityLogs([]);
       await clearLogs(userId);
       
-      // 3. Reset Manual Qualification
+      // 3. Reset Manual Qualification and Smart Planning summary
       setSettings(prev => ({
         ...prev,
         userProfile: {
           ...prev.userProfile,
           currentQualification: null
         },
-        careerPathDates: {} // Re-ensure it's clear
+        careerPathDates: {}, // Re-ensure it's clear
+        nextAppointment: undefined,
+        acknowledgedDeadlines: {}
       }));
       
       addNotification("Tutti i traguardi e la cronologia attività sono stati azzerati! 🔄", "success");
@@ -1391,23 +1517,23 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                   <div className="flex justify-center mb-2 p-1.5 rounded-2xl mx-auto w-full max-w-md border-2 border-slate-200 dark:border-white/10 shadow-2xl relative z-30 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl">
                     <button
                       onClick={() => setActiveTab('inserimento')}
-                      className={`flex-1 py-3 text-sm sm:text-base font-black rounded-xl transition-all duration-300 ${activeTab === 'inserimento' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
+                      className={`flex-1 py-4 text-base sm:text-lg font-black rounded-xl transition-all duration-300 ${activeTab === 'inserimento' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
                     >
                       Inserimento
                     </button>
                     <button
                       onClick={() => setActiveTab('risultati')}
-                      className={`flex-1 py-3 text-sm sm:text-base font-black rounded-xl transition-all duration-300 ${activeTab === 'risultati' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
+                      className={`flex-1 py-4 text-base sm:text-lg font-black rounded-xl transition-all duration-300 ${activeTab === 'risultati' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
                     >
                       Risultati
                     </button>
                   </div>
                 )}
                 <div className="relative z-10 flex flex-col items-start mb-2">
-                  <h2 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">
+                  <h2 className="text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">
                     {activeView === 'today' ? 'DASHBOARD' : 'STATISTICHE'}
                   </h2>
-                  <p className="text-base sm:text-lg font-medium text-slate-500 dark:text-slate-400">
+                  <p className="text-lg sm:text-xl font-medium text-slate-500 dark:text-slate-400">
                     Analisi per{' '}
                     {(settings.userProfile.firstName || settings.userProfile.lastName) && (
                       <span className="font-black text-slate-900 dark:text-white">
@@ -1416,7 +1542,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                     )}
                   </p>
                   <div 
-                    className="text-[11px] font-bold uppercase tracking-[0.2em] mt-1 flex items-center gap-2 opacity-90 transition-colors duration-500"
+                    className="text-[13px] font-bold uppercase tracking-[0.2em] mt-1 flex items-center gap-2 opacity-90 transition-colors duration-500"
                     style={{ color: careerStatus.currentLevel.color || 'var(--accent-main)' }}
                   >
                     <div 
@@ -1456,10 +1582,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               onOpenObjectionHandler={() => setIsScriptLibraryOpen(true)} onOpenSocialShare={() => setIsSocialShareModalOpen(true)}
                               selectedDate={selectedInputDate} onDateChange={setSelectedInputDate} commercialMonthStartDay={settings.commercialMonthStartDay}
                               customLabels={effectiveCustomLabels} dailyEarnings={dailyEarnings} monthlyEarnings={monthlyEarnings}
-                              onOpenContractModal={() => setIsContractSelectorModalOpen(true)} onOpenAppointmentModal={() => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
+                              onOpenContractModal={() => handleOpenLeadCapture(ActivityType.NEW_CONTRACTS, undefined, 'won', 'cliente')} onOpenAppointmentModal={() => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
                               onOpenSettings={handleOpenSettings} onUpdateTarget={handleUpdateTarget} onOpenVisionBoardSettings={() => setIsVisionBoardModalOpen(true)}
                               onOpenLeadCapture={handleOpenLeadCapture} onOpenCalendar={() => setIsCalendarModalOpen(true)}
-                              onEditLead={(lead) => handleOpenLeadCapture(lead.type, lead)}
+                              onEditLead={(lead) => handleOpenLeadCapture(lead.type || ActivityType.CONTACTS, lead)}
                               onOpenVoiceMode={() => setIsVoiceModeOpen(true)} onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
                               onOpenTeamChallenge={() => setIsTeamModalOpen(true)} isHubMode={true}
                               careerStatus={careerStatus}
@@ -1482,40 +1608,29 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                             transition={{ duration: 0.2 }}
                             className="flex flex-col gap-6 w-full"
                           >
-                            <FollowUpRankingWidget 
-                              activityLogs={activityLogs} 
-                              onEditLead={(type, lead) => handleOpenLeadCapture(type, lead)} 
-                            />
-
-                            <GoalRecoveryWidget 
-                              commercialMonth={commercialMonth}
-                              recoveryStats={recoveryStats}
-                              loading={statsLoading}
-                              onActivateFocus={(goal, target) => {
-                                setRecoveryFocusGoal(goal);
-                                setRecoveryFocusTarget(target);
-                                setActiveView('focus');
-                              }}
-                            />
-
-                            <Dashboard
+                            <ResultsDashboard 
                               activityLogs={activityLogs}
                               goals={effectiveGoals}
                               userProfile={settings.userProfile}
-                              onOpenAchievements={() => setAchievementsModalOpen(true)}
-                              onEditLead={handleOpenLeadCapture}
+                              careerStatus={careerStatus}
                               commercialMonthStartDay={settings.commercialMonthStartDay || 16}
                               customLabels={effectiveCustomLabels}
-                              onUpdateQualification={handleUpdateQualification}
-                              onUpdateActivity={handleUpdateActivity}
-                              onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
-                              initialTab="overview"
-                              viewMode={viewMode} setViewMode={setViewMode}
-                              selectedDate={selectedInputDate}
-                              onDateChange={setSelectedInputDate}
-                              careerDates={settings.careerPathDates || {}}
-                              visionBoardData={settings.visionBoard}
                               dailyEarnings={dailyEarnings}
+                              dailyScore={dailyScore}
+                              coachStreak={coachStreak}
+                              yesterdayScore={yesterdayScore}
+                              nextAppointment={settings.nextAppointment}
+                              nextFollowUp={nextFollowUp}
+                              habitStacks={settings.habitStacks}
+                              enableHabitStacking={settings.enableHabitStacking}
+                              visionBoardData={settings.visionBoard}
+                              commercialMonth={commercialMonth}
+                              recoveryStats={recoveryStats}
+                              statsLoading={statsLoading}
+                              selectedDate={selectedInputDate}
+                              viewMode={viewMode}
+                              onDateChange={setSelectedInputDate}
+                              setViewMode={setViewMode}
                               onOpenVisionBoardSettings={() => setIsVisionBoardModalOpen(true)}
                               onUpdateVisionBoardEarnings={(amount) => {
                                 setSettings(prev => ({
@@ -1530,15 +1645,18 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               onOpenObjectionHandler={() => setIsScriptLibraryOpen(true)}
                               onOpenCalendar={() => setIsCalendarModalOpen(true)}
                               onOpenTargetCalculator={() => setIsTargetCalculatorModalOpen(true)}
-                              nextAppointment={settings.nextAppointment}
-                              nextFollowUp={nextFollowUp}
-                              habitStacks={settings.habitStacks}
-                              enableHabitStacking={settings.enableHabitStacking}
-                              yesterdayScore={yesterdayScore}
-                              dailyScore={dailyScore}
-                              coachStreak={coachStreak}
+                              onUpdateActivity={handleUpdateActivity}
                               onOpenLeadCapture={handleOpenLeadCapture}
+                              onEditLead={(type, lead) => handleOpenLeadCapture(type, lead)}
                               onOpenAppointmentModal={(type) => handleOpenLeadCapture(ActivityType.APPOINTMENTS)}
+                              onActivateFocus={(goal, target) => {
+                                setRecoveryFocusGoal(goal);
+                                setRecoveryFocusTarget(target);
+                                setActiveView('focus');
+                              }}
+                              onOpenContractModal={() => setIsContractSelectorModalOpen(true)}
+                              onOpenAchievements={() => setAchievementsModalOpen(true)}
+                              onUpdateQualification={handleUpdateQualification}
                             />
                           </motion.div>
                         )}
@@ -1803,7 +1921,20 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
       <ScriptLibrary isOpen={isScriptLibraryOpen} onClose={() => setIsScriptLibraryOpen(false)} />
       <VoiceSpeedMode isOpen={isVoiceModeOpen} onClose={() => setIsVoiceModeOpen(false)} onUpdateActivity={(activity, count) => handleUpdateActivity(activity, count)} />
       <SocialShareModal isOpen={isSocialShareModalOpen} onClose={() => setIsSocialShareModalOpen(false)} todayCounts={selectedDateLog?.counts || {}} userProfile={settings.userProfile} customLabels={effectiveCustomLabels} />
-      <LeadCaptureModal isOpen={isLeadCaptureModalOpen} onClose={() => { setIsLeadCaptureModalOpen(false); setEditingLead(null); }} activityType={leadCaptureType} onSave={handleSaveLead} initialData={editingLead} />
+      <LeadCaptureModal 
+        isOpen={isLeadCaptureModalOpen} 
+        onClose={() => { 
+          setIsLeadCaptureModalOpen(false); 
+          setEditingLead(null); 
+          setCaptureForceStatus(undefined);
+          setCaptureForceForceWonType(undefined);
+        }} 
+        activityType={leadCaptureType} 
+        onSave={handleSaveLead} 
+        initialData={editingLead} 
+        forceStatus={captureForceStatus}
+        forceWonType={captureForceWonType}
+      />
       <CalendarModal isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)} selectedDate={selectedInputDate} onSelectDate={setSelectedInputDate} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />
       <GoalReminderModal

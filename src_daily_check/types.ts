@@ -61,6 +61,9 @@ export interface Lead {
   followUpDate?: string;
   temperature?: 'freddo' | 'tiepido' | 'caldo';
   linkedAppointment?: boolean;
+  videoSent?: boolean;
+  videoType?: string;
+  contractType?: ContractType;
 }
 
 export interface Client {

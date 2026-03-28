@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import WeeklyAIReportModal from './WeeklyAIReportModal';
+
 import { format } from 'date-fns';
 
 // Importazioni base
@@ -60,10 +60,12 @@ interface DashboardProps {
   habitStacks?: HabitStack[];
   enableHabitStacking?: boolean;
   dailyScore?: number;
-  onOpenLeadCapture?: (type: ActivityType) => void;
+  onOpenLeadCapture?: (type: ActivityType, lead?: Lead, forceStatus?: 'pending' | 'won' | 'lost', forceWonType?: 'partner' | 'cliente') => void;
   onOpenAppointmentModal?: (type: 'choice' | 'manual') => void;
   coachStreak?: number;
   yesterdayScore?: number;
+  hideOverview?: boolean;
+  hideStats?: boolean;
 }
 
 type DashboardTab = 'overview' | 'stats';
@@ -144,14 +146,16 @@ const Dashboard: React.FC<DashboardProps> = ({
   coachStreak = 0,
   yesterdayScore = 0,
   onOpenLeadCapture,
-  onOpenAppointmentModal
+  onOpenAppointmentModal,
+  hideOverview = false,
+  hideStats = false
 }) => {
   if (!activityLogs || !Array.isArray(activityLogs)) {
     return <div className="p-6">Caricamento dati...</div>;
   }
 
   const [currentTab, setCurrentTab] = useState<DashboardTab>(initialTab);
-  const [isWeeklyReportOpen, setIsWeeklyReportOpen] = useState(false);
+
 
   // STATO PER LA DATA SELEZIONATA (usata dal DateNavigator) - Fallback se non passata come prop
   const [internalSelectedDate, setInternalSelectedDate] = useState(new Date());
@@ -388,28 +392,30 @@ const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className={`bg-transparent ${compactView ? 'p-2 sm:p-4' : 'p-3 sm:pb-2 sm:pt-10 sm:px-0'} relative overflow-hidden font-sans`}>
       {/* Calcolo status carriera per l'header */}
-      <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-2xl p-2.5 pl-5 rounded-[1.5rem] border border-white/40 dark:border-white/10 shadow-2xl shadow-black/[0.03]">
-        <div className="flex flex-col items-end">
-          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">LIVELLO</span>
-          <span
-            className="text-xs font-black uppercase tracking-tight"
-            style={{ color: careerStatus.currentLevel.color || 'inherit' }}
+      {!compactView && (
+        <div className="hidden sm:flex fixed top-10 right-10 z-[100] items-center gap-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-2xl p-2.5 pl-5 rounded-[1.5rem] border border-white/40 dark:border-white/10 shadow-2xl shadow-black/[0.03]">
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">LIVELLO</span>
+            <span
+              className="text-xs font-black uppercase tracking-tight"
+              style={{ color: careerStatus.currentLevel.color || 'inherit' }}
+            >
+              {careerStatus.currentLevel.name}
+            </span>
+          </div>
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-xl"
+            style={{
+              backgroundColor: careerStatus.currentLevel.color || '#3b82f6',
+              boxShadow: `0 8px 16px ${careerStatus.currentLevel.color || '#3b82f6'}30`
+            }}
           >
-            {careerStatus.currentLevel.name}
-          </span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
         </div>
-        <div
-          className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-xl"
-          style={{
-            backgroundColor: careerStatus.currentLevel.color || '#3b82f6',
-            boxShadow: `0 8px 16px ${careerStatus.currentLevel.color || '#3b82f6'}30`
-          }}
-        >
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-          </svg>
-        </div>
-      </div>
+      )}
 
       {/* Header e Selezione Vista - RIMOSSO SELETTORE QUALIFICA RIDONDANTE */}
       {currentTab !== 'stats' && (
@@ -430,8 +436,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
 
       {/* Tab Riepilogo */}
-      {currentTab === 'overview' && (
-        <div className="animate-fade-in relative z-10 w-full space-y-6">
+      {currentTab === 'overview' && !hideOverview && (
+        <div className={`${compactView ? '' : 'animate-fade-in'} relative z-10 w-full space-y-6`}>
           {/* COACH GREETING & SCORE */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -440,13 +446,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   yesterdayScore={yesterdayScore} 
                   streak={coachStreak} 
               />
-              <button 
-                onClick={() => setIsWeeklyReportOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 group font-black uppercase tracking-widest text-[10px]"
-              >
-                <Sparkles size={14} className="group-hover:animate-pulse" />
-                Report Strategico
-              </button>
+
             </div>
             <CoachScoreWidget
               score={dailyScore}
@@ -641,8 +641,8 @@ const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* Tab Statistiche */}
-      {currentTab === 'stats' && (
-        <div className="animate-fade-in relative z-10 w-full px-6 sm:px-12 lg:px-16 flex flex-col items-center">
+      {currentTab === 'stats' && !hideStats && (
+        <div className={`${compactView ? '' : 'animate-fade-in relative z-10 w-full px-6 sm:px-12 lg:px-16'} flex flex-col items-center`}>
           <div className="w-full">
             <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3 px-6">
               <span className="w-1.5 h-8 bg-blue-500 rounded-full"></span>
@@ -671,13 +671,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       )}
       {/* Smart Follow-up Ranking can also be rendered here or in the overview as done above */}
 
-      <WeeklyAIReportModal
-        isOpen={isWeeklyReportOpen}
-        onClose={() => setIsWeeklyReportOpen(false)}
-        logs={activityLogs || []}
-        goals={goals}
-        userName={userProfile.firstName}
-      />
+
     </div>
   );
 };

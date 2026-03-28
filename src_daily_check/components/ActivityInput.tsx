@@ -23,7 +23,8 @@ import {
     Calculator,
     ListChecks,
     Users,
-    Target
+    Target,
+    ArrowRight
 } from 'lucide-react';
 
 import { CareerStatusInfo } from '../utils/careerUtils';
@@ -48,7 +49,7 @@ interface ActivityInputProps {
     nextAppointment?: NextAppointment;
     onOpenSettings?: (tab: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking') => void;
     onOpenVisionBoardSettings?: () => void;
-    onOpenLeadCapture?: (type: ActivityType) => void;
+    onOpenLeadCapture?: (type: ActivityType, lead?: Lead, forceStatus?: 'pending' | 'won' | 'lost', forceWonType?: 'partner' | 'cliente') => void;
     onOpenCalendar?: () => void;
     onOpenVoiceMode?: () => void;
     onOpenTargetCalculator?: () => void;
@@ -69,41 +70,46 @@ interface ActivityInputProps {
     yesterdayScore?: number;
 }
 
-const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string, glow: string }> = {
+const CARD_STYLES: Record<ActivityType, { gradient: string, shadow: string, iconBg: string, border: string, glow: string, solid: string }> = {
     [ActivityType.CONTACTS]: {
-        gradient: 'from-[#007AFF] to-[#00C6FF]',
-        shadow: 'shadow-[0_8px_30px_rgba(0,122,255,0.15)]',
-        iconBg: 'bg-gradient-to-br from-[#007AFF] to-[#00C6FF]',
-        border: 'border-[#007AFF]/20',
-        glow: 'rgba(0, 122, 255, 0.4)'
+        gradient: 'from-[#007AFF] to-[#0051FF]',
+        shadow: 'shadow-[0_15px_35px_rgba(0,122,255,0.35)]',
+        iconBg: 'bg-[#007AFF]',
+        border: 'border-[#007AFF]/40',
+        glow: 'rgba(0, 122, 255, 0.6)',
+        solid: '#007AFF'
     },
     [ActivityType.VIDEOS_SENT]: {
-        gradient: 'from-[#AF52DE] to-[#FF2D55]',
-        shadow: 'shadow-[0_8px_30px_rgba(175,82,222,0.15)]',
-        iconBg: 'bg-gradient-to-br from-[#AF52DE] to-[#FF2D55]',
-        border: 'border-[#AF52DE]/20',
-        glow: 'rgba(175, 82, 222, 0.4)'
+        gradient: 'from-[#8000ff] to-[#6700cc]',
+        shadow: 'shadow-[0_15px_35px_rgba(128,0,255,0.35)]',
+        iconBg: 'bg-[#8000ff]',
+        border: 'border-[#8000ff]/40',
+        glow: 'rgba(128, 0, 255, 0.6)',
+        solid: '#8000ff'
     },
     [ActivityType.APPOINTMENTS]: {
-        gradient: 'from-[#34C759] to-[#30B0C7]',
-        shadow: 'shadow-[0_8px_30px_rgba(52,199,89,0.15)]',
-        iconBg: 'bg-gradient-to-br from-[#34C759] to-[#30B0C7]',
-        border: 'border-[#34C759]/20',
-        glow: 'rgba(52, 199, 89, 0.4)'
+        gradient: 'from-[#00b21a] to-[#008f15]',
+        shadow: 'shadow-[0_15px_35px_rgba(0,178,26,0.35)]',
+        iconBg: 'bg-[#00b21a]',
+        border: 'border-[#00b21a]/40',
+        glow: 'rgba(0, 178, 26, 0.6)',
+        solid: '#00b21a'
     },
     [ActivityType.NEW_CONTRACTS]: {
         gradient: 'from-[#FF9500] to-[#FF3B30]',
-        shadow: 'shadow-[0_8px_30px_rgba(255,149,0,0.15)]',
-        iconBg: 'bg-gradient-to-br from-[#FF9500] to-[#FF3B30]',
-        border: 'border-[#FF9500]/20',
-        glow: 'rgba(255, 149, 0, 0.4)'
+        shadow: 'shadow-[0_15px_35px_rgba(255,149,0,0.35)]',
+        iconBg: 'bg-[#FF9500]',
+        border: 'border-[#FF9500]/40',
+        glow: 'rgba(255, 149, 0, 0.6)',
+        solid: '#FF9500'
     },
     [ActivityType.NEW_FAMILY_UTILITY]: {
-        gradient: 'from-[#5856D6] to-[#007AFF]',
-        shadow: 'shadow-[0_8px_30px_rgba(88,86,214,0.15)]',
-        iconBg: 'bg-gradient-to-br from-[#5856D6] to-[#007AFF]',
-        border: 'border-[#5856D6]/20',
-        glow: 'rgba(88, 86, 214, 0.4)'
+        gradient: 'from-[#800020] to-[#5D0000]',
+        shadow: 'shadow-[0_15px_35px_rgba(128,0,32,0.35)]',
+        iconBg: 'bg-[#800020]',
+        border: 'border-[#800020]/40',
+        glow: 'rgba(128, 0, 32, 0.6)',
+        solid: '#800020'
     },
 };
 
@@ -250,8 +256,12 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
     const [targetDates, setTargetDates] = useState<Record<string, string>>({});
     const [isAppointmentsOverviewOpen, setIsAppointmentsOverviewOpen] = useState(false);
     const [isContactsOverviewOpen, setIsContactsOverviewOpen] = useState(false);
+    const [isContractsOverviewOpen, setIsContractsOverviewOpen] = useState(false);
+    const [isFamilyUtilityOverviewOpen, setIsFamilyUtilityOverviewOpen] = useState(false);
     const [appointmentsFilterDate, setAppointmentsFilterDate] = useState<Date | null>(null);
     const [contactsFilterDate, setContactsFilterDate] = useState<Date | null>(null);
+    const [contractsFilterDate, setContractsFilterDate] = useState<Date | null>(null);
+    const [familyUtilityFilterDate, setFamilyUtilityFilterDate] = useState<Date | null>(null);
 
     const [pulsingActivity, setPulsingActivity] = useState<ActivityType | null>(null);
     const prevTotalsRef = useRef(getPeriodTotals);
@@ -314,8 +324,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
     const handlePlusClick = (e: React.MouseEvent, activity: ActivityType) => {
         e.stopPropagation();
-        if (activity === ActivityType.NEW_CONTRACTS && onOpenContractModal) {
-            onOpenContractModal();
+        if (activity === ActivityType.NEW_CONTRACTS && onOpenLeadCapture) {
+            onOpenLeadCapture(ActivityType.NEW_CONTRACTS, undefined, 'won', 'cliente');
+        } else if (activity === ActivityType.NEW_FAMILY_UTILITY && onOpenLeadCapture) {
+            onOpenLeadCapture(ActivityType.NEW_FAMILY_UTILITY, undefined, 'won', 'partner');
         } else if (activity === ActivityType.APPOINTMENTS && onOpenAppointmentModal) {
             onOpenAppointmentModal('choice');
         } else if (activity === ActivityType.CONTACTS && onOpenLeadCapture) {
@@ -536,53 +548,70 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                             if (incompleteStacks.length === 0) return null;
 
                             return (
-                                <div className="w-full max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-2 duration-700">
+                                <div className="w-full max-w-2xl mx-auto mb-10 animate-in fade-in slide-in-from-top-4 duration-1000">
                                     <div 
-                                        className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 border-2 border-orange-500/20 rounded-[2rem] p-4 flex flex-col items-center gap-3 relative overflow-hidden group cursor-pointer hover:from-orange-500/20 hover:to-amber-500/20 transition-all shadow-sm hover:shadow-orange-500/10"
+                                        className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-2 border-amber-500/20 rounded-[2.5rem] p-5 flex flex-col items-center gap-4 relative overflow-hidden group cursor-pointer hover:border-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500"
                                         onClick={() => onOpenSettings?.('stacking')}
-                                        title="Modifica le tue abitudini"
+                                        title="Gestisci i tuoi stack"
                                     >
-                                        <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
-                                            <Sparkles className="w-8 h-8 text-orange-500 group-hover:scale-110 transition-transform" />
+                                        {/* Premium background decorations */}
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
+                                            <Sparkles className="w-10 h-10 text-amber-500 group-hover:scale-110 transition-transform" />
                                         </div>
-                                        <div className="flex items-center gap-2 relative z-10">
-                                            <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center text-white">
-                                                <Star className="w-3.5 h-3.5 fill-current" />
+                                        <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-all"></div>
+
+                                        {/* Header Badge */}
+                                        <div className="flex items-center gap-2.5 relative z-10">
+                                            <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+                                                <Star className="w-4 h-4 fill-current animate-pulse" />
                                             </div>
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Suggerimento Habit Stacking</span>
+                                            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-600 dark:text-amber-400">Suggerimento Habit Stacking</span>
                                         </div>
-                                        <div className="flex flex-wrap justify-center gap-4 relative z-10">
-                                            {incompleteStacks.slice(0, 2).map((stack) => {
+
+                                        {/* Incomplete stacks display */}
+                                        <div className="flex flex-col items-center gap-3 relative z-10 w-full px-4">
+                                            {incompleteStacks.slice(0, 1).map((stack) => {
                                                 const activityKey = stack.action === 'CUSTOM' ? stack.id : stack.action;
                                                 const current = todayCounts[activityKey] || 0;
                                                 return (
-                                                    <div key={stack.id} className="text-center">
-                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                                            Dopo <span className="text-orange-600 dark:text-orange-400">"{stack.trigger}"</span> → 
-                                                            <span 
-                                                                className="ml-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/40 dark:bg-white/10 border border-orange-500/10 text-xs uppercase font-black tracking-tight cursor-pointer hover:bg-white/60 dark:hover:bg-white/20 active:scale-95 transition-all" 
-                                                                style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    if (stack.action === ActivityType.CONTACTS || stack.action === ActivityType.APPOINTMENTS) {
-                                                                        onOpenLeadCapture?.(stack.action as ActivityType);
-                                                                    } else if (stack.action !== 'CUSTOM') {
-                                                                        onUpdateActivity(stack.action as ActivityType, 1, todayStr);
-                                                                    }
-                                                                }}
-                                                                title="Clicca per inserire"
-                                                            >
-                                                                <span className="opacity-60">{current}/</span>
-                                                                {stack.targetCount > 0 ? `${stack.targetCount} ` : ''}
+                                                    <div key={stack.id} className="w-full flex flex-col items-center">
+                                                        <div className="flex items-center gap-3 mb-1">
+                                                            <p className="text-base font-black text-slate-800 dark:text-white">
+                                                                Dopo <span className="text-orange-500">"{stack.trigger}"</span>
+                                                            </p>
+                                                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                                                        </div>
+
+                                                        <div 
+                                                            className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/60 dark:bg-slate-800/60 border-2 border-white/50 dark:border-white/5 shadow-md hover:scale-105 transition-transform"
+                                                            style={{ borderColor: stack.action === 'CUSTOM' ? '#8b5cf630' : `${ACTIVITY_COLORS[stack.action as ActivityType]}30` }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (stack.action === ActivityType.CONTACTS || stack.action === ActivityType.APPOINTMENTS) {
+                                                                    onOpenLeadCapture?.(stack.action as ActivityType);
+                                                                } else if (stack.action !== 'CUSTOM') {
+                                                                    onUpdateActivity(stack.action as ActivityType, 1, todayStr);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                                                                {stack.action === 'CUSTOM' ? <Sparkles size={16} /> : activityIcons[stack.action as ActivityType]}
+                                                            </div>
+                                                            <span className="text-sm font-black uppercase tracking-tighter" style={{ color: stack.action === 'CUSTOM' ? '#8b5cf6' : ACTIVITY_COLORS[stack.action as ActivityType] }}>
+                                                                {stack.targetCount > 0 ? `${current}/${stack.targetCount} ` : ''}
                                                                 {stack.action === 'CUSTOM' ? (stack.customActionName || 'Azione') : (customLabels?.[stack.action as ActivityType] || ACTIVITY_LABELS[stack.action as ActivityType])}
                                                             </span>
-                                                        </p>
+                                                        </div>
                                                     </div>
                                                 );
                                             })}
                                         </div>
-                                        <p className="text-[9px] font-bold text-slate-400 group-hover:text-orange-500 uppercase tracking-widest italic mt-1 transition-colors relative z-10">
-                                            {incompleteStacks.length > 2 ? `e altri ${incompleteStacks.length - 2} stack da fare... Clicca per gestire` : 'Clicca per gestire i tuoi stack'}
+
+                                        {/* Footer action hint */}
+                                        <p className="text-[10px] font-bold text-slate-400 group-hover:text-amber-500 uppercase tracking-widest italic transition-colors relative z-10 flex items-center gap-2">
+                                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                            {incompleteStacks.length > 1 ? `e altri ${incompleteStacks.length - 1} stack pronti... tocca per gestire` : 'Clicca per gestire i tuoi stack'}
+                                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                                         </p>
                                     </div>
                                 </div>
@@ -600,17 +629,26 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                 const isGolden = goldenActivity === activity;
 
                                 return (
-                                    <motion.div 
-                                        key={activity} 
-                                        whileHover={{ y: -5 }}
-                                        className={`group relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border-2 ${isGolden ? 'border-amber-400 dark:border-amber-500 shadow-[0_0_30px_rgba(251,191,36,0.15)] scale-[1.02]' : 'border-black/10 dark:border-white/20'} ${isHubMode ? 'rounded-[2.5rem] p-6 lg:p-10' : 'rounded-[2.5rem] p-6 lg:p-8'} shadow-2xl shadow-black/[0.03] transition-all duration-500 overflow-hidden`}
-                                    >
-                                        {/* Golden Activity Badge */}
-                                        {isGolden && (
-                                            <div className="absolute top-4 left-4 z-20 flex items-center gap-1 bg-amber-400 text-white px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-amber-400/20 animate-pulse">
-                                                <Target className="w-3 h-3" /> Focus
-                                            </div>
-                                        )}
+                                     <motion.div 
+                                         key={activity} 
+                                         whileHover={{ y: -8, scale: isGolden ? 1.04 : 1.02 }}
+                                         animate={isGolden ? { 
+                                            y: [0, -4, 0],
+                                            transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                                         } : {}}
+                                         className={`group relative bg-white dark:bg-slate-900 border-[3px] ${isGolden ? 'border-amber-400 dark:border-amber-500 shadow-[0_20px_50px_rgba(251,191,36,0.25)]' : 'border-slate-200 dark:border-white/20'} ${isHubMode ? 'rounded-[3rem] p-6 lg:p-10' : 'rounded-[3rem] p-6 lg:p-8'} shadow-2xl shadow-black/[0.04] transition-all duration-500 overflow-hidden`}
+                                     >
+                                         {/* Golden Activity Badge & Banner */}
+                                         {isGolden && (
+                                             <>
+                                                 <div className="absolute top-4 left-4 z-20 flex items-center gap-1 bg-amber-400 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-400/30 animate-pulse border border-white/20">
+                                                     <Sparkles className="w-3.5 h-3.5" /> Golden Focus
+                                                 </div>
+                                                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                     <Target className="w-32 h-32 text-amber-500 -rotate-12" />
+                                                 </div>
+                                             </>
+                                         )}
                                         {/* Background Glow */}
                                         <div className={`absolute -top-24 -right-24 w-60 h-60 blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
                                         <div className={`absolute -bottom-24 -left-24 w-40 h-40 blur-[80px] opacity-10 group-hover:opacity-15 transition-opacity bg-gradient-to-br ${styles.gradient}`} />
@@ -629,18 +667,23 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
 
                                         <div className="flex flex-col h-full justify-between gap-8 relative z-10">
                                             <div className="flex justify-between items-start">
-                                                <div className={`h-14 w-14 rounded-[1.25rem] ${styles.iconBg} flex items-center justify-center text-white shadow-xl shadow-current/20 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
-                                                    <div className="scale-110">
+                                                <div className={`h-16 w-16 rounded-full ${styles.iconBg} flex items-center justify-center text-white border-[4px] border-white shadow-[0_10px_25px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
+                                                    <div className="scale-125">
                                                         {activityIcons[activity]}
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    {(activity === ActivityType.APPOINTMENTS || activity === ActivityType.CONTACTS) && (
+                                                    {(activity === ActivityType.APPOINTMENTS || 
+                                                      activity === ActivityType.CONTACTS || 
+                                                      activity === ActivityType.NEW_CONTRACTS || 
+                                                      activity === ActivityType.NEW_FAMILY_UTILITY) && (
                                                         <button
                                                             onClick={(e) => { 
                                                                 e.stopPropagation(); 
                                                                 if (activity === ActivityType.APPOINTMENTS) setIsAppointmentsOverviewOpen(true);
-                                                                else setIsContactsOverviewOpen(true);
+                                                                else if (activity === ActivityType.CONTACTS) setIsContactsOverviewOpen(true);
+                                                                else if (activity === ActivityType.NEW_CONTRACTS) setIsContractsOverviewOpen(true);
+                                                                else if (activity === ActivityType.NEW_FAMILY_UTILITY) setIsFamilyUtilityOverviewOpen(true);
                                                             }}
                                                             className="w-12 h-12 rounded-2xl flex items-center justify-center text-[#8e8e93] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.01] dark:border-white/[0.01] shadow-lg hover:bg-blue-500 hover:text-white transition-all active:scale-90"
                                                             title="Vedi lista"
@@ -659,7 +702,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                     )}
                                                     <button
                                                         onClick={(e) => handlePlusClick(e, activity)}
-                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} shadow-xl shadow-current/20 transition-all active:scale-90 group-hover:scale-110`}
+                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white bg-gradient-to-br ${styles.gradient} border-[3px] border-white shadow-[0_8px_20px_rgba(0,0,0,0.1)] transition-all active:scale-90 group-hover:scale-110`}
                                                     >
                                                         <Plus className="w-7 h-7" strokeWidth={4} />
                                                     </button>
@@ -689,37 +732,47 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                 onClick={(e) => handlePlusClick(e as any, activity)}
                                                 title={`Aggiungi ${label}`}
                                             >
-                                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{label}</h3>
+                                                <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{label}</h3>
                                                 <div className="flex items-baseline gap-2">
-                                                    <motion.span 
-                                                        key={`${activity}-${getPeriodTotals[activity]}`}
-                                                        className={`font-black bg-gradient-to-br ${styles.gradient} text-transparent bg-clip-text ${isHubMode ? 'text-6xl' : 'text-5xl'}`}
-                                                    >
-                                                        {getPeriodTotals[activity]}
-                                                    </motion.span>
-                                                </div>
-                                                
-                                                {/* Goal Progress Text */}
-                                                {(() => {
-                                                    const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
-                                                                    viewMode === 'weekly' ? goals.weekly[activity] : 
-                                                                    goals.monthly[activity];
-                                                    
-                                                    if (!goalValue || goalValue === 0) return null;
-                                                    
-                                                    const current = getPeriodTotals[activity];
-                                                    const remaining = Math.max(0, goalValue - current);
-                                                    
-                                                    return (
-                                                        <div className="mt-3 flex items-center gap-1.5">
-                                                            <Target className={`w-3.5 h-3.5 ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
-                                                            <span className={`text-[10px] font-black uppercase tracking-wider ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                                                {remaining === 0 ? 'Target Raggiunto!' : `Mancano ${remaining}`}
-                                                            </span>
-                                                        </div>
-                                                    );
-                                                })()}
-                                            </div>
+                                                     <motion.span 
+                                                         key={`${activity}-${getPeriodTotals[activity]}`}
+                                                         className={`font-black ${isHubMode ? 'text-7xl' : 'text-6xl'} tracking-tighter`}
+                                                         style={{ color: styles.solid }}
+                                                     >
+                                                         {getPeriodTotals[activity]}
+                                                     </motion.span>
+                                                 </div>
+                                                 
+                                                 {/* Goal Progress Text & Focus Banner */}
+                                                 {(() => {
+                                                     const goalValue = viewMode === 'daily' ? goals.daily[activity] : 
+                                                                     viewMode === 'weekly' ? goals.weekly[activity] : 
+                                                                     goals.monthly[activity];
+                                                     
+                                                     if (!goalValue || goalValue === 0) return null;
+                                                     
+                                                     const current = getPeriodTotals[activity];
+                                                     const remaining = Math.max(0, goalValue - current);
+                                                     
+                                                     return (
+                                                         <div className="mt-3 flex flex-col gap-2">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Target className={`w-3.5 h-3.5 ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
+                                                                <span className={`text-[12px] font-black uppercase tracking-wider ${remaining === 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                                    {remaining === 0 ? 'Target Raggiunto!' : `Mancano ${remaining}`}
+                                                                </span>
+                                                            </div>
+                                                            {isGolden && remaining > 0 && (
+                                                                <div className="px-3 py-1 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-xl">
+                                                                    <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 italic">
+                                                                        Attività suggerita per recuperare il tuo obiettivo! 🚀
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                         </div>
+                                                     );
+                                                 })()}
+                                             </div>
 
                                             <div className="flex items-center gap-4">
                                                 <button
@@ -794,6 +847,40 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 }}
                 activityLogs={activityLogs}
                 filterDate={appointmentsFilterDate}
+            />
+
+            <LeadsOverviewModal
+                isOpen={isContractsOverviewOpen}
+                onClose={() => {
+                    setIsContractsOverviewOpen(false);
+                    setContractsFilterDate(null);
+                }}
+                onEdit={(lead) => {
+                    setIsContractsOverviewOpen(false);
+                    setContractsFilterDate(null);
+                    if (onEditLead) onEditLead(lead);
+                }}
+                activityLogs={activityLogs}
+                activityType={ActivityType.NEW_CONTRACTS}
+                filterDate={contractsFilterDate}
+                customLabel={customLabels?.[ActivityType.NEW_CONTRACTS] || ACTIVITY_LABELS[ActivityType.NEW_CONTRACTS]}
+            />
+
+            <LeadsOverviewModal
+                isOpen={isFamilyUtilityOverviewOpen}
+                onClose={() => {
+                    setIsFamilyUtilityOverviewOpen(false);
+                    setFamilyUtilityFilterDate(null);
+                }}
+                onEdit={(lead) => {
+                    setIsFamilyUtilityOverviewOpen(false);
+                    setFamilyUtilityFilterDate(null);
+                    if (onEditLead) onEditLead(lead);
+                }}
+                activityLogs={activityLogs}
+                activityType={ActivityType.NEW_FAMILY_UTILITY}
+                filterDate={familyUtilityFilterDate}
+                customLabel={customLabels?.[ActivityType.NEW_FAMILY_UTILITY] || ACTIVITY_LABELS[ActivityType.NEW_FAMILY_UTILITY]}
             />
         </div>
     );

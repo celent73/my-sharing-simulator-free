@@ -164,7 +164,7 @@ const LeadsOverviewModal: React.FC<LeadsOverviewModalProps> = ({
                                                             <h4 className="text-xl font-bold text-white truncate tracking-tight">
                                                                 {capitalize(lead.name || 'Senza Nome')}
                                                             </h4>
-                                                            {lead.temperature && (
+                                                            {lead.temperature && activityType === ActivityType.CONTACTS && (
                                                                 <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tighter backdrop-blur-md border ${
                                                                     lead.temperature === 'caldo' ? 'bg-orange-500/20 text-orange-400 border-orange-500/40' :
                                                                     lead.temperature === 'tiepido' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
@@ -175,7 +175,7 @@ const LeadsOverviewModal: React.FC<LeadsOverviewModalProps> = ({
                                                             )}
                                                             {lead.status === 'won' && (
                                                                 <div className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 backdrop-blur-md">
-                                                                    Cliente ✨
+                                                                    {lead.type === ActivityType.NEW_FAMILY_UTILITY ? 'Family Utility ✨' : 'Cliente Privilegiato ✨'}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -188,7 +188,7 @@ const LeadsOverviewModal: React.FC<LeadsOverviewModalProps> = ({
                                                                 {lead.phone}
                                                             </div>
                                                         )}
-                                                        {lead.type && (
+                                                        {lead.type && activityType === ActivityType.CONTACTS && (
                                                             <div className="flex items-center gap-1.5 text-white/50 text-[10px] font-black uppercase tracking-widest">
                                                                 <span className="opacity-50 text-white">•</span>
                                                                 <span>{ACTIVITY_LABELS[lead.type]}</span>

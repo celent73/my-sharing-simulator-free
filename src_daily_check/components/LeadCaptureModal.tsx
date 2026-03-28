@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ActivityType, Lead, ContractType } from '../types';
+import { 
+    Clock, 
+    CheckCircle2, 
+    X, 
+    UserPlus, 
+    Sparkles, 
+    User, 
+    Phone, 
+    StickyNote, 
+    Activity, 
+    Target as TargetIcon, 
+    Calendar, 
+    Video, 
+    Bolt, 
+    Leaf 
+} from 'lucide-react';
 
 interface LeadCaptureModalProps {
     isOpen: boolean;
@@ -20,9 +36,14 @@ interface LeadCaptureModalProps {
         type?: ActivityType;
         contractType?: ContractType;
         linkedAppointment?: boolean;
+        videoSent?: boolean;
+        videoType?: string;
     }) => void;
     activityType: ActivityType;
+    initialType?: ActivityType;
     initialData?: Lead | null;
+    forceStatus?: 'pending' | 'won' | 'lost';
+    forceWonType?: 'partner' | 'cliente';
 }
 
 const ONLINE_PLATFORMS = [
@@ -68,22 +89,71 @@ const ONLINE_PLATFORMS = [
     }
 ];
 
-const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, onSave, activityType, initialData }) => {
-    const isAppointment = activityType === ActivityType.APPOINTMENTS;
+const ACTIVITY_STYLES = {
+    [ActivityType.CONTACTS]: {
+        gradient: 'from-[#007AFF] to-[#0051FF]',
+        shadow: 'shadow-[0_15px_35px_rgba(0,122,255,0.35)]',
+        iconBg: 'bg-[#007AFF]',
+        border: 'border-[#007AFF]/40',
+        glow: 'rgba(0, 122, 255, 0.6)'
+    },
+    [ActivityType.VIDEOS_SENT]: {
+        gradient: 'from-[#8000ff] to-[#6700cc]',
+        shadow: 'shadow-[0_15px_35px_rgba(128,0,255,0.35)]',
+        iconBg: 'bg-[#8000ff]',
+        border: 'border-[#8000ff]/40',
+        glow: 'rgba(128, 0, 255, 0.6)'
+    },
+    [ActivityType.APPOINTMENTS]: {
+        gradient: 'from-[#00b21a] to-[#008f15]',
+        shadow: 'shadow-[0_15px_35px_rgba(0,178,26,0.35)]',
+        iconBg: 'bg-[#00b21a]',
+        border: 'border-[#00b21a]/40',
+        glow: 'rgba(0, 178, 26, 0.6)'
+    },
+    [ActivityType.NEW_CONTRACTS]: {
+        gradient: 'from-[#FF9500] to-[#FF3B30]',
+        shadow: 'shadow-[0_15px_35px_rgba(255,149,0,0.35)]',
+        iconBg: 'bg-[#FF9500]',
+        border: 'border-[#FF9500]/40',
+        glow: 'rgba(255, 149, 0, 0.6)'
+    },
+    [ActivityType.NEW_FAMILY_UTILITY]: {
+        gradient: 'from-[#00c3eb] to-[#008fcc]',
+        shadow: 'shadow-[0_15px_35px_rgba(0,195,235,0.35)]',
+        iconBg: 'bg-[#00c3eb]',
+        border: 'border-[#00c3eb]/40',
+        glow: 'rgba(0, 195, 235, 0.6)'
+    },
+};
 
-    const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [note, setNote] = useState('');
+const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, onSave, activityType, initialType, initialData, forceStatus, forceWonType }) => {
+    const isAppointment = activityType === ActivityType.APPOINTMENTS;
+    const isContract = activityType === ActivityType.NEW_CONTRACTS || activityType === ActivityType.NEW_FAMILY_UTILITY;
+    const isVideoSent = activityType === ActivityType.VIDEOS_SENT;
+    
+    // Status management: use forceStatus if provided, otherwise default or lead status
+    const initialStatus = forceStatus || initialData?.status || 'pending';
+    const [status, setStatus] = useState<'pending' | 'won' | 'lost'>(initialStatus);
+    const [name, setName] = useState(initialData?.name || '');
+    const [phone, setPhone] = useState(initialData?.phone || '');
+    const [note, setNote] = useState(initialData?.note || '');
     const [followUpDate, setFollowUpDate] = useState('');
     const [temperature, setTemperature] = useState<'freddo' | 'tiepido' | 'caldo' | undefined>(undefined);
+
+    const [wonType, setWonType] = useState<'partner' | 'cliente'>(forceWonType || (initialData?.type === ActivityType.NEW_FAMILY_UTILITY ? 'partner' : 'cliente'));
+    const [selectedContractType, setSelectedContractType] = useState<ContractType>(initialData?.contractType || ContractType.LIGHT);
 
     const [appointmentDate, setAppointmentDate] = useState('');
     const [locationType, setLocationType] = useState<'physical' | 'online'>('online');
     const [address, setAddress] = useState('');
     const [platform, setPlatform] = useState('zoom');
     const [isLinkedAppointment, setIsLinkedAppointment] = useState(false);
+    
+    // Video Sent state
+    const [videoSent, setVideoSent] = useState(false);
+    const [videoType, setVideoType] = useState('');
 
-    const [wonType, setWonType] = useState<'contract' | 'partner'>('contract');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const capitalize = (str: string) => str ? str.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()).join(' ') : "";
@@ -92,7 +162,6 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
         if (isOpen) {
             // Reset state first to avoid residues
             setIsLinkedAppointment(false);
-            setWonType('contract');
             
             if (initialData) {
                 setName(initialData.name || '');
@@ -109,6 +178,10 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                 if (initialData.type === ActivityType.APPOINTMENTS || initialData.appointmentDate) {
                     setIsLinkedAppointment(true);
                 }
+                setVideoSent(!!initialData.videoSent);
+                setVideoType(initialData.videoType || '');
+                setSelectedContractType(initialData.contractType || ContractType.LIGHT);
+                if (initialData.type === ActivityType.NEW_FAMILY_UTILITY) setWonType('partner');
             } else {
                 setName(''); setPhone(''); setNote(''); setFollowUpDate('');
                 setAppointmentDate('');
@@ -116,29 +189,35 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                 setAddress('');
                 setPlatform('zoom');
                 setTemperature(undefined);
+                setVideoSent(false);
+                setVideoType('');
+                setSelectedContractType(ContractType.LIGHT);
+                setWonType('cliente');
             }
             setIsSubmitting(false);
+            setStatus(forceStatus || initialData?.status || 'pending');
+            setWonType(forceWonType || (initialData?.type === ActivityType.NEW_FAMILY_UTILITY ? 'partner' : 'cliente'));
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, forceStatus, forceWonType]);
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent, forceStatus?: 'won' | 'lost' | 'pending', wonOverride?: 'contract' | 'partner') => {
+    const handleSubmit = (e: React.FormEvent, overrideStatus?: 'won' | 'lost' | 'pending', overrideWonType?: 'partner' | 'cliente') => {
         if (e) e.preventDefault();
         if (!name.trim() || isSubmitting) return;
 
         setIsSubmitting(true);
 
-        let finalStatus = forceStatus || initialData?.status || 'pending';
+        let finalStatus = overrideStatus || status;
         let finalType = activityType;
         let finalContractType = undefined;
         
-        const effectiveWonType = wonOverride || wonType;
+        const effectiveWonType = overrideWonType || wonType;
         const hasAppointment = isLinkedAppointment || (appointmentDate && appointmentDate.trim() !== "");
         
         if (finalStatus === 'won') {
             finalType = effectiveWonType === 'partner' ? ActivityType.NEW_FAMILY_UTILITY : ActivityType.NEW_CONTRACTS;
-            finalContractType = effectiveWonType === 'partner' ? ContractType.GREEN : ContractType.LIGHT;
+            finalContractType = effectiveWonType === 'partner' ? ContractType.GREEN : selectedContractType;
         } else if (hasAppointment || finalStatus === 'lost') {
             // Se c'è un appuntamento (manuale o rilevato da data), diventa tipo APPOINTMENTS
             // Ma se stiamo marcando come 'lost', manteniamo il tipo attuale 
@@ -157,6 +236,8 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
             temperature,
             contractType: finalContractType,
             linkedAppointment: hasAppointment,
+            videoSent,
+            videoType: videoSent ? videoType : undefined,
             ...((isAppointment || hasAppointment) && {
                 appointmentDate,
                 locationType,
@@ -192,6 +273,11 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
         }
     };
 
+    const handleWhatsAppClick = () => {
+        const message = encodeURIComponent(`Ciao ${name || '...'}, sono un consulente di My Sharing. Ti contatto in merito alla nostra chiacchierata...`);
+        window.open(`https://wa.me/${phone.replace(/\s+/g, '')}?text=${message}`, '_blank');
+    };
+
     return (
         <AnimatePresence>
             <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
@@ -207,112 +293,264 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                     initial={{ scale: 0.95, opacity: 0, y: 10 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                    className="relative w-full max-w-md bg-white/80 border border-white/40 rounded-[2.5rem] shadow-[0_32px_64px_rgba(0,0,0,0.15)] overflow-hidden backdrop-blur-3xl max-h-[92vh] flex flex-col"
-                >
-                    {/* Header */}
-                    <div className={`p-8 flex items-center gap-5 border-b border-black/5 flex-shrink-0 ${isAppointment ? 'bg-emerald-500/5' : 'bg-blue-500/5'}`}>
-                        <div className={`h-14 w-14 rounded-2xl shadow-inner flex items-center justify-center text-3xl bg-black/5 border border-black/5`}>
-                            {isAppointment ? '📅' : '👤'}
+                    className="relative w-full max-w-lg mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[3rem] shadow-2xl border border-white/40 dark:border-white/10 flex flex-col max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+                    
+                    {/* Header - Apple Style with Decisive Colors */}
+                    <div className={`p-8 flex items-center gap-5 border-b border-black/5 flex-shrink-0 ${isAppointment ? 'bg-[#00b21a]/10' : isContract ? 'bg-[#FF9500]/10' : 'bg-[#007AFF]/10'}`}>
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white border-[4px] border-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] transition-all duration-500 hover:rotate-6 ${isAppointment ? 'bg-[#00b21a]' : isContract ? 'bg-[#FF9500]' : 'bg-[#007AFF]'}`}>
+                            {isAppointment ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            ) : isContract ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            )}
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-                                {initialData ? (isAppointment ? 'Modifica Appuntamento' : 'Modifica Contatto') : (isAppointment ? 'Nuovo Appuntamento' : 'Nuovo Contatto')}
+                        <div className="flex-1">
+                            <h2 className="text-2xl font-black text-slate-800 dark:text-white leading-tight underline decoration-slate-200 decoration-4 underline-offset-4">
+                                {initialData 
+                                    ? (isAppointment ? 'Modifica Appuntamento' : isContract ? 'Modifica Contratto' : 'Modifica Contatto') 
+                                    : (isAppointment ? 'Nuovo Appuntamento' : isContract ? 'Nuovo Contratto' : 'Nuovo Contatto')}
                             </h2>
-                            <p className="text-[10px] font-black text-black/50 uppercase tracking-[0.2em]">Dettagli attività</p>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
+                                <span className={isAppointment ? 'text-emerald-500' : isContract ? 'text-orange-500' : 'text-blue-500'}>●</span>
+                                {isContract ? 'Ecosistemi & Utility' : isAppointment ? 'Pianificazione' : 'Database Leads'}
+                            </p>
                         </div>
-                        <button onClick={onClose} className="ml-auto p-3 rounded-2xl bg-black/5 hover:bg-black/10 text-black/30 hover:text-black transition-all border border-black/5 active:scale-90">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
+                        <div className="flex gap-2">
+                            <button 
+                                type="button"
+                                onClick={handleImportContact} 
+                                className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-400 hover:text-blue-500 transition-colors active:scale-90"
+                                title="Carica da Rubrica"
+                            >
+                                <UserPlus className="h-6 w-6" strokeWidth={3} />
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={onClose} 
+                                className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-400 hover:text-slate-600 transition-colors active:scale-90"
+                                title="Chiudi"
+                            >
+                                <X className="h-6 w-6" strokeWidth={3} />
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Scrollable form */}
-                    <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar">
-                        {/* Primary Save Button (Top) */}
+                    <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-8">
+                        {/* Primary Decisive Save Button */}
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className={`w-full py-4 ${isSubmitting ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-black'} text-white font-bold rounded-2xl shadow-xl shadow-slate-900/10 transition-all active:scale-[0.98] flex items-center justify-center gap-3`}
+                            className={`w-full py-5 ${isSubmitting ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-slate-900 to-slate-800 hover:from-black hover:to-slate-900'} text-white font-black uppercase tracking-widest rounded-[2rem] shadow-2xl shadow-slate-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-4 text-sm`}
                         >
-                            <span className="text-xl">{isSubmitting ? '⏳' : '💾'}</span> {isSubmitting ? 'SALVATAGGIO...' : 'SALVA DATI'}
+                            <span className="bg-white/20 p-2 rounded-xl backdrop-blur-md">{isSubmitting ? '⏳' : '💾'}</span> {isSubmitting ? 'Salvataggio...' : 'Conferma e Salva'}
                         </button>
 
-                        {/* Nome */}
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                                <label className="block text-[10px] font-black uppercase text-black/60 tracking-[0.15em]">Nome e Cognome *</label>
-                                {typeof navigator !== 'undefined' && 'contacts' in navigator && (
-                                    <button
-                                        type="button"
-                                        onClick={handleImportContact}
-                                        className="text-[10px] font-bold uppercase tracking-widest text-slate-700 bg-black/5 px-3 py-1.5 rounded-xl border border-black/5 active:scale-95 transition-all flex items-center gap-2"
-                                    >
-                                        <span>📇</span> Importa
-                                    </button>
-                                )}
-                            </div>
-                            <input 
-                                type="text" 
-                                value={name} 
-                                onChange={e => setName(e.target.value)} 
-                                onBlur={() => setName(capitalize(name))}
-                                placeholder="Mario Rossi" 
-                                required 
-                                autoFocus
-                                className="w-full px-5 py-4 bg-black/[0.04] border border-black/20 rounded-2xl focus:ring-2 focus:ring-slate-900/20 outline-none text-slate-900 font-bold placeholder:text-slate-400 transition-all text-lg" 
-                            />
-                        </div>
-
-                        {/* Telefono */}
-                        <div className="space-y-3">
-                            <label className="block text-[10px] font-black uppercase text-black/60 tracking-[0.15em]">Telefono</label>
-                            <div className="flex gap-3">
-                                <input 
-                                    type="tel" 
-                                    value={phone} 
-                                    onChange={e => setPhone(e.target.value)} 
-                                    placeholder="+39 333 1234567"
-                                    className="flex-1 px-5 py-4 bg-black/[0.04] border border-black/20 rounded-2xl focus:ring-2 focus:ring-slate-900/20 outline-none text-slate-900 font-bold placeholder:text-slate-400 transition-all text-lg" 
-                                />
-                                {phone && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const message = encodeURIComponent(`Ciao ${name || '...'}, sono un consulente di My Sharing. Ti contatto in merito alla nostra chiacchierata...`);
-                                            window.open(`https://wa.me/${phone.replace(/\s+/g, '')}?text=${message}`, '_blank');
-                                        }}
-                                        className="px-6 bg-[#25D366] hover:bg-[#22c35e] text-white rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden min-w-[70px]"
-                                        title="Contatta subito su WhatsApp"
-                                    >
-                                        <svg viewBox="0 0 24 24" className="w-8 h-8 flex-shrink-0" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9zm5.29 14.12c-.24.67-1.42 1.28-2 1.37-.51.08-1.16.12-1.87-.12-.43-.14-1-.32-1.69-.62-2.98-1.28-4.93-4.29-5.07-4.49-.15-.19-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.04-2.48.27-.3.53-.37.7-.37.17 0 .34.01.49.01.16 0 .37-.06.57.42.21.5.7 1.7.77 1.84.07.15.11.32.01.52-.1.2-.23.47-.35.63l-.42.59c-.14.2-.3.42-.12.73.17.31.78 1.28 1.67 2.07.89.79 1.64 1.03 1.95 1.19.31.15.49.13.67-.08.18-.21.78-.9 1-.1.21.11.66.3.74.34.08.04.13.07.19.12s.37.15.44.3.07.15-.02.52z" />
-                                        </svg>
-                                        <span className="font-bold text-base hidden xsm:block">WhatsApp</span>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Temperatura Contatto */}
-                        <div className="space-y-4">
-                            <label className="block text-[10px] font-black uppercase text-black/40 tracking-[0.15em]">Qualità Contatto</label>
-                            <div className="grid grid-cols-3 gap-3">
+                        {/* Status Tabs - Decisive Accent */}
+                        {!forceStatus && (
+                            <div className="flex p-2 bg-slate-100 dark:bg-slate-800 rounded-[2.5rem] gap-2 mb-8 shadow-inner border border-black/5">
                                 {[
-                                    { id: 'freddo', icon: '❄️', label: 'Freddo', color: 'blue' },
-                                    { id: 'tiepido', icon: '🌤️', label: 'Tiepido', color: 'amber' },
-                                    { id: 'caldo', icon: '🔥', label: 'Caldo', color: 'orange' }
-                                ].map(t => (
+                                    { id: 'pending', label: 'Contatto', icon: <Clock size={16} />, color: 'blue', grad: 'from-[#007AFF] to-[#00C6FF]' },
+                                    { id: 'won', label: 'Vinto', icon: <CheckCircle2 size={16} />, color: 'emerald', grad: 'from-[#34C759] to-[#30B0C7]' },
+                                    { id: 'lost', label: 'Perso', icon: <X size={16} />, color: 'slate', grad: 'from-[#8E8E93] to-[#1C1C1E]' }
+                                ].map(s => (
                                     <button
-                                        key={t.id}
+                                        key={s.id}
                                         type="button"
-                                        onClick={() => setTemperature(t.id as any)}
-                                        className={`py-4 px-2 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border-2 flex flex-col items-center gap-2 ${temperature === t.id ? `bg-${t.color}-50 border-${t.color}-500/50 text-${t.color}-600 scale-105 shadow-lg shadow-${t.color}-500/10` : 'bg-black/5 border-black/10 text-slate-400 hover:border-black/20'}`}
+                                        onClick={() => setStatus(s.id as any)}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-500 ease-out ${status === s.id ? `bg-gradient-to-br ${s.grad} text-white shadow-xl shadow-${s.color}-500/20 scale-105` : 'text-slate-400 hover:text-slate-600'}`}
                                     >
-                                        <span className="text-2xl">{t.icon}</span>
-                                        {t.label}
+                                        {s.icon}
+                                        {s.label}
                                     </button>
                                 ))}
                             </div>
+                        )}
+
+                        {/* Gruppo Anagrafica - Apple Card Style */}
+                        <div className="bg-white/50 dark:bg-white/5 p-6 rounded-[2rem] border border-black/5 dark:border-white/5 space-y-6 shadow-sm">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">Nominativo</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    onBlur={() => setName(capitalize(name))}
+                                    placeholder="Nome e Cognome"
+                                    autoFocus
+                                    className="w-full bg-slate-50/50 dark:bg-slate-800/50 border-none rounded-2xl p-4 text-base font-bold text-slate-800 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none shadow-inner"
+                                />
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1 flex justify-between items-center">
+                                    <span>Recapito Telefonico</span>
+                                    {phone && (
+                                        <button 
+                                            type="button" 
+                                            onClick={handleWhatsAppClick}
+                                            className="text-[10px] bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-lg hover:bg-emerald-500/20 transition-all flex items-center gap-1"
+                                        >
+                                            <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                                            </svg>
+                                            WHATSAPP
+                                        </button>
+                                    )}
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    placeholder="Esempio: 333 1234567"
+                                    className="w-full bg-slate-50/50 dark:bg-slate-800/50 border-none rounded-2xl p-4 text-base font-bold text-slate-800 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none shadow-inner"
+                                />
+                            </div>
                         </div>
+
+                        {/* ─── WON SPECIFIC (MOVED UP FOR BETTER ACCESSIBILITY) ─── */}
+                        {status === 'won' && (
+                            <div className="space-y-8 p-6 bg-emerald-50/50 rounded-[2rem] border-2 border-emerald-500/10 animate-in fade-in zoom-in-95 duration-500">
+                                
+                                {/* Tipo Chiusura */}
+                                {!forceWonType && (
+                                    <div className="space-y-4">
+                                        <label className="block text-[10px] font-black uppercase text-emerald-600/60 tracking-[0.2em] px-1">Tipologia Risultato</label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {[
+                                                { id: 'cliente', label: 'Cliente Privilegiato', sub: 'Nuovo', icon: <UserPlus size={20} /> },
+                                                { id: 'partner', label: 'Family Utility', sub: 'Collaborazione', icon: <Sparkles size={20} /> }
+                                            ].map(opt => (
+                                                <button
+                                                    key={opt.id}
+                                                    type="button"
+                                                    onClick={() => setWonType(opt.id as any)}
+                                                    className={`p-5 rounded-[2rem] border-2 transition-all flex flex-col items-center text-center gap-1.5 ${wonType === opt.id ? 'bg-white border-emerald-500 text-emerald-700 scale-105 shadow-xl shadow-emerald-500/10' : 'bg-black/[0.02] border-black/5 text-slate-400 hover:border-black/20'}`}
+                                                >
+                                                    <div className={`mb-1 p-2 rounded-xl ${wonType === opt.id ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>{opt.icon}</div>
+                                                    <span className="font-black text-sm uppercase tracking-tight">{opt.label}</span>
+                                                    <span className="text-[10px] font-bold opacity-60">{opt.sub}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Selezione Contratto Dettagliata per Clienti */}
+                                {wonType === 'cliente' && (
+                                    <div className="space-y-4 pt-2">
+                                        <label className="block text-[10px] font-black uppercase text-emerald-600/60 tracking-[0.2em] px-1 italic">Dettaglio Contratto</label>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {[
+                                                { id: ContractType.LIGHT, label: 'Union Light', sub: 'Convenienza Luce', color: 'blue', grad: 'from-blue-500 to-cyan-500' },
+                                                { id: ContractType.GREEN, label: 'Azzeriamola Green', sub: 'Luce & Gas 100%', color: 'emerald', grad: 'from-emerald-500 to-teal-500' }
+                                            ].map(c => (
+                                                <button
+                                                    key={c.id}
+                                                    type="button"
+                                                    onClick={() => setSelectedContractType(c.id)}
+                                                    className={`group relative overflow-hidden p-6 rounded-[2.5rem] border-2 transition-all duration-500 flex items-center gap-5 ${selectedContractType === c.id ? `border-${c.color}-500 bg-white scale-[1.02] shadow-2xl` : 'bg-black/[0.01] border-black/5 text-slate-400 grayscale'}`}
+                                                >
+                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-700 ${selectedContractType === c.id ? `bg-gradient-to-br ${c.grad} text-white rotate-0 scale-110 shadow-lg shadow-${c.color}-500/30` : 'bg-slate-200 text-slate-400 rotate-[-10deg]'}`}>
+                                                        {c.id === ContractType.GREEN ? <Leaf size={28} /> : <Bolt size={28} />}
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <span className={`block font-black text-lg tracking-tight mb-0.5 ${selectedContractType === c.id ? `text-${c.color}-700` : 'text-slate-400'}`}>{c.label}</span>
+                                                        <span className="block text-[11px] font-bold opacity-70">{c.sub}</span>
+                                                    </div>
+                                                    
+                                                    {selectedContractType === c.id && (
+                                                        <motion.div layoutId="glow" className={`absolute -right-4 -bottom-4 w-24 h-24 bg-${c.color}-500/10 blur-3xl rounded-full`} />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {wonType === 'partner' && (
+                                    <div className="p-6 bg-emerald-500/5 rounded-[2.5rem] border-2 border-emerald-500/20 text-center">
+                                        <p className="text-sm font-black text-emerald-700 uppercase tracking-widest">Procedura Family Utility</p>
+                                        <p className="text-[10px] font-bold text-emerald-600/70 mt-1 uppercase italic">Contratto Green incluso automaticamente</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Temperatura Contatto - Decisive Colors */}
+                        {!forceStatus && status === 'pending' && (
+                            <div className="space-y-4">
+                                <label className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-[0.2em] px-1 italic">Qualità Contatto</label>
+                                <div className="grid grid-cols-3 gap-4">
+                                    {[
+                                        { id: 'freddo', icon: '❄️', label: 'Freddo', color: 'blue', grad: 'from-[#007AFF] to-[#00C6FF]' },
+                                        { id: 'tiepido', icon: '🌤️', label: 'Tiepido', color: 'amber', grad: 'from-[#FF9500] to-[#FFCC00]' },
+                                        { id: 'caldo', icon: '🔥', label: 'Caldo', color: 'orange', grad: 'from-[#FF3B30] to-[#FF9500]' }
+                                    ].map(t => (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => setTemperature(t.id as any)}
+                                            className={`py-5 px-2 rounded-[2rem] font-black text-[10px] uppercase tracking-widest transition-all duration-500 border-2 flex flex-col items-center gap-2 ${temperature === t.id ? `bg-gradient-to-br ${t.grad} border-transparent text-white scale-110 shadow-2xl shadow-${t.color}-500/30` : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-400 hover:scale-[1.02]'}`}
+                                        >
+                                            <span className="text-3xl drop-shadow-md">{t.icon}</span>
+                                            {t.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                    {/* Video Inviato - Decisive Indigo Accent */}
+                    {!isContract && status === 'pending' && (
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">Materiale Inviato?</label>
+                            <button
+                                type="button"
+                                onClick={() => setVideoSent(!videoSent)}
+                                className={`w-full p-6 rounded-[2.5rem] border-2 transition-all duration-500 flex items-center justify-between group shadow-lg ${videoSent 
+                                    ? 'bg-gradient-to-br from-[#AF52DE] to-[#5856D6] border-transparent text-white shadow-purple-500/30 scale-[1.02]' 
+                                    : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-400'}`}
+                            >
+                                <div className="flex items-center gap-5">
+                                    <div className={`p-3 rounded-2xl transition-all ${videoSent ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block font-black text-sm uppercase tracking-wider">Video Presentazione</span>
+                                        <span className={`block text-[10px] font-bold ${videoSent ? 'text-white/60' : 'text-slate-300'}`}>Invio Video My Sharing Academy</span>
+                                    </div>
+                                </div>
+                                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${videoSent ? 'bg-white border-white scale-110' : 'border-slate-200'}`}>
+                                    {videoSent && <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                                </div>
+                            </button>
+                        </div>
+                    )}
+                                
+                        <AnimatePresence>
+                            {videoSent && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: -20, height: 0 }}
+                                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                    exit={{ opacity: 0, y: -20, height: 0 }}
+                                    className="pt-2 px-6"
+                                >
+                                    <div className="bg-indigo-50/50 dark:bg-slate-800/80 p-5 rounded-[2rem] border-2 border-indigo-500/10 space-y-3">
+                                        <label className="block text-[10px] font-black uppercase text-indigo-600/60 dark:text-indigo-400/60 tracking-[0.2em] px-1 italic text-center">Titolo Video / Argomento</label>
+                                        <input 
+                                            type="text" 
+                                            value={videoType} 
+                                            onChange={e => setVideoType(e.target.value)} 
+                                            placeholder="Esempio: Academy 2024" 
+                                            className="w-full bg-white dark:bg-slate-900 border-none rounded-2xl p-4 text-sm font-black text-slate-700 dark:text-white placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Inserimento contemporaneo Appuntamento */}
                         {!isAppointment && initialData && (
@@ -409,37 +647,30 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                             </div>
                         )}
 
-                        {/* Follow-up Date (Hidden if Appointment) */}
-                        {!isAppointment && !isLinkedAppointment && (
-                            <div className="space-y-3">
-                                <label className="block text-[10px] font-black uppercase text-black/40 tracking-[0.15em]">🚀 Prossimo Follow-up</label>
-                                <div className="relative">
-                                    <input 
-                                        type="date" 
-                                        value={followUpDate} 
-                                        onChange={e => setFollowUpDate(e.target.value)}
-                                        className="w-full px-5 py-4 bg-black/[0.03] border border-black/20 rounded-2xl focus:ring-2 focus:ring-slate-900/20 outline-none text-slate-900 font-bold transition-all text-lg min-h-[60px]" 
-                                    />
-                                    {!followUpDate && (
-                                        <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400 font-bold text-lg">
-                                            gg/mm/aaaa
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Note */}
-                        <div className="space-y-3">
-                            <label className="block text-[10px] font-black uppercase text-black/40 tracking-[0.15em]">Note (opzionale)</label>
-                            <textarea 
-                                value={note} 
-                                onChange={e => setNote(e.target.value)} 
-                                placeholder={isAppointment ? "Cosa vuoi discutere?" : "Dettagli importanti..."} 
+                        {/* Note - Apple Style Textarea */}
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1 italic">Note & Strategia</label>
+                            <textarea
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                placeholder="Aggiungi riflessioni o dettagli importanti..."
                                 rows={3}
-                                className="w-full px-5 py-4 bg-black/[0.03] border border-black/20 rounded-2xl focus:ring-2 focus:ring-slate-900/20 outline-none text-slate-900 font-bold transition-all resize-none placeholder:text-slate-300" 
+                                className="w-full bg-white/50 dark:bg-slate-800/50 border-none rounded-[2rem] p-6 text-base font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-300 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none shadow-sm"
                             />
                         </div>
+
+                        {/* Follow-up Section - Simplified */}
+                        {!isContract && status === 'pending' && (
+                            <div className="pt-2">
+                                <label className="block text-[10px] font-black uppercase text-amber-700/60 dark:text-amber-500/60 tracking-[0.2em] mb-2 px-1">Data Follow-up</label>
+                                <input 
+                                    type="date" 
+                                    value={followUpDate} 
+                                    onChange={e => setFollowUpDate(e.target.value)}
+                                    className="w-full bg-amber-50 dark:bg-amber-900/10 border-2 border-amber-500/10 rounded-2xl p-4 text-sm font-black text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-amber-500/20 transition-all" 
+                                />
+                            </div>
+                        )}
 
                         {/* ESITO CONTATTO (v1.2.97) */}
                         {!isAppointment && initialData && (
@@ -466,30 +697,30 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                             </div>
                         )}
 
-                        {/* ESITO APPUNTAMENTO */}
+                        {/* ESITO APPUNTAMENTO - Decisive Gradient Buttons */}
                         {isAppointment && initialData && (
-                            <div className="space-y-5 pt-8 border-t border-black/5">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xl">🎯</span>
-                                    <h3 className="text-[10px] font-black uppercase text-black/40 tracking-[0.2em]">Esito Appuntamento</h3>
+                            <div className="space-y-6 pt-8 border-t-2 border-slate-100 dark:border-white/5">
+                                <div className="flex items-center gap-3 px-1">
+                                    <div className="w-2 h-6 bg-emerald-500 rounded-full" />
+                                    <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Esito Appuntamento</h3>
                                 </div>
                                 
                                 <button
                                     type="button"
                                     onClick={(e) => {
-                                        setWonType('contract');
-                                        handleSubmit(e, 'won', 'contract');
+                                        setWonType('cliente');
+                                        handleSubmit(e, 'won', 'cliente');
                                     }}
-                                    className="w-full p-6 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-[2rem] border border-emerald-200 transition-all active:scale-[0.98] group flex items-center justify-between shadow-[0_8px_24px_rgba(16,185,129,0.08)]"
+                                    className="w-full p-6 bg-gradient-to-br from-[#34C759] to-[#30B0C7] text-white rounded-[2.5rem] shadow-[0_20px_40px_rgba(52,199,89,0.2)] transition-all active:scale-[0.96] group flex items-center justify-between border-b-4 border-emerald-700"
                                 >
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-14 h-14 bg-white/60 rounded-2xl flex items-center justify-center text-3xl shadow-sm">📄</div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-4xl shadow-inner backdrop-blur-md">📄</div>
                                         <div className="text-left">
-                                            <p className="font-black text-sm uppercase tracking-widest text-emerald-900">NUOVO CLIENTE!</p>
-                                            <p className="text-[10px] text-emerald-600/60 font-black uppercase">INCREMENTA CONTRATTI</p>
+                                            <p className="font-black text-lg uppercase tracking-tight">NUOVO CLIENTE PRIVILEGIATO</p>
+                                            <p className="text-[10px] text-white/70 font-black uppercase">Obiettivo Raggiunto!</p>
                                         </div>
                                     </div>
-                                    <span className="text-2xl group-hover:animate-bounce">🚀</span>
+                                    <span className="text-3xl group-hover:rotate-12 transition-transform">🚀</span>
                                 </button>
 
                                 <button
@@ -498,36 +729,51 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                                         setWonType('partner');
                                         handleSubmit(e, 'won', 'partner');
                                     }}
-                                    className="w-full p-6 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-[2rem] border border-purple-200 transition-all active:scale-[0.98] group flex items-center justify-between shadow-[0_8px_24px_rgba(168,85,247,0.08)]"
+                                    className="w-full p-6 bg-gradient-to-br from-[#AF52DE] to-[#5856D6] text-white rounded-[2.5rem] shadow-[0_20px_40px_rgba(175,82,222,0.2)] transition-all active:scale-[0.96] group flex items-center justify-between border-b-4 border-purple-800"
                                 >
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-14 h-14 bg-white/60 rounded-2xl flex items-center justify-center text-3xl shadow-sm">🤝</div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-4xl shadow-inner backdrop-blur-md">🤝</div>
                                         <div className="text-left">
-                                            <p className="font-black text-sm uppercase tracking-widest text-purple-900">NUOVO FAMILY UTILITY!</p>
-                                            <p className="text-[10px] text-purple-600/60 font-black uppercase">INCREMENTA FAMILY UTILITY</p>
+                                            <p className="font-black text-lg uppercase tracking-tight">FAMILY UTILITY</p>
+                                            <p className="text-[10px] text-white/70 font-black uppercase">Consulenza Diretta</p>
                                         </div>
                                     </div>
-                                    <span className="text-2xl group-hover:animate-bounce">⭐</span>
+                                    <span className="text-3xl group-hover:rotate-[-12deg] transition-transform">⭐</span>
                                 </button>
 
-                                <div className="pt-4 border-t border-black/5">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => handleSubmit(e, 'lost')}
-                                        className="w-full p-6 bg-red-50 hover:bg-red-100 text-red-700 rounded-[2rem] border border-red-200 transition-all active:scale-[0.98] group flex items-center justify-between shadow-[0_8px_24px_rgba(239,68,68,0.08)]"
-                                    >
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-14 h-14 bg-white/60 rounded-2xl flex items-center justify-center text-3xl shadow-sm">🛑</div>
-                                            <div className="text-left">
-                                                <p className="font-black text-sm uppercase tracking-widest text-red-900">NON INTERESSATO</p>
-                                                <p className="text-[10px] text-red-600/60 font-black uppercase">ANNULLA APPUNTAMENTO E MOTIVI</p>
-                                            </div>
+                                <button
+                                    type="button"
+                                    onClick={(e) => handleSubmit(e, 'lost')}
+                                    className="w-full p-6 bg-white dark:bg-slate-800 text-slate-400 rounded-[2.5rem] border-2 border-slate-100 dark:border-white/5 transition-all hover:border-red-500/20 hover:text-red-500 active:scale-[0.96] group flex items-center justify-between"
+                                >
+                                    <div className="flex items-center gap-6 opacity-60 group-hover:opacity-100 transition-opacity">
+                                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-4xl">🛑</div>
+                                        <div className="text-left">
+                                            <p className="font-black text-lg uppercase tracking-tight group-hover:text-red-600">Perso</p>
+                                            <p className="text-[10px] font-black uppercase group-hover:text-red-400">Archivia Contatto</p>
                                         </div>
-                                        <span className="text-2xl group-hover:rotate-12 transition-transform">✖️</span>
-                                    </button>
-                                </div>
+                                    </div>
+                                    <span className="text-3xl opacity-0 group-hover:opacity-100 transition-all">✖️</span>
+                                </button>
                             </div>
                         )}
+                        {/* Tasto Salva Principale (solo se non ci sono esiti da dare) */}
+                        {!initialData && (
+                            <div className="pt-8">
+                                <button
+                                    type="submit"
+                                    className="w-full py-6 bg-gradient-to-r from-[#007AFF] to-[#00C6FF] text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(0,122,255,0.2)] active:scale-[0.96] transition-all flex items-center justify-center gap-4 group border-b-4 border-blue-700"
+                                >
+                                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    Salva Attività
+                                </button>
+                            </div>
+                        )}
+
                     </form>
                 </motion.div>
             </div>

@@ -26,5 +26,12 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*_backup*",
+    "**/test-*",
+    "package-lock.json.bak"
+  ]
 }

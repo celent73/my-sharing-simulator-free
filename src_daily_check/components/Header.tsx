@@ -145,6 +145,14 @@ const Header: React.FC<HeaderProps> = ({
 
                 {/* Top Row: Centered DAILY CHEK and Absolute Right Close Button */}
                 <div className="w-full flex items-center justify-center relative min-h-[44px]">
+                    <div className="absolute left-0 flex items-center">
+                        <img 
+                            src="/daily_check_logo.png" 
+                            alt="Daily Chek Logo" 
+                            className="w-11 h-11 rounded-xl shadow-lg border border-white/10 object-cover"
+                        />
+                    </div>
+
                     <div className="flex-shrink-0 mx-auto">
                         <div className="flex items-center gap-1 bg-green-500/5 text-green-500 px-6 py-2 rounded-2xl text-base sm:text-lg font-black tracking-[0.15em] uppercase border-2 border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.15)] bg-clip-border">
                             DAILY CHEK

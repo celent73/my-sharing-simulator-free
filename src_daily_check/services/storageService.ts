@@ -152,6 +152,12 @@ export const clearLogs = async (userId: string | null) => {
 };
 
 export const deleteLogsInRange = async (userId: string | null, startDate: string, endDate: string) => {
+  // 1. Clear Local Storage
+  const localLogs = getLocalLogs();
+  const filteredLogs = localLogs.filter(log => log.date < startDate || log.date > endDate);
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(filteredLogs));
+
+  // 2. Clear Cloud Storage
   if (userId) {
     const { error } = await supabase
       .from('activity_logs')
@@ -183,7 +189,9 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
     if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
       console.error("Error loading settings:", error);
       return localSettings;
-    }    if (data) {
+    }
+
+    if (data) {
       // Reconstruct AppSettings object conforming to interface
       // LOGIC V1.3.13: Robust Merge. Cloud wins for defined fields, but local is the anchor for persistence.
       const cloudSettings: AppSettings = {
@@ -197,7 +205,7 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
         userProfile: localSettings?.userProfile || { firstName: '', lastName: '' }, 
         enableGoals: data.enable_goals !== undefined ? data.enable_goals : (localSettings?.enableGoals !== undefined ? localSettings.enableGoals : true),
         enableCustomLabels: data.enable_custom_labels !== undefined ? data.enable_custom_labels : (localSettings?.enableCustomLabels !== undefined ? localSettings.enableCustomLabels : true),
-        nextAppointment: data.next_appointment || localSettings?.nextAppointment,
+        nextAppointment: data.next_appointment, // Cloud is source of truth for sync
         careerPathDates: (data.career_path_dates && Object.keys(data.career_path_dates).length > 0) ? data.career_path_dates : (localSettings?.careerPathDates || {}),
         habitStacks: data.habit_stacks || localSettings?.habitStacks || [],
         enableHabitStacking: data.enable_habit_stacking !== undefined ? data.enable_habit_stacking : (localSettings?.enableHabitStacking !== undefined ? localSettings.enableHabitStacking : true),
