@@ -59,7 +59,7 @@ import { calculateDailyScore, calculateCoachStreak } from './utils/coachScoreUti
 import WeeklyReportModal from './components/WeeklyReportModal';
 import FollowUpRankingWidget from './components/FollowUpRankingWidget';
 import ResultsDashboard from './components/ResultsDashboard';
-const APP_VERSION = "v1.3.27";
+const APP_VERSION = "v1.3.3";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
 const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -1765,7 +1765,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                           alt="Union Energia" 
                           className="h-8 w-auto opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all" 
                         />
-                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.3.27</p>
+                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.3.3</p>
                         <button onClick={signOut} className="px-10 py-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl font-black uppercase tracking-widest transition-all">Sconnetti</button>
                       </div>
                     </div>

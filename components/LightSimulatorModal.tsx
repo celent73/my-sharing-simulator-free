@@ -157,7 +157,7 @@ const SharingAcademy: React.FC<SharingAcademyProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex items-center gap-3">
                     <div className="hidden sm:flex items-center px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-black text-white/30 tracking-widest uppercase mb-1">
-                        v1.3.27
+                        v1.3.3
                     </div>
                     <button
                         onClick={onClose}
