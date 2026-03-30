@@ -302,7 +302,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                             )}
 
                                             {/* Classic Ping Effect (like before) */}
-                                            {isCurrent && (
+                                            {(isCurrent || isTarget) && (
                                                 <span 
                                                     className="absolute inset-0 rounded-full animate-ping opacity-60 border-4 z-0" 
                                                     style={{ borderColor: stage.color }}
