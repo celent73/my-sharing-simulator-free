@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, RotateCcw, Target as TargetIcon } from 'lucide-react';
+import { Trash2, RotateCcw, Target as TargetIcon, X } from 'lucide-react';
 
 interface CareerPathModalProps {
     isOpen: boolean;
@@ -100,38 +100,58 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
     const content = (
         <div className={`relative w-full ${isEmbedded ? 'h-full' : 'h-full sm:h-[90vh] sm:max-w-2xl'} flex flex-col bg-slate-900 ${!isEmbedded ? 'sm:rounded-[2.5rem]' : 'rounded-3xl'} shadow-2xl overflow-hidden border-0 sm:border border-white/10`}>
 
-            {/* Ambient Glows */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-pulse-slow pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-pulse-slow animation-delay-2000 pointer-events-none"></div>
+            {/* Ambient Nebula Effect - More Dynamic */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <motion.div 
+                    animate={{ 
+                        x: [0, 100, 0], 
+                        y: [0, 50, 0],
+                        scale: [1, 1.2, 1]
+                    }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute -top-24 -right-24 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px]" 
+                />
+                <motion.div 
+                    animate={{ 
+                        x: [0, -80, 0], 
+                        y: [0, 100, 0],
+                        scale: [1, 1.3, 1]
+                    }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                    className="absolute -bottom-48 -left-24 w-[700px] h-[700px] bg-blue-600/10 rounded-full blur-[140px]" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-transparent to-slate-950/50 shadow-inner"></div>
+            </div>
 
-            {/* Header */}
-            <div className="relative z-20 flex items-center justify-between p-6 bg-white/5 border-b border-white/10 backdrop-blur-md">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg border border-white/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            {/* Header - More Elegant Apple Style */}
+            <div className="relative z-30 flex items-center justify-between p-6 bg-slate-900/40 border-b border-white/5 backdrop-blur-xl">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] border border-white/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-sm">
-                        Piano <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 drop-shadow-none">Carriera</span>
-                    </h2>
+                    <div>
+                        <h2 className="text-xl font-black text-white tracking-tight leading-none">
+                            Piano <span className="text-blue-400">Carriera</span>
+                        </h2>
+                        <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">Sviluppo RoadMap</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={handleResetAll}
-                        className="flex items-center gap-2 py-2 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all border border-red-500/20 text-sm font-bold uppercase tracking-wider"
+                        className="flex items-center gap-2 py-2 px-3 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/5 transition-all text-[10px] font-black uppercase tracking-widest border border-transparent hover:border-red-500/10 group"
                     >
-                        <RotateCcw className="h-4 w-4" />
-                        Azzera Tutto
+                        <RotateCcw className="h-3.5 w-3.5 group-hover:rotate-[-45deg] transition-transform" />
+                        Azzera
                     </button>
                     <button
                         onClick={onClose}
-                        className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 transition-all border border-transparent hover:border-white/20 shadow-sm"
+                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white flex items-center justify-center transition-all border border-white/5 active:scale-95"
                         aria-label="Chiudi"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
             </div>
@@ -163,7 +183,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                         return (
                             <div key={stage.name} className={`relative flex items-center justify-center w-full ${index > 0 ? 'mt-28 sm:mt-32' : ''}`}>
 
-                                {/* SVG Connecting Path */}
+                                {/* SVG Connecting Path - Improved with Data Flow */}
                                 {index < CAREER_STAGES.length - 1 && (
                                     <svg
                                         className="absolute w-[11rem] sm:w-[14rem] h-28 sm:h-32 top-10 pointer-events-none z-0"
@@ -178,84 +198,158 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                             d="M 5,0 C 50,0 50,100 95,100"
                                             fill="none"
                                             stroke={pathColor}
-                                            strokeWidth="3"
+                                            strokeWidth="2.5"
                                             strokeLinecap="round"
-                                            strokeDasharray={(!isFilled || !isNextFilled) && !isCurrent ? "6 8" : "none"}
-                                            className={isCurrent ? 'animate-pulse' : ''}
+                                            className="opacity-20"
                                         />
+                                        {(isReached || isNextReached) && (
+                                            <motion.path
+                                                d="M 5,0 C 50,0 50,100 95,100"
+                                                fill="none"
+                                                stroke={pathColor}
+                                                strokeWidth="3"
+                                                strokeLinecap="round"
+                                                initial={{ pathLength: 0 }}
+                                                animate={{ pathLength: 1 }}
+                                                transition={{ duration: 1.5, ease: "easeInOut" }}
+                                                style={{ filter: `drop-shadow(0 0 8px ${pathColor})` }}
+                                            />
+                                        )}
+                                        {/* Animated Dash Path for current progress */}
+                                        {isCurrent && (
+                                            <motion.path
+                                                d="M 5,0 C 50,0 50,100 95,100"
+                                                fill="none"
+                                                stroke={stage.color}
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeDasharray="4 10"
+                                                animate={{ strokeDashoffset: [0, -100] }}
+                                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                                className="opacity-50"
+                                            />
+                                        )}
                                     </svg>
                                 )}
 
                                 <div className={`relative z-10 flex items-center justify-center ${isLeft ? '-translate-x-[5.5rem] sm:-translate-x-[7rem]' : 'translate-x-[5.5rem] sm:translate-x-[7rem]'}`}>
 
-                                    <div className={`absolute top-1/2 -translate-y-1/2 flex flex-col justify-center ${isLeft ? 'left-full ml-4 sm:ml-6 items-start text-left' : 'right-full mr-4 sm:mr-6 items-end text-right'} w-40 pointer-events-auto`}>
-                                        <h3
-                                            style={(isFilled || isCurrent || isTarget) ? { color: stage.color, textShadow: `0 0 10px ${stage.color}80` } : {}}
-                                        >
-                                            {stage.name}
-                                            {isTarget && (
-                                              <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-500 text-[8px] uppercase font-black border border-amber-500/30">
-                                                Target
-                                              </span>
-                                            )}
-                                        </h3>
-                                        {(isFilled || (manualQualification && manualQualification.toLowerCase() === stage.name.toLowerCase())) && (
-                                            <div className="mt-1 flex items-center gap-2">
-                                                {isFilled && (
-                                                    <div className="px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 inline-flex items-center gap-1.5 shadow-xl">
-                                                        <span className="text-[10px] sm:text-xs font-bold text-white/90 whitespace-nowrap">
-                                                            {new Date(dates[stage.name]).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                        </span>
-                                                    </div>
+                                    <div className={`absolute top-1/2 -translate-y-1/2 flex flex-col justify-center ${isLeft ? 'left-full ml-6 sm:ml-8 items-start text-left' : 'right-full mr-6 sm:mr-8 items-end text-right'} w-44 pointer-events-auto`}>
+                                        <div className={`p-3 rounded-2xl backdrop-blur-md border transition-all duration-500 ${isReached ? 'bg-white/10 border-white/20' : isCurrent ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-slate-900/40 border-white/5'} shadow-2xl`}>
+                                            <h3
+                                                className="text-sm font-black tracking-tight"
+                                                style={(isFilled || isCurrent || isTarget) ? { color: stage.color } : { color: '#94a3b8' }}
+                                            >
+                                                {stage.name}
+                                                {isTarget && (
+                                                  <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-500 text-[8px] uppercase font-black border border-amber-500/30">
+                                                    Target
+                                                  </span>
                                                 )}
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleResetIndividual(stage.name);
-                                                    }}
-                                                    className="p-1.5 rounded-full bg-red-500/20 hover:bg-red-500/40 text-red-500 transition-all border border-red-500/20 shadow-lg"
-                                                    title="Azzera questa qualifica"
-                                                >
-                                                    <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                                </button>
-                                            </div>
-                                        )}
+                                            </h3>
+                                            
+                                            {(isFilled || (manualQualification && manualQualification.toLowerCase() === stage.name.toLowerCase())) && (
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    {isFilled && (
+                                                        <div className="px-2 py-0.5 rounded-full bg-slate-950/60 border border-white/10 flex items-center gap-1 shadow-inner">
+                                                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }}></div>
+                                                            <span className="text-[10px] font-black text-white/60 lowercase tracking-tight">
+                                                                {new Date(dates[stage.name]).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleResetIndividual(stage.name);
+                                                        }}
+                                                        className="p-1.5 rounded-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-all border border-red-500/10 active:scale-90"
+                                                        title="Azzera questa qualifica"
+                                                    >
+                                                        <Trash2 size={10} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                         <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.95 }}
+                                            whileHover={{ scale: 1.15, rotate: 5 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            animate={(isCurrent || isTarget) ? { 
+                                                y: [0, -8, 0],
+                                                scale: [1, 1.05, 1],
+                                                rotate: isCurrent ? [0, 2, -2, 0] : 0
+                                            } : {}}
+                                            transition={isCurrent || isTarget ? { 
+                                                duration: 4, 
+                                                repeat: Infinity, 
+                                                ease: "easeInOut" 
+                                            } : {}}
                                             onClick={() => setSelectedStageIndex(index)}
-                                            className={`relative w-24 h-24 sm:w-[7rem] sm:h-[7rem] rounded-full flex items-center justify-center border-4 shadow-xl transition-all duration-300 z-20 ${isFuture ? 'grayscale-[0.4] opacity-80' : 'cursor-pointer hover:shadow-2xl'}`}
+                                            className={`relative w-24 h-24 sm:w-[7.5rem] sm:h-[7.5rem] rounded-full flex items-center justify-center border transition-all duration-500 z-20 backdrop-blur-md overflow-hidden ${isFuture ? 'opacity-40 grayscale-[0.8]' : 'cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
                                             style={{
-                                                backgroundColor: isReached ? stage.color : (isFilled || isCurrent || isTarget) ? `${stage.color}20` : '#1e293b',
-                                                borderColor: isReached ? '#ffffff' : (isFilled || isCurrent || isTarget) ? stage.color : '#334155',
-                                                boxShadow: (isTarget) ? `0 0 30px ${stage.color}, inset 0 0 20px ${stage.color}80` : (isFilled || isCurrent) ? `0 0 25px ${stage.color}60, inset 0 0 20px ${stage.color}40` : 'none'
+                                                backgroundColor: isReached ? stage.color : (isFilled || isCurrent || isTarget) ? `${stage.color}15` : 'rgba(15,23,42,0.6)',
+                                                borderColor: isReached ? '#ffffff' : (isFilled || isCurrent || isTarget) ? `${stage.color}40` : 'rgba(255,255,255,0.05)',
                                             }}
                                         >
-                                            {isTarget && (
-                                              <div className="absolute -top-2 -right-2 bg-amber-500 text-white p-1.5 rounded-full shadow-lg border-2 border-slate-900 z-30">
-                                                <TargetIcon size={14} className="animate-pulse" />
-                                              </div>
+                                            {/* Aura for Active Node */}
+                                            {(isCurrent || isTarget) && (
+                                                <div 
+                                                    className="absolute inset-0 animate-pulse-slow opacity-30 blur-xl"
+                                                    style={{ backgroundColor: stage.color }}
+                                                ></div>
                                             )}
-                                            {isCurrent && (
-                                                <span className="absolute inset-0 rounded-full animate-ping opacity-40 border-2" style={{ borderColor: stage.color }}></span>
+
+                                            {/* External Pulsing Rings */}
+                                            {(isCurrent || isTarget) && (
+                                                <>
+                                                    <motion.div 
+                                                        animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+                                                        transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                                                        className="absolute inset-0 rounded-full border-2 pointer-events-none"
+                                                        style={{ borderColor: stage.color }}
+                                                    />
+                                                    <motion.div 
+                                                        animate={{ scale: [1, 1.2], opacity: [0.3, 0] }}
+                                                        transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.8 }}
+                                                        className="absolute inset-0 rounded-full border pointer-events-none"
+                                                        style={{ borderColor: stage.color }}
+                                                    />
+                                                </>
+                                            )}
+
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
+
+                                            {isTarget && (
+                                              <div className="absolute -top-1 -right-1 bg-amber-500 text-white p-2 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] border-2 border-slate-900 z-30">
+                                                <TargetIcon size={14} className="animate-bounce" />
+                                              </div>
                                             )}
 
                                             {isReached ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-14 sm:w-14 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-14 sm:w-14 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                                                    <motion.path 
+                                                        initial={{ pathLength: 0 }} 
+                                                        animate={{ pathLength: 1 }}
+                                                        strokeLinecap="round" 
+                                                        strokeLinejoin="round" 
+                                                        d="M5 13l4 4L19 7" 
+                                                    />
                                                 </svg>
                                             ) : isFilled ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             ) : isFuture ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-slate-500/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                                 </svg>
                                             ) : (
-                                                <span className="text-3xl sm:text-5xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                                                <span 
+                                                    className="text-4xl sm:text-6xl font-black text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                                                    style={{ color: isCurrent ? 'white' : stage.color }}
+                                                >
                                                     {index + 1}
                                                 </span>
                                             )}
