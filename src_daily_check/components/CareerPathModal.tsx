@@ -301,7 +301,15 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                                 ></div>
                                             )}
 
-                                            {/* External Pulsing Rings */}
+                                            {/* Classic Ping Effect (like before) */}
+                                            {isCurrent && (
+                                                <span 
+                                                    className="absolute inset-0 rounded-full animate-ping opacity-60 border-4 z-0" 
+                                                    style={{ borderColor: stage.color }}
+                                                ></span>
+                                            )}
+
+                                            {/* External Pulsing Rings (New) */}
                                             {(isCurrent || isTarget) && (
                                                 <>
                                                     <motion.div 
