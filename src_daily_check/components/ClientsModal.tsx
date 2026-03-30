@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import { Client } from '../types';
 import { it } from 'date-fns/locale';
 import { format } from 'date-fns';
-import { loadClients, deleteClient, saveClient } from '../services/storageService';
+import { loadClients, deleteClient, saveClient, clearAllClients } from '../services/storageService';
 import { useAuth } from '../contexts/AuthContext';
 import { Search, UserPlus, Phone, MessageCircle, MoreVertical, Trash2, Edit2, X, Users, Filter } from 'lucide-react';
 
@@ -60,6 +60,26 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
         }
     };
 
+    const handleClearAll = async () => {
+        if (clients.length === 0) return;
+        
+        const confirmed = window.confirm(
+            "⚠️ ATTENZIONE: Sei sicuro di voler cancellare TUTTI i Clienti Privilegiati e Family Utility?\n\nQuesta operazione è IRREVERSIBILE e perderai per sempre l'intera lista."
+        );
+        
+        if (confirmed) {
+            setIsLoading(true);
+            try {
+                await clearAllClients(user?.id || null);
+                setClients([]);
+            } catch (error) {
+                alert("Errore durante lo svuotamento del database.");
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
+
     if (!isOpen) return null;
 
     const stats = {
@@ -91,15 +111,26 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-1">Database Personale</span>
                                 <h2 className="text-5xl font-black text-white tracking-tighter leading-none">
-                                    Clienti Privilegiati
+                                    Nuovi Utenti
                                 </h2>
                             </div>
-                            <button
-                                onClick={onClose}
-                                className="w-10 h-10 rounded-full bg-white/10 text-white/50 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all border border-white/5 active:scale-95"
-                            >
-                                <X size={20} />
-                            </button>
+                            <div className="flex items-center gap-3">
+                                {clients.length > 0 && (
+                                    <button
+                                        onClick={handleClearAll}
+                                        className="w-10 h-10 rounded-full bg-red-500/10 text-red-400 hover:text-white hover:bg-red-500 flex items-center justify-center transition-all border border-red-500/10 active:scale-95 shadow-lg shadow-red-500/5"
+                                        title="Svuota Database"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={onClose}
+                                    className="w-10 h-10 rounded-full bg-white/10 text-white/50 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all border border-white/5 active:scale-95"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
  
                         {/* Stats Summary - More Subtle */}
@@ -170,7 +201,7 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
                                 <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
                                     <Users className="w-10 h-10 text-white/20" />
                                 </div>
-                                <h3 className="text-white font-black text-xl mb-1 uppercase tracking-tight">Nessun cliente privilegiato trovato</h3>
+                                <h3 className="text-white font-black text-xl mb-1 uppercase tracking-tight">Nessun nuovo utente trovato</h3>
                                 <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
                                     {searchQuery ? 'Prova a cambiare i criteri di ricerca' : 'I tuoi "Vinti" appariranno qui automaticamente'}
                                 </p>

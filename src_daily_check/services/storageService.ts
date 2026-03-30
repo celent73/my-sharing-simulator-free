@@ -519,6 +519,17 @@ export const deleteClient = async (userId: string | null, clientId: string) => {
   }
 };
 
+export const clearAllClients = async (userId: string | null) => {
+  localStorage.removeItem(CLIENTS_KEY);
+  if (userId) {
+    const { error } = await supabase.from('clients').delete().eq('user_id', userId);
+    if (error) {
+      console.error('Error clearing all clients from Supabase:', error);
+      throw error;
+    }
+  }
+};
+
 export const createClientFromLead = async (userId: string | null, lead: Lead, type: 'cliente' | 'partner') => {
   // 1. Verifica se esiste già un client per questo lead (DEDUPLICAZIONE v1.3.1)
   const allClients = await loadClients(userId);
