@@ -8,7 +8,8 @@ import {
   Clock, 
   Calculator, 
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { ActivityType, Lead, ActivityLog, Goals, UserProfile, VisionBoardData, NextAppointment, HabitStack, ViewMode } from '../types';
 import FollowUpRankingWidget from './FollowUpRankingWidget';
@@ -32,6 +33,7 @@ interface ResultsDashboardProps {
   coachStreak: number;
   yesterdayScore: number;
   nextAppointment?: NextAppointment;
+  onClearNextAppointment?: () => void;
   nextFollowUp?: Lead | null;
   habitStacks?: HabitStack[];
   enableHabitStacking?: boolean;
@@ -64,7 +66,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
   const [activeSubTab, setActiveSubTab] = useState<ResultsSubTab>('performance');
 
   const tabs = [
-    { id: 'performance', label: 'Performance', icon: Rocket, color: 'text-blue-500' },
+    { id: 'performance', label: 'Performance', icon: Rocket, color: 'text-indigo-500' },
     { id: 'agenda', label: 'Agenda', icon: CalendarIcon, color: 'text-purple-500' },
     { id: 'growth', label: 'Obiettivi', icon: Trophy, color: 'text-emerald-500' },
   ];
@@ -90,20 +92,20 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
         
         {/* Power Ring / Earnings Card */}
         <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-8 border border-white/40 dark:border-white/10 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
           <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] mb-2">GUADAGNO OGGI</p>
           <p className="text-6xl font-black text-slate-900 dark:text-white tracking-tighter">€{Math.round(props.dailyEarnings)}</p>
           
           <div className="mt-6 flex gap-4">
             <button
               onClick={props.onOpenTargetCalculator}
-              className="p-4 bg-slate-100 dark:bg-white/10 hover:bg-blue-500 hover:text-white rounded-2xl transition-all shadow-lg border border-white/20"
+              className="p-4 bg-slate-100 dark:bg-white/10 hover:bg-indigo-500 hover:text-white rounded-2xl transition-all shadow-lg border border-white/20"
             >
               <Calculator size={24} />
             </button>
             <button
               onClick={props.onOpenObjectionHandler}
-              className="flex items-center gap-3 px-6 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-500/20 transition-all border border-white/20"
+              className="flex items-center gap-3 px-6 py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-500/20 transition-all border border-white/20"
             >
               <Sparkles size={20} />
               <span className="font-black text-[10px] uppercase tracking-widest">Script Lib</span>
@@ -128,9 +130,16 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
         <div className="flex flex-col gap-6">
             {/* Next Appointment Card */}
             {props.nextAppointment ? (
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2.5rem] p-7 text-white shadow-2xl shadow-indigo-500/20 border border-white/20">
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2.5rem] p-7 text-white shadow-2xl shadow-indigo-500/20 border border-white/20 relative group">
+                    <button 
+                        onClick={() => props.onClearNextAppointment && props.onClearNextAppointment()}
+                        className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all shadow-sm"
+                        title="Rimuovi questo appuntamento"
+                    >
+                        <X size={16} strokeWidth={3} />
+                    </button>
                     <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-4">PROSSIMO APPUNTAMENTO</p>
-                    <h4 className="text-2xl font-black mb-1 leading-tight">{props.nextAppointment.title}</h4>
+                    <h4 className="text-2xl font-black mb-1 leading-tight pr-8">{props.nextAppointment.title}</h4>
                     <p className="text-sm font-bold text-indigo-200 uppercase mb-6 opacity-80">
                         {new Date(props.nextAppointment.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </p>

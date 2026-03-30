@@ -89,7 +89,7 @@ const TargetCalculatorModal: React.FC<TargetCalculatorModalProps> = ({
     const dailyContacts = dailyAppts / currentRates.CONTACT_TO_APPT;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white pb-8 relative overflow-hidden">

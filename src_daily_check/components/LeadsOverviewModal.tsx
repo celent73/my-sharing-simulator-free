@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactDOM from 'react-dom';
-import { ActivityLog, ActivityType, Lead } from '../types';
+import { ActivityLog, ActivityType, Lead, ContractType } from '../types';
 import { ACTIVITY_LABELS } from '../constants';
 import { it } from 'date-fns/locale';
 import { format } from 'date-fns';
@@ -37,25 +37,42 @@ const LeadsOverviewModal: React.FC<LeadsOverviewModalProps> = ({
         activityLogs.forEach(log => {
             if (log.leads) {
                 log.leads.forEach(lead => {
-                    if (lead && lead.type === activityType) {
-                        // --- FILTRO AVANZATO (v1.3.1) ---
-                        // 1. Se stiamo guardando i CONTATTI, nascondi quelli che sono diventati appuntamenti o clienti/persi
+                    if (lead && lead.status !== 'lost') {
+                        // Logic for Contacts
                         if (activityType === ActivityType.CONTACTS) {
-                            if (lead.status !== 'pending' || lead.linkedAppointment || lead.appointmentDate) {
-                                return;
+                            if (lead.type === ActivityType.CONTACTS) {
+                                // For Contacts list, only show pending ones without an appointment date
+                                if (lead.status === 'pending' && !lead.appointmentDate && !lead.linkedAppointment) {
+                                  if (!filterStr || log.date === filterStr) {
+                                    allLeads.push(lead);
+                                  }
+                                }
                             }
+                        } 
+                        // Logic for Contracts and Family Utilities
+                        else if (activityType === ActivityType.NEW_CONTRACTS) {
+                             // "Nuovi Contratti" shows everything won (Normal Contracts + Family Utilities)
+                             if ((lead.type === ActivityType.NEW_CONTRACTS || lead.type === ActivityType.NEW_FAMILY_UTILITY) && lead.status === 'won') {
+                                 const updatedDateStr = lead.updatedAt ? lead.updatedAt.split('T')[0] : log.date;
+                                 if (!filterStr || updatedDateStr === filterStr) {
+                                     allLeads.push(lead);
+                                 }
+                             }
                         }
-                        // 2. Per gli altri tipi (Appuntamenti, Contratti), basati sullo status e sul tipo
-                        else if (lead.status === 'lost') {
-                            return;
+                        else if (activityType === ActivityType.NEW_FAMILY_UTILITY) {
+                             // "Family Utility" shows its own type AND generic "NEW_CONTRACTS" that are "GREEN"
+                             if ((lead.type === ActivityType.NEW_FAMILY_UTILITY || (lead.type === ActivityType.NEW_CONTRACTS && lead.contractType === ContractType.GREEN)) && lead.status === 'won') {
+                                 const updatedDateStr = lead.updatedAt ? lead.updatedAt.split('T')[0] : log.date;
+                                 if (!filterStr || updatedDateStr === filterStr) {
+                                     allLeads.push(lead);
+                                 }
+                             }
                         }
-
-                        if (filterStr) {
-                            if (log.date === filterStr) {
+                        // Default logic for other types (e.g., Appointments handled by other modals, but here for safety)
+                        else if (lead.type === activityType) {
+                            if (!filterStr || log.date === filterStr) {
                                 allLeads.push(lead);
                             }
-                        } else {
-                            allLeads.push(lead);
                         }
                     }
                 });
@@ -63,8 +80,9 @@ const LeadsOverviewModal: React.FC<LeadsOverviewModalProps> = ({
         });
 
         allLeads.sort((a, b) => {
-            const dateA = a.date ? new Date(a.date).getTime() : 0;
-            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            // Sort by update date (won date) if available, otherwise by creation date
+            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : (a.date ? new Date(a.date).getTime() : 0);
+            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : (b.date ? new Date(b.date).getTime() : 0);
             return dateB - dateA;
         });
 

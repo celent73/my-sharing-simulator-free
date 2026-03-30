@@ -106,7 +106,7 @@ const NotificationItem: React.FC<{ notification: Notification; onClose: () => vo
 
   const typeStyles = {
     success: { bg: 'bg-green-100 dark:bg-green-900', text: 'text-green-800 dark:text-green-100', icon: <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" /></svg> },
-    info: { bg: 'bg-blue-100 dark:bg-blue-900', text: 'text-blue-800 dark:text-blue-100', icon: <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" /></svg> }
+    info: { bg: 'bg-indigo-100 dark:bg-indigo-900', text: 'text-indigo-800 dark:text-indigo-100', icon: <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" /></svg> }
   };
   const styles = typeStyles[notification.type];
   return (
@@ -713,15 +713,13 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                 // Safety copy for mutation-free update
                 const currentCounts = { ...(todayLog.counts || {}) };
                 const newVal = (currentCounts[newType as ActivityType] || 0) + 1;
-                const oldVal = Math.max(0, (currentCounts[oldType as ActivityType] || 0) - 1);
                 
                 todayLog.counts = {
                   ...currentCounts,
-                  [newType]: newVal,
-                  [oldType]: oldVal
+                  [newType]: newVal
                 };
                 
-                console.log(`[handleSaveLead] Counter Update Applied to ${dateStr}: ${newType}[${newVal}], ${oldType}[${oldVal}]`);
+                console.log(`[handleSaveLead] Funnel Progression: ${newType} incremented to ${newVal}. Previous ${oldType} count preserved.`);
                 todayLogModified = true;
                 addNotification(`Contatto trasformato in ${newType === ActivityType.APPOINTMENTS ? 'Appuntamento' : 'Contatto'}!`, 'info');
               }
@@ -901,7 +899,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     setEditingLead(null);
 
     // AUTOMAZIONE: Aggiornamento automatico del "Prossimo Appuntamento" nelle impostazioni
-    if ((leadData.type === ActivityType.APPOINTMENTS || (leadData as any).linkedAppointment) && leadData.appointmentDate && leadData.status !== 'won') {
+    // Se è un appuntamento futuro e NON è stato ancora vinto/perso, impostalo come prossimo
+    if ((leadData.type === ActivityType.APPOINTMENTS || (leadData as any).linkedAppointment) && leadData.appointmentDate && leadData.status === 'pending') {
       const appDate = new Date(leadData.appointmentDate);
       if (appDate > new Date()) {
         setSettings(prev => ({
@@ -912,12 +911,21 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
           }
         }));
       }
-    } else if (leadData.status === 'won' && settings.nextAppointment?.title === leadData.name) {
-      // Se il prossimo appuntamento è stato vinto, puliamolo
-      setSettings(prev => {
-        const { nextAppointment, ...rest } = prev;
-        return rest as any;
-      });
+    } 
+    
+    // PULIZIA: Se il lead salvato (vinto o perso) corrisponde al "Prossimo Appuntamento", rimuovilo
+    const currentNextApp = settings.nextAppointment;
+    if (currentNextApp && (leadData.status === 'won' || leadData.status === 'lost')) {
+        const normSavedName = normalizeName(leadData.name);
+        const normNextAppName = normalizeName(currentNextApp.title);
+        
+        if (normSavedName === normNextAppName) {
+            console.log(`[handleSaveLead] Clearing Next Appointment for ${leadData.name} (Status: ${leadData.status})`);
+            setSettings(prev => {
+                const { nextAppointment, ...rest } = prev;
+                return rest as any;
+            });
+        }
     }
 
     if (!leadData.status || leadData.status !== 'won') {
@@ -1517,13 +1525,13 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                   <div className="flex justify-center mb-2 p-1.5 rounded-2xl mx-auto w-full max-w-md border-2 border-slate-200 dark:border-white/10 shadow-2xl relative z-30 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl">
                     <button
                       onClick={() => setActiveTab('inserimento')}
-                      className={`flex-1 py-4 text-base sm:text-lg font-black rounded-xl transition-all duration-300 ${activeTab === 'inserimento' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
+                      className={`flex-1 py-4 text-base sm:text-lg font-black rounded-xl transition-all duration-300 ${activeTab === 'inserimento' ? 'bg-gradient-to-r from-indigo-600 to-violet-500 text-white shadow-xl shadow-indigo-500/20' : 'text-slate-500 dark:text-slate-400'}`}
                     >
                       Inserimento
                     </button>
                     <button
                       onClick={() => setActiveTab('risultati')}
-                      className={`flex-1 py-4 text-base sm:text-lg font-black rounded-xl transition-all duration-300 ${activeTab === 'risultati' ? 'bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-xl' : 'text-slate-500 dark:text-slate-400'}`}
+                      className={`flex-1 py-4 text-base sm:text-lg font-black rounded-xl transition-all duration-300 ${activeTab === 'risultati' ? 'bg-gradient-to-r from-indigo-600 to-violet-500 text-white shadow-xl shadow-indigo-500/20' : 'text-slate-500 dark:text-slate-400'}`}
                     >
                       Risultati
                     </button>
@@ -1620,6 +1628,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                               coachStreak={coachStreak}
                               yesterdayScore={yesterdayScore}
                               nextAppointment={settings.nextAppointment}
+                              onClearNextAppointment={() => setSettings((prev: any) => ({ ...prev, nextAppointment: undefined }))}
                               nextFollowUp={nextFollowUp}
                               habitStacks={settings.habitStacks}
                               enableHabitStacking={settings.enableHabitStacking}
@@ -1781,7 +1790,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                       <div className="space-y-6">
                         <button onClick={() => handleOpenSettings('profile')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
                           <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform">
                               <UserCircleIcon size={28} />
                             </div>
                             <div className="text-left">

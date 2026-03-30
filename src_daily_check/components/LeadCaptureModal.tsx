@@ -697,64 +697,90 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                             </div>
                         )}
 
-                        {/* ESITO APPUNTAMENTO - Decisive Gradient Buttons */}
+                        {/* ESITO APPUNTAMENTO - Apple Style Redesign */}
                         {isAppointment && initialData && (
-                            <div className="space-y-6 pt-8 border-t-2 border-slate-100 dark:border-white/5">
-                                <div className="flex items-center gap-3 px-1">
-                                    <div className="w-2 h-6 bg-emerald-500 rounded-full" />
-                                    <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Esito Appuntamento</h3>
+                            <div className="space-y-6 pt-8 border-t border-slate-100 dark:border-white/5">
+                                <div className="flex justify-center mb-6">
+                                    <h3 className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-[0.25em] bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">Esito Appuntamento</h3>
                                 </div>
                                 
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        setWonType('cliente');
-                                        handleSubmit(e, 'won', 'cliente');
-                                    }}
-                                    className="w-full p-6 bg-gradient-to-br from-[#34C759] to-[#30B0C7] text-white rounded-[2.5rem] shadow-[0_20px_40px_rgba(52,199,89,0.2)] transition-all active:scale-[0.96] group flex items-center justify-between border-b-4 border-emerald-700"
-                                >
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-4xl shadow-inner backdrop-blur-md">📄</div>
-                                        <div className="text-left">
-                                            <p className="font-black text-lg uppercase tracking-tight">NUOVO CLIENTE PRIVILEGIATO</p>
-                                            <p className="text-[10px] text-white/70 font-black uppercase">Obiettivo Raggiunto!</p>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {/* Cliente Privilegiato */}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            setWonType('cliente');
+                                            handleSubmit(e, 'won', 'cliente');
+                                        }}
+                                        className="w-full p-8 bg-white dark:bg-slate-900 border-[3px] border-[#007AFF]/40 rounded-[2.5rem] shadow-lg hover:border-[#007AFF] hover:shadow-[0_0_25px_rgba(0,122,255,0.5)] active:bg-[#007AFF]/5 active:shadow-[0_0_40px_rgba(0,122,255,0.9)] transition-all duration-300 active:scale-[0.96] group flex flex-col items-center justify-center gap-4 relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#007AFF]/5 blur-3xl rounded-full pointer-events-none group-hover:bg-[#007AFF]/30 transition-all duration-500" />
+                                        
+                                        <div className="text-[#007AFF]">
+                                            <svg viewBox="0 0 100 100" className="w-16 h-16 group-hover:scale-110 group-hover:-translate-y-1 transition-transform duration-500" fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M50 65 A 15 15 0 1 0 50 35 A 15 15 0 1 0 50 65 Z" />
+                                                <path d="M25 90 Q 25 70 50 70 Q 75 70 75 90" />
+                                                <path d="M50 10 L53 18 L61 18 L55 23 L57 31 L50 26 L43 31 L45 23 L39 18 L47 18 Z" />
+                                                <path d="M25 20 L27 26 L33 26 L28 30 L30 36 L25 32 L20 36 L22 30 L17 26 L23 26 Z" />
+                                                <path d="M75 20 L77 26 L83 26 L78 30 L80 36 L75 32 L70 36 L72 30 L67 26 L73 26 Z" />
+                                            </svg>
                                         </div>
-                                    </div>
-                                    <span className="text-3xl group-hover:rotate-12 transition-transform">🚀</span>
-                                </button>
+                                        
+                                        <div className="text-center relative z-10 mt-2">
+                                            <p className="font-black text-xl text-slate-900 dark:text-white tracking-tight mb-1">Cliente Privilegiato</p>
+                                            <p className="text-[10px] text-[#007AFF] font-black uppercase tracking-widest bg-[#007AFF]/10 px-3 py-1 rounded-full inline-block">Obiettivo Raggiunto</p>
+                                        </div>
+                                    </button>
 
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        setWonType('partner');
-                                        handleSubmit(e, 'won', 'partner');
-                                    }}
-                                    className="w-full p-6 bg-gradient-to-br from-[#AF52DE] to-[#5856D6] text-white rounded-[2.5rem] shadow-[0_20px_40px_rgba(175,82,222,0.2)] transition-all active:scale-[0.96] group flex items-center justify-between border-b-4 border-purple-800"
-                                >
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-4xl shadow-inner backdrop-blur-md">🤝</div>
-                                        <div className="text-left">
-                                            <p className="font-black text-lg uppercase tracking-tight">FAMILY UTILITY</p>
-                                            <p className="text-[10px] text-white/70 font-black uppercase">Consulenza Diretta</p>
+                                    {/* Family Utility */}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            setWonType('partner');
+                                            handleSubmit(e, 'won', 'partner');
+                                        }}
+                                        className="w-full p-8 bg-white dark:bg-slate-900 border-[3px] border-[#34C759]/40 rounded-[2.5rem] shadow-lg hover:border-[#34C759] hover:shadow-[0_0_25px_rgba(52,199,89,0.5)] active:bg-[#34C759]/5 active:shadow-[0_0_40px_rgba(52,199,89,0.9)] transition-all duration-300 active:scale-[0.96] group flex flex-col items-center justify-center gap-4 relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#34C759]/5 blur-3xl rounded-full pointer-events-none group-hover:bg-[#34C759]/30 transition-all duration-500" />
+                                        
+                                        <div className="text-[#34C759]">
+                                            <svg viewBox="0 0 100 100" className="w-16 h-16 group-hover:scale-110 group-hover:-translate-y-1 transition-transform duration-500" fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M50 25 A 8 8 0 1 0 50 9 A 8 8 0 1 0 50 25 Z" />
+                                                <path d="M40 38 Q 40 30 50 30 Q 60 30 60 38" />
+                                                <path d="M50 75 A 8 8 0 1 0 50 59 A 8 8 0 1 0 50 75 Z" />
+                                                <path d="M40 88 Q 40 80 50 80 Q 60 80 60 88" />
+                                                <path d="M25 50 A 8 8 0 1 0 25 34 A 8 8 0 1 0 25 50 Z" />
+                                                <path d="M15 63 Q 15 55 25 55 Q 35 55 35 63" />
+                                                <path d="M75 50 A 8 8 0 1 0 75 34 A 8 8 0 1 0 75 50 Z" />
+                                                <path d="M65 63 Q 65 55 75 55 Q 85 55 85 63" />
+                                                <path d="M30 25 A 35 35 0 0 1 42 16" />
+                                                <path d="M58 16 A 35 35 0 0 1 70 25" />
+                                                <path d="M70 65 A 35 35 0 0 1 58 74" />
+                                                <path d="M42 74 A 35 35 0 0 1 30 65" />
+                                            </svg>
                                         </div>
-                                    </div>
-                                    <span className="text-3xl group-hover:rotate-[-12deg] transition-transform">⭐</span>
-                                </button>
+                                        
+                                        <div className="text-center relative z-10 mt-2">
+                                            <p className="font-black text-xl text-slate-900 dark:text-white tracking-tight mb-1">Family Utility</p>
+                                            <p className="text-[10px] text-[#34C759] font-black uppercase tracking-widest bg-[#34C759]/10 px-3 py-1 rounded-full inline-block">Consulenza Diretta</p>
+                                        </div>
+                                    </button>
 
-                                <button
-                                    type="button"
-                                    onClick={(e) => handleSubmit(e, 'lost')}
-                                    className="w-full p-6 bg-white dark:bg-slate-800 text-slate-400 rounded-[2.5rem] border-2 border-slate-100 dark:border-white/5 transition-all hover:border-red-500/20 hover:text-red-500 active:scale-[0.96] group flex items-center justify-between"
-                                >
-                                    <div className="flex items-center gap-6 opacity-60 group-hover:opacity-100 transition-opacity">
-                                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-4xl">🛑</div>
-                                        <div className="text-left">
-                                            <p className="font-black text-lg uppercase tracking-tight group-hover:text-red-600">Perso</p>
-                                            <p className="text-[10px] font-black uppercase group-hover:text-red-400">Archivia Contatto</p>
+                                    {/* Perso */}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleSubmit(e, 'lost')}
+                                        className="w-full p-6 mt-4 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border-2 border-slate-100 dark:border-white/5 transition-all hover:bg-red-50 hover:border-red-500/20 active:scale-[0.98] group flex items-center justify-center gap-4"
+                                    >
+                                        <div className="text-slate-400 group-hover:text-red-500 transition-colors">
+                                            <X size={24} strokeWidth={3} />
                                         </div>
-                                    </div>
-                                    <span className="text-3xl opacity-0 group-hover:opacity-100 transition-all">✖️</span>
-                                </button>
+                                        <div className="text-center">
+                                            <p className="font-black text-sm uppercase tracking-widest text-slate-500 group-hover:text-red-600 transition-colors">Perso / Non Interessato</p>
+                                            <p className="text-[10px] font-bold text-slate-400 group-hover:text-red-400">Archivia questo contatto</p>
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
                         )}
                         {/* Tasto Salva Principale (solo se non ci sono esiti da dare) */}

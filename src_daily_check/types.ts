@@ -64,6 +64,7 @@ export interface Lead {
   videoSent?: boolean;
   videoType?: string;
   contractType?: ContractType;
+  updatedAt?: string;
 }
 
 export interface Client {

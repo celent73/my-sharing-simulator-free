@@ -385,7 +385,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                     {selectedDateFormatted}
                                 </span>
                                 {isToday && (
-                                    <span className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-2.5 py-1 rounded-lg shadow-lg shadow-blue-500/20">
+                                    <span className="text-[10px] font-black uppercase tracking-widest bg-gradient-to-r from-indigo-600 to-violet-500 text-white px-2.5 py-1 rounded-lg shadow-lg shadow-indigo-500/20">
                                         OGGI
                                     </span>
                                 )}
@@ -393,7 +393,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                             {!isToday && (
                                 <button
                                     onClick={() => onDateChange(new Date())}
-                                    className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:opacity-70 transition-all"
+                                    className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:opacity-70 transition-all"
                                 >
                                     TORNA AD OGGI
                                 </button>
@@ -414,10 +414,10 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                             onClick={onOpenCalendar}
                             className="flex items-center gap-2 group"
                         >
-                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:text-blue-500 group-hover:bg-blue-50 transition-all">
+                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:text-indigo-500 group-hover:bg-indigo-50 transition-all">
                                 <Calendar className="w-4 h-4" />
                             </div>
-                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 group-hover:text-blue-500 transition-colors">CAMBIA DATA</span>
+                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-500 transition-colors">CAMBIA DATA</span>
                         </button>
                     </div>
                 </div>
@@ -447,7 +447,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                 {/* POWER RING (Central Indicator) - Moved to Results Tab */}
                 {isHubMode && activeTab === 'risultati' && (
                     <div className="mb-16 relative group animate-in fade-in zoom-in duration-500">
-                        <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none"></div>
+                        <div className="absolute inset-0 bg-indigo-500/10 blur-[100px] rounded-full group-hover:bg-indigo-500/20 transition-all duration-700 pointer-events-none"></div>
                         <div className="relative w-64 h-64 lg:w-80 lg:h-80 rounded-full border-[1.5rem] border-slate-300/30 dark:border-slate-700/60 flex items-center justify-center shadow-[inset_0_0_60px_rgba(0,0,0,0.15)]">
                             <div className="text-center">
                                 <p className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Guadagno Oggi</p>
@@ -456,7 +456,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                     onClick={onOpenTargetCalculator}
                                     className="mt-4 p-3 bg-white/5 dark:bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl transition-all active:scale-95 mx-auto"
                                 >
-                                    <Calculator className="w-5 h-5 text-blue-500" />
+                                    <Calculator className="w-5 h-5 text-indigo-500" />
                                 </button>
                                 <div className="mt-3 flex flex-col items-center gap-2">
                                     <svg className="absolute inset-[-1.5rem] w-[calc(100%+3rem)] h-[calc(100%+3rem)] -rotate-90">
@@ -517,7 +517,7 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                 {viewMode === mode && (
                                                     <motion.div
                                                         layoutId="activePeriod"
-                                                        className="absolute inset-0 bg-blue-500 rounded-xl -z-10 shadow-lg shadow-blue-500/30"
+                                                        className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-500 rounded-xl -z-10 shadow-lg shadow-indigo-500/30"
                                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                                     />
                                                 )}
@@ -680,10 +680,22 @@ const ActivityInput: React.FC<ActivityInputProps> = ({
                                                         <button
                                                             onClick={(e) => { 
                                                                 e.stopPropagation(); 
-                                                                if (activity === ActivityType.APPOINTMENTS) setIsAppointmentsOverviewOpen(true);
-                                                                else if (activity === ActivityType.CONTACTS) setIsContactsOverviewOpen(true);
-                                                                else if (activity === ActivityType.NEW_CONTRACTS) setIsContractsOverviewOpen(true);
-                                                                else if (activity === ActivityType.NEW_FAMILY_UTILITY) setIsFamilyUtilityOverviewOpen(true);
+                                                                if (activity === ActivityType.APPOINTMENTS) {
+                                                                    setAppointmentsFilterDate(viewMode === 'daily' ? selectedDate : null);
+                                                                    setIsAppointmentsOverviewOpen(true);
+                                                                }
+                                                                else if (activity === ActivityType.CONTACTS) {
+                                                                    setContactsFilterDate(viewMode === 'daily' ? selectedDate : null);
+                                                                    setIsContactsOverviewOpen(true);
+                                                                }
+                                                                else if (activity === ActivityType.NEW_CONTRACTS) {
+                                                                    setContractsFilterDate(viewMode === 'daily' ? selectedDate : null);
+                                                                    setIsContractsOverviewOpen(true);
+                                                                }
+                                                                else if (activity === ActivityType.NEW_FAMILY_UTILITY) {
+                                                                    setFamilyUtilityFilterDate(viewMode === 'daily' ? selectedDate : null);
+                                                                    setIsFamilyUtilityOverviewOpen(true);
+                                                                }
                                                             }}
                                                             className="w-12 h-12 rounded-2xl flex items-center justify-center text-[#8e8e93] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.01] dark:border-white/[0.01] shadow-lg hover:bg-blue-500 hover:text-white transition-all active:scale-90"
                                                             title="Vedi lista"
