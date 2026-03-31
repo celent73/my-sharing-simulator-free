@@ -701,7 +701,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                         {isAppointment && initialData && (
                             <div className="space-y-6 pt-8 border-t border-slate-100 dark:border-white/5">
                                 <div className="flex justify-center mb-6">
-                                    <h3 className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-[0.25em] bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">Esito Appuntamento</h3>
+                                    <h3 className="text-[11px] font-black uppercase text-white tracking-[0.25em] bg-slate-800 dark:bg-white dark:text-slate-900 px-5 py-2.5 rounded-full shadow-lg shadow-slate-900/10">Esito Appuntamento</h3>
                                 </div>
                                 
                                 <div className="grid grid-cols-1 gap-4">
