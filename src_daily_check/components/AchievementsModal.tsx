@@ -5,25 +5,12 @@ import { formatItalianDate } from '../utils/dateUtils';
 interface AchievementsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // unlockedAchievements is no longer used but kept for prop compatibility
+  careerDates?: Record<string, string>;
   unlockedAchievements?: any;
 }
 
-const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose }) => {
-  const [dates, setDates] = useState<Record<string, string>>({});
+const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose, careerDates = {} }) => {
 
-  useEffect(() => {
-    if (isOpen) {
-      const saved = localStorage.getItem('dailyCheck_careerPathDates');
-      if (saved) {
-        try {
-          setDates(JSON.parse(saved));
-        } catch (e) {
-          console.error("Error loading career dates", e);
-        }
-      }
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -48,7 +35,7 @@ const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose }
         <div className="p-6 overflow-y-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {CAREER_STAGES.map((stage) => {
-              const unlockedDate = dates[stage.name];
+              const unlockedDate = careerDates[stage.name];
               const parsedDate = unlockedDate ? new Date(unlockedDate) : null;
               const hasDate = !!parsedDate;
               // Normalizziamo le date per confrontare solo i giorni

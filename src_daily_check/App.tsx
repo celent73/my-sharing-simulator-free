@@ -1917,7 +1917,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
         onClose={() => setResetGoalsModalOpen(false)}
         onConfirm={handleResetGoals}
       />
-      <AchievementsModal isOpen={isAchievementsModalOpen} onClose={() => setAchievementsModalOpen(false)} unlockedAchievements={unlockedAchievements} />
+      <AchievementsModal isOpen={isAchievementsModalOpen} onClose={() => setAchievementsModalOpen(false)} unlockedAchievements={unlockedAchievements} careerDates={settings.careerPathDates} />
       <MonthlyReportModal isOpen={isMonthlyReportModalOpen} onClose={() => setIsMonthlyReportModalOpen(false)} activityLogs={activityLogs} commercialMonthStartDay={settings.commercialMonthStartDay} userProfile={settings.userProfile} customLabels={effectiveCustomLabels} />
       <ContractSelectorModal isOpen={isContractSelectorModalOpen} onClose={() => setIsContractSelectorModalOpen(false)} onSelectContract={handleContractSelection} userStatus={settings.userProfile.commissionStatus} />
       <VisionBoardModal
