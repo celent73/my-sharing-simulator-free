@@ -49,22 +49,31 @@ const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {CAREER_STAGES.map((stage) => {
               const unlockedDate = dates[stage.name];
-              const isUnlocked = !!unlockedDate;
+              const parsedDate = unlockedDate ? new Date(unlockedDate) : null;
+              const hasDate = !!parsedDate;
+              // Normalizziamo le date per confrontare solo i giorni
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const targetDate = parsedDate ? new Date(parsedDate) : null;
+              if (targetDate) targetDate.setHours(0, 0, 0, 0);
+              
+              const isUnlocked = targetDate ? targetDate <= today : false;
+              const isTarget = targetDate ? targetDate > today : false;
 
               return (
                 <div
                   key={stage.name}
-                  className={`p-5 rounded-xl border flex items-center gap-5 transition-all duration-300 ${isUnlocked
+                  className={`p-5 rounded-xl border flex items-center gap-5 transition-all duration-300 ${hasDate
                     ? 'bg-white shadow-sm'
                     : 'bg-slate-50 border-slate-200 opacity-60'
                     }`}
-                  style={isUnlocked ? { borderColor: `${stage.color}60` } : {}}
+                  style={hasDate ? { borderColor: `${stage.color}60` } : {}}
                 >
                   <div
                     className={`flex-shrink-0 h-16 w-16 p-3 rounded-full flex items-center justify-center transition-colors duration-300`}
                     style={{
-                      backgroundColor: isUnlocked ? `${stage.color}20` : '#e2e8f0',
-                      color: isUnlocked ? stage.color : '#94a3b8'
+                      backgroundColor: hasDate ? `${stage.color}20` : '#e2e8f0',
+                      color: hasDate ? stage.color : '#94a3b8'
                     }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" viewBox="0 0 24 24" fill="currentColor">
@@ -74,17 +83,24 @@ const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose }
                   <div className="flex-grow">
                     <h3
                       className={`font-bold text-lg transition-colors duration-300`}
-                      style={{ color: isUnlocked ? stage.color : '#475569' }}
+                      style={{ color: hasDate ? stage.color : '#475569' }}
                     >
                       {stage.name}
                     </h3>
-                    <p className={`text-sm transition-colors duration-300 text-slate-500`}>
-                      {isUnlocked ? 'Qualifica raggiunta' : 'Da raggiungere'}
+                    <p className={`text-sm transition-colors duration-300 text-slate-500 font-medium`}>
+                      {isUnlocked ? 'Qualifica raggiunta' : isTarget ? 'Obiettivo pianificato' : 'Da raggiungere'}
                     </p>
                     {isUnlocked && (
-                      <p className="text-xs text-slate-500 mt-1 font-medium">
-                        Sbloccato il: {formatItalianDate(new Date(unlockedDate))}
+                      <p className="text-xs text-slate-500 mt-1">
+                        Sbloccato il: {formatItalianDate(parsedDate!)}
                       </p>
+                    )}
+                    {isTarget && (
+                      <div className="mt-1">
+                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md border border-amber-500/20">
+                          Previsto per: {formatItalianDate(parsedDate!)}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
