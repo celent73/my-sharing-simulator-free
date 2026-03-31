@@ -1094,7 +1094,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
               const cleanLead = { ...lead };
               if (cleanLead.date && cleanLead.date.includes('T')) cleanLead.date = cleanLead.date.split('T')[0];
               if (cleanLead.followUpDate && cleanLead.followUpDate.includes('T')) cleanLead.followUpDate = cleanLead.followUpDate.split('T')[0];
-              if (cleanLead.appointmentDate && cleanLead.appointmentDate.includes('T')) cleanLead.appointmentDate = cleanLead.appointmentDate.split('T')[0];
+              // Abbiamo rimosso lo split su appointmentDate per preservare l'orario (T20:30)
               return cleanLead;
           });
 
