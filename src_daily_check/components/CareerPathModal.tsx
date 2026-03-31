@@ -287,27 +287,12 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                                 ease: "easeInOut" 
                                             } : {}}
                                             onClick={() => setSelectedStageIndex(index)}
-                                            className={`relative w-24 h-24 sm:w-[7.5rem] sm:h-[7.5rem] rounded-full flex items-center justify-center border transition-all duration-500 z-20 backdrop-blur-md overflow-hidden ${isFuture ? 'opacity-40 grayscale-[0.8]' : 'cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
+                                            className={`relative w-24 h-24 sm:w-[7.5rem] sm:h-[7.5rem] rounded-full flex items-center justify-center border transition-all duration-500 z-20 backdrop-blur-md ${isFuture ? 'opacity-40 grayscale-[0.8]' : 'cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.4)]'}`}
                                             style={{
-                                                backgroundColor: isReached ? stage.color : (isFilled || isCurrent || isTarget) ? `${stage.color}15` : 'rgba(15,23,42,0.6)',
-                                                borderColor: isReached ? '#ffffff' : (isFilled || isCurrent || isTarget) ? `${stage.color}40` : 'rgba(255,255,255,0.05)',
+                                                backgroundColor: isReached ? stage.color : (isFilled || isCurrent || isTarget) ? `${stage.color}` : 'rgba(30,41,59,0.7)',
+                                                borderColor: isReached ? '#ffffff' : (isFilled || isCurrent || isTarget) ? `rgba(255,255,255,0.4)` : 'rgba(255,255,255,0.1)',
                                             }}
                                         >
-                                            {/* Aura for Active Node */}
-                                            {(isCurrent || isTarget) && (
-                                                <div 
-                                                    className="absolute inset-0 animate-pulse-slow opacity-30 blur-xl"
-                                                    style={{ backgroundColor: stage.color }}
-                                                ></div>
-                                            )}
-
-                                            {/* Classic Ping Effect (like before) */}
-                                            {(isCurrent || isTarget) && (
-                                                <span 
-                                                    className="absolute inset-0 rounded-full animate-ping opacity-60 border-4 z-0" 
-                                                    style={{ borderColor: stage.color }}
-                                                ></span>
-                                            )}
 
                                             {/* External Pulsing Rings (New) */}
                                             {(isCurrent || isTarget) && (

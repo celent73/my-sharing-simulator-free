@@ -1138,6 +1138,17 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     if (loadedCareerDates && Object.keys(loadedCareerDates).length > 0) {
       mergedSettings.careerPathDates = { ...mergedSettings.careerPathDates, ...loadedCareerDates };
     }
+
+    // AUTO-CLEAR Next Appointment se la data è passata rispetto a oggi
+    if (mergedSettings.nextAppointment) {
+      const todayStr = getTodayDateString();
+      const apptDateStr = mergedSettings.nextAppointment.date.split('T')[0];
+      if (apptDateStr < todayStr) {
+        console.log(`[loadLocalData] Pulizia automatica Prossimo Appuntamento scaduto: ${mergedSettings.nextAppointment.title}`);
+        delete mergedSettings.nextAppointment;
+      }
+    }
+
     setSettings(mergedSettings);
     setUnlockedAchievements(loadedAchievements);
     setIsInitializing(false);
