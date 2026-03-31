@@ -43,9 +43,9 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                 isMatch = true;
                                 displayDate = lead.followUpDate;
                                 isFollowUp = true;
-                            } else if (log.date === filterStr && lead.type === ActivityType.APPOINTMENTS) {
+                            } else if ((log.date === filterStr || lead.updatedAt?.startsWith(filterStr)) && (lead.type === ActivityType.APPOINTMENTS || lead.appointmentDate)) {
                                 isMatch = true;
-                                displayDate = lead.date;
+                                displayDate = lead.appointmentDate || lead.date;
                             }
                         } else {
                             // Vista generale: SOLO appuntamenti futuri (escludiamo i Follow-Up qui per non confondere)
