@@ -59,7 +59,7 @@ import { calculateDailyScore, calculateCoachStreak } from './utils/coachScoreUti
 import WeeklyReportModal from './components/WeeklyReportModal';
 import FollowUpRankingWidget from './components/FollowUpRankingWidget';
 import ResultsDashboard from './components/ResultsDashboard';
-const APP_VERSION = "v1.3.3";
+const APP_VERSION = "v1.4";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
 const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -480,9 +480,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
       if (stackToRemind && !activeReminderStack) {
           setActiveReminderStack(stackToRemind);
+          
+          // v1.3.28 Fix: Resolving actual action label instead of technically internal ID
+          const actionLabel = stackToRemind.action === 'CUSTOM' 
+            ? (stackToRemind.customActionName || 'Azione personalizzata') 
+            : (effectiveCustomLabels[stackToRemind.action as ActivityType] || stackToRemind.action);
+
           sendLocalNotification(
             `Habit Stacking: ${stackToRemind.trigger}`,
-            `È il momento di: ${stackToRemind.action === 'CUSTOM' ? stackToRemind.id : stackToRemind.action}. Sii focalizzato! 🎯`
+            `È il momento di: ${actionLabel}. Sii focalizzato! 🎯`
           );
       }
     };
@@ -491,7 +497,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     checkHabitReminders();
 
     return () => clearInterval(interval);
-  }, [settings.enableHabitStacking, settings.habitStacks, activeReminderStack]);
+  }, [settings.enableHabitStacking, settings.habitStacks, activeReminderStack, effectiveCustomLabels]);
 
   // Follow-up & Appointment Notifications
   useEffect(() => {
@@ -1776,7 +1782,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                           alt="Union Energia" 
                           className="h-8 w-auto opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all" 
                         />
-                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.3.3</p>
+                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.4</p>
                         <button onClick={signOut} className="px-10 py-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl font-black uppercase tracking-widest transition-all">Sconnetti</button>
                       </div>
                     </div>
@@ -1873,7 +1879,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                         />
                         <div className="text-center">
                           <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">My Sharing Simulator</p>
-                          <p className="text-slate-500 text-xs mt-1">Versione 1.3.1 • Protetto da crittografia SSL</p>
+                          <p className="text-slate-500 text-xs mt-1">Versione 1.4 • Protetto da crittografia SSL</p>
                         </div>
                         <button onClick={signOut} className="w-full max-w-xs py-4 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest transition-all hover:bg-slate-900">Sconnetti</button>
                       </div>

@@ -16,6 +16,7 @@ import FollowUpRankingWidget from './FollowUpRankingWidget';
 import GoalRecoveryWidget from './GoalRecoveryWidget';
 import Dashboard from './Dashboard';
 import CoachGreeting from './CoachGreeting';
+import CoachStrategyWidget from './CoachStrategyWidget';
 import CoachScoreWidget from './CoachScoreWidget';
 import DreamTrackerWidget from './DreamTrackerWidget';
 import HabitStackWidget from './HabitStackWidget';
@@ -80,6 +81,13 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
             firstName={props.userProfile.firstName} 
             yesterdayScore={props.yesterdayScore} 
             streak={props.coachStreak} 
+          />
+          <CoachStrategyWidget
+            score={props.dailyScore}
+            streak={props.coachStreak}
+            firstName={props.userProfile.firstName}
+            counts={props.activityLogs.find(l => l.date === props.activityLogs[0]?.date)?.counts || {}}
+            goals={props.goals}
           />
           <CoachScoreWidget
             score={props.dailyScore}

@@ -18,6 +18,13 @@ export interface CoachingContext {
   userName?: string;
 }
 
+export interface CoachStrategy {
+  title: string;
+  insight: string;
+  action: string;
+  quote: string;
+}
+
 export const generateCoachTip = async (context: CoachingContext): Promise<string | null> => {
   // 1. Check Cache
   const today = new Date().toISOString().split('T')[0];
@@ -62,6 +69,96 @@ export const generateCoachTip = async (context: CoachingContext): Promise<string
     return tip;
   } catch (error) {
     console.error("Error generating coach tip with Groq:", error);
+    return null;
+  }
+};
+
+export const generateCoachStrategy = async (context: CoachingContext): Promise<CoachStrategy | null> => {
+  // 1. Check Cache
+  const today = new Date().toISOString().split('T')[0];
+  const cacheKey = `coach_strategy_${context.userName}_${today}_${context.score}_${JSON.stringify(context.counts)}`;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (e) {
+      localStorage.removeItem(cacheKey);
+    }
+  }
+
+  if (!groq) return null;
+
+  try {
+    const prompt = `
+      Sei l'Elite Performance Coach di ${context.userName || 'un consulente'}. Analizza questi dati e crea una STRATEGIA DI VENDITA professionale.
+      
+      DATI ATTUALI:
+      - Daily Score: ${context.score}/100
+      - Streak: ${context.streak} giorni
+      - Azioni oggi: ${JSON.stringify(context.counts)}
+      - Obiettivi: ${JSON.stringify(context.goals.daily)}
+
+      REGOLE:
+      1. Sii autorevole, tecnico e motivante.
+      2. Identifica il "collo di bottiglia" (es. molti contatti ma pochi video sent).
+      3. Restituisci SOLO un oggetto JSON con queste chiavi:
+         - title: Titolo della strategia (max 5 parole)
+         - insight: Analisi tecnica della situazione (max 25 parole)
+         - action: L'azione singola più importante da fare ORA (max 15 parole)
+         - quote: Una frase motivazionale potente (max 12 parole)
+      
+      LINGUA: Italiano.
+    `;
+
+    // 2. Try Groq Primary
+    if (groq) {
+      try {
+        const completion = await groq.chat.completions.create({
+          messages: [{ role: "user", content: prompt }],
+          model: "llama-3.3-70b-versatile",
+          max_tokens: 300,
+          response_format: { type: "json_object" }
+        });
+
+        const content = completion.choices[0]?.message?.content;
+        if (content) {
+          const strategy = JSON.parse(content);
+          localStorage.setItem(cacheKey, content);
+          return strategy;
+        }
+      } catch (error) {
+        console.error("Groq Strategy Error, falling back to Gemini:", error);
+      }
+    }
+
+    // 3. Fallback to Gemini
+    if (GEMINI_KEY) {
+      try {
+        const genAIUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        const response = await fetch(genAIUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${prompt}\n\nIMPORTANTE: Rispondi SOLO in formato JSON puro, senza markdown.` }] }],
+            generationConfig: { response_mime_type: "application/json" }
+          })
+        });
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const strategy = JSON.parse(text);
+          localStorage.setItem(cacheKey, JSON.stringify(strategy));
+          return strategy;
+        }
+      } catch (error) {
+        console.error("Gemini Strategy Fallback Error:", error);
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Global Strategy Error:", error);
     return null;
   }
 };

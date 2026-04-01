@@ -90,9 +90,9 @@ const CoachScoreWidget: React.FC<CoachScoreWidgetProps> = ({ score, streak, firs
   return (
     <div className={`w-full bg-gradient-to-br ${bgGradient} dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-3xl rounded-[2.5rem] p-6 border-[3px] ${isHighPerformance ? 'border-amber-400 dark:border-amber-500 shadow-[0_20px_50px_rgba(251,191,36,0.15)]' : 'border-white/40 dark:border-white/10'} shadow-2xl shadow-black/[0.04] overflow-hidden relative group transition-all duration-500`}>
       
-      {/* Golden Badge (Similar to Golden Focus) */}
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-amber-400 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-400/30 animate-pulse border border-white/20">
-        <Sparkles className="w-3.5 h-3.5" /> Premium Coaching
+      {/* Elite Badge (Matching Strategy Widget) */}
+      <div className={`absolute top-4 left-4 z-20 flex items-center gap-1.5 ${isHighPerformance ? 'bg-gradient-to-r from-[#800020] to-[#5c0514] border-[#d4af37]/30 text-[#d4af37]' : 'bg-amber-400 text-white border-white/20'} px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse border`}>
+        <Sparkles className="w-3.5 h-3.5" /> {isHighPerformance ? 'ELITE COACHING' : 'Premium Coaching'}
       </div>
 
       {/* Decorative Background Icon */}

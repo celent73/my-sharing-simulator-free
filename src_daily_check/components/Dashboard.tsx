@@ -27,6 +27,7 @@ import { calculateCareerStatus } from '../utils/careerUtils';
 import HabitStackWidget from './HabitStackWidget';
 import CoachScoreWidget from './CoachScoreWidget';
 import CoachGreeting from './CoachGreeting';
+import CoachStrategyWidget from './CoachStrategyWidget';
 import FollowUpRankingWidget from './FollowUpRankingWidget';
 import { Calculator, Sparkles, ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 
@@ -446,8 +447,14 @@ const Dashboard: React.FC<DashboardProps> = ({
                   yesterdayScore={yesterdayScore} 
                   streak={coachStreak} 
               />
-
             </div>
+            <CoachStrategyWidget
+              score={dailyScore}
+              streak={coachStreak}
+              firstName={userProfile.firstName}
+              counts={totals}
+              goals={goals}
+            />
             <CoachScoreWidget
               score={dailyScore}
               streak={coachStreak}
