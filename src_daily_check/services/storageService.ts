@@ -2,7 +2,7 @@
 // FILE: services/storageService.ts (Versione Ibrida Cloud/Locale)
 // ============================================================================
 
-import { ActivityLog, AppSettings, UnlockedAchievements, UserProfile, CommissionStatus, Qualification, Client, Lead } from '../types';
+import { ActivityLog, AppSettings, UnlockedAchievements, UserProfile, CommissionStatus, Qualification, Client, Lead, ContractDetails, ContractType } from '../types';
 import { supabase } from '../supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -40,6 +40,59 @@ const getLocalAchievements = (): UnlockedAchievements => {
   } catch (e) { return {}; }
 };
 
+// --- SMART MERGE LOGIC ---
+const mergeActivityLogs = (local: ActivityLog[], cloud: ActivityLog[]): ActivityLog[] => {
+  const mergedMap = new Map<string, ActivityLog>();
+
+  // Initialize with local logs
+  local.forEach(log => mergedMap.set(log.date, { ...log }));
+
+  cloud.forEach(cLog => {
+    const existing = mergedMap.get(cLog.date);
+    if (!existing) {
+      mergedMap.set(cLog.date, { ...cLog });
+      return;
+    }
+
+    // Merge Logic for same-date entries:
+    // 1. Counts: Keep the maximum to preserve progression across devices
+    const mergedCounts = { ...existing.counts };
+    Object.keys(cLog.counts).forEach(key => {
+      mergedCounts[key] = Math.max(mergedCounts[key] || 0, cLog.counts[key] || 0);
+    });
+
+    // 2. Leads: Union by ID to avoid losing new leads from either device
+    const leadMap = new Map<string, any>();
+    (existing.leads || []).forEach(lead => leadMap.set(lead.id, lead));
+    (cLog.leads || []).forEach(lead => {
+        const existingLead = leadMap.get(lead.id);
+        // If same lead, keep the one with newer updatedAt or cloud if local is legacy
+        if (!existingLead || (lead.updatedAt && (!existingLead.updatedAt || lead.updatedAt > existingLead.updatedAt))) {
+            leadMap.set(lead.id, lead);
+        }
+    });
+
+    // 3. Contract Details: Max for each type
+    const mergedContracts = { ...(existing.contractDetails || {}) };
+    const cloudContracts = cLog.contractDetails || {};
+    Object.keys(cloudContracts).forEach(key => {
+      const k = key as keyof ContractDetails;
+      mergedContracts[k] = Math.max(mergedContracts[k] || 0, cloudContracts[k] || 0);
+    });
+
+    mergedMap.set(cLog.date, {
+      ...existing,
+      counts: mergedCounts,
+      leads: Array.from(leadMap.values()),
+      contractDetails: mergedContracts,
+      updatedAt: (cLog.updatedAt && (!existing.updatedAt || cLog.updatedAt > existing.updatedAt)) 
+          ? cLog.updatedAt : existing.updatedAt
+    });
+  });
+
+  return Array.from(mergedMap.values()).sort((a, b) => b.date.localeCompare(a.date));
+};
+
 // ---------------------------------------------------------------------------
 // GESTIONE LOG ATTIVITÀ
 // ---------------------------------------------------------------------------
@@ -55,34 +108,24 @@ export const loadLogs = async (userId: string | null): Promise<ActivityLog[]> =>
 
     if (error) {
       console.error('Error loading logs from Supabase:', error);
-      return localLogs; // Fallback al locale in caso di errore
+      return localLogs;
     }
 
-    // Map snake_case DB columns to camelCase App properties
     const cloudLogs: ActivityLog[] = data.map((item: any) => ({
       date: item.date,
       counts: item.counts || {},
       contractDetails: item.contract_details || {},
-      leads: item.leads || []
+      leads: item.leads || [],
+      updatedAt: item.updated_at
     }));
 
-    // MERGE LOGIC: Combine local and cloud logs
-    const mergedLogs = [...localLogs];
-    cloudLogs.forEach(cLog => {
-      const existingIndex = mergedLogs.findIndex(l => l.date === cLog.date);
-      if (existingIndex >= 0) {
-        // Simple merge: Cloud wins for same-day
-        mergedLogs[existingIndex] = { ...mergedLogs[existingIndex], ...cLog };
-      } else {
-        mergedLogs.push(cLog);
-      }
-    });
-
+    // MERGE LOGIC: Smart merge instead of simple replacement
+    const mergedLogs = mergeActivityLogs(localLogs, cloudLogs);
+    
     // Save merged result back to localStorage for offline consistency
     localStorage.setItem(ACTIVITY_KEY, JSON.stringify(mergedLogs));
     return mergedLogs;
   } else {
-    // LOCAL MODE
     return localLogs;
   }
 };

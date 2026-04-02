@@ -341,10 +341,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   }, [settings.enableGoals, settings.goals]);
 
   const dailyScore = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const todayLog = activityLogs.find(l => l.date === todayStr);
-    return calculateDailyScore(todayLog, settings.goals, settings.habitStacks || [], todayStr);
-  }, [activityLogs, settings.goals, settings.habitStacks]);
+    const dateStr = format(selectedInputDate, 'yyyy-MM-dd');
+    const dateLog = activityLogs.find(l => l.date === dateStr);
+    return calculateDailyScore(dateLog, settings.goals, settings.habitStacks || [], dateStr);
+  }, [activityLogs, settings.goals, settings.habitStacks, selectedInputDate]);
 
   const yesterdayScore = useMemo(() => {
     const yesterday = new Date();
@@ -1168,6 +1168,21 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   }, [userId]);
 
   useEffect(() => { if (!authLoading) loadLocalData(); }, [loadLocalData, authLoading]);
+
+  // --- AUTO-SYNC POLLING (v1.4) ---
+  useEffect(() => {
+    if (!userId || authLoading || isInitializing) return;
+
+    const autoSyncInterval = setInterval(() => {
+      // Sync only if window is focused and no active sync is running
+      if (document.visibilityState === 'visible' && !isSyncing) {
+        console.log("[AutoSync] Background poll starting...");
+        loadLocalData().catch(err => console.error("[AutoSync] Error during background sync:", err));
+      }
+    }, 1000 * 60 * 3); // Every 3 minutes
+
+    return () => clearInterval(autoSyncInterval);
+  }, [userId, authLoading, isInitializing, isSyncing, loadLocalData]);
 
   useEffect(() => {
     if (!isInitializing && !authLoading) {

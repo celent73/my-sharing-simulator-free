@@ -16,21 +16,42 @@ const CoachStrategyWidget: React.FC<CoachStrategyWidgetProps> = ({ score, streak
   const [strategy, setStrategy] = useState<CoachStrategy | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Diagnostic logging for PC visibility troubleshooting
+  useEffect(() => {
+    console.log(`[CoachStrategyWidget] Render Info:`, {
+        score,
+        streak,
+        hasCounts: !!counts && Object.keys(counts).length > 0,
+        hasGoals: !!goals,
+        isGenerating,
+        hasStrategy: !!strategy
+    });
+  }, [score, streak, counts, goals, isGenerating, strategy]);
+
   useEffect(() => {
     const fetchStrategy = async () => {
+      // Don't generate if score is too low - saves AI tokens and uses local fallback or locked state
+      if (score < 80) {
+          setStrategy(null);
+          return;
+      }
       if (!counts || !goals) return;
       
       setIsGenerating(true);
-      const data = await generateCoachStrategy({
-        score,
-        streak,
-        counts,
-        goals,
-        userName: firstName
-      });
-      
-      if (data) setStrategy(data);
-      setIsGenerating(false);
+      try {
+          const data = await generateCoachStrategy({
+            score,
+            streak,
+            counts,
+            goals,
+            userName: firstName
+          });
+          if (data) setStrategy(data);
+      } catch (err) {
+          console.error("[CoachStrategyWidget] AI Generation Error:", err);
+      } finally {
+          setIsGenerating(false);
+      }
     };
 
     fetchStrategy();
@@ -53,6 +74,29 @@ const CoachStrategyWidget: React.FC<CoachStrategyWidgetProps> = ({ score, streak
         </div>
       </motion.div>
     );
+  }
+
+  // Handle score below 80 - Locked/Incentive State
+  if (score < 80) {
+      return (
+        <div className="w-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] p-6 border-2 border-dashed border-slate-300 dark:border-white/10 flex flex-col items-center justify-center text-center group hover:border-amber-500/30 transition-all duration-500">
+            <div className="p-3 bg-slate-100 dark:bg-white/5 rounded-2xl mb-3 text-slate-400 group-hover:text-amber-500 group-hover:scale-110 transition-all">
+                <Target size={24} />
+            </div>
+            <h3 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Protocollo Elite</h3>
+            <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 max-w-[200px] leading-relaxed">
+                Raggiungi un punteggio di <span className="text-amber-500">80+</span> oggi per sbloccare l'Analisi Strategica del Coach.
+            </p>
+            {score > 0 && (
+                <div className="mt-3 w-full max-w-[150px] h-1.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-amber-500/50" 
+                        style={{ width: `${score}%` }}
+                    />
+                </div>
+            )}
+        </div>
+      );
   }
 
   // 4. Final Fallback if everything else fails but performance is high

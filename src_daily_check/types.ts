@@ -44,6 +44,7 @@ export interface ActivityLog {
   counts: Record<string, number>;
   contractDetails?: ContractDetails; // Breakdown specific for contracts
   leads?: Lead[]; // List of leads captured on this day
+  updatedAt?: string; // Last updated timestamp for sync priority
 }
 
 export interface Lead {

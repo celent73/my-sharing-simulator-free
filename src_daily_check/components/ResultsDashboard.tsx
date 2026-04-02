@@ -11,6 +11,7 @@ import {
   ChevronRight,
   X
 } from 'lucide-react';
+import { format } from 'date-fns';
 import { ActivityType, Lead, ActivityLog, Goals, UserProfile, VisionBoardData, NextAppointment, HabitStack, ViewMode } from '../types';
 import FollowUpRankingWidget from './FollowUpRankingWidget';
 import GoalRecoveryWidget from './GoalRecoveryWidget';
@@ -65,6 +66,9 @@ type ResultsSubTab = 'performance' | 'agenda' | 'growth';
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
   const [activeSubTab, setActiveSubTab] = useState<ResultsSubTab>('performance');
+  
+  const selectedDateStr = format(props.selectedDate, 'yyyy-MM-dd');
+  const currentCounts = props.activityLogs.find(l => l.date === selectedDateStr)?.counts || {};
 
   const tabs = [
     { id: 'performance', label: 'Performance', icon: Rocket, color: 'text-indigo-500' },
@@ -86,14 +90,14 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
             score={props.dailyScore}
             streak={props.coachStreak}
             firstName={props.userProfile.firstName}
-            counts={props.activityLogs.find(l => l.date === props.activityLogs[0]?.date)?.counts || {}}
+            counts={currentCounts}
             goals={props.goals}
           />
           <CoachScoreWidget
             score={props.dailyScore}
             streak={props.coachStreak}
             firstName={props.userProfile.firstName}
-            counts={props.activityLogs.find(l => l.date === props.activityLogs[0]?.date)?.counts || {}}
+            counts={currentCounts}
             goals={props.goals}
           />
         </div>
@@ -242,7 +246,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
             <HabitStackWidget 
                 stacks={props.habitStacks} 
                 customLabels={props.customLabels} 
-                currentCounts={props.activityLogs.find(l => l.date === props.activityLogs[0]?.date)?.counts || {}}
+                currentCounts={currentCounts}
                 onOpenLeadCapture={props.onOpenLeadCapture}
                 onOpenAppointmentModal={props.onOpenAppointmentModal}
             />

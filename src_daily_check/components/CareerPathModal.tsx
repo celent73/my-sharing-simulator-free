@@ -17,7 +17,7 @@ interface CareerPathModalProps {
     onUpdateTarget?: (qualification: string | null) => void;
 }
 
-  
+
 
 const CAREER_STAGES = [
     { name: "Family Pro", color: "#ec4899" }, // Vibrant Pink
@@ -73,7 +73,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
         if (dates[stageName]) {
             handleDateChange(stageName, "");
         }
-        
+
         // Reset the manual qualification if it matches
         if (manualQualification && manualQualification.toLowerCase() === stageName.toLowerCase()) {
             if (onResetQualification) onResetQualification();
@@ -84,7 +84,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
         if (confirm("Sei sicuro di voler azzerare tutti i traguardi raggiunti?")) {
             // Aggiorna immediatamente lo stato locale per reattività istantanea
             setDates({});
-            
+
             if (onResetAll) {
                 await onResetAll();
             } else {
@@ -102,23 +102,23 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
 
             {/* Ambient Nebula Effect - More Dynamic */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div 
-                    animate={{ 
-                        x: [0, 100, 0], 
+                <motion.div
+                    animate={{
+                        x: [0, 100, 0],
                         y: [0, 50, 0],
                         scale: [1, 1.2, 1]
                     }}
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute -top-24 -right-24 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px]" 
+                    className="absolute -top-24 -right-24 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px]"
                 />
-                <motion.div 
-                    animate={{ 
-                        x: [0, -80, 0], 
+                <motion.div
+                    animate={{
+                        x: [0, -80, 0],
                         y: [0, 100, 0],
                         scale: [1, 1.3, 1]
                     }}
                     transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                    className="absolute -bottom-48 -left-24 w-[700px] h-[700px] bg-blue-600/10 rounded-full blur-[140px]" 
+                    className="absolute -bottom-48 -left-24 w-[700px] h-[700px] bg-blue-600/10 rounded-full blur-[140px]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-transparent to-slate-950/50 shadow-inner"></div>
             </div>
@@ -162,16 +162,16 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                     {CAREER_STAGES.map((stage, index) => {
                         const isFilled = !!dates[stage.name];
                         const dateObj = isFilled ? new Date(dates[stage.name]) : null;
-                        
+
                         // Determina se il traguardo è raggiunto (per data o per livello attuale impostato)
-                        const currentLevelIndex = currentLevelName 
-                            ? CAREER_STAGES.findIndex(s => s.name.toLowerCase() === currentLevelName.toLowerCase()) 
+                        const currentLevelIndex = currentLevelName
+                            ? CAREER_STAGES.findIndex(s => s.name.toLowerCase() === currentLevelName.toLowerCase())
                             : -1;
-                        
+
                         const isReached = (dateObj && dateObj <= new Date()) || (currentLevelIndex >= index);
                         const isTarget = targetQualification && targetQualification.toLowerCase() === stage.name.toLowerCase();
-                        
-                        const isCurrent = !isReached && (index === 0 || (!!dates[CAREER_STAGES[index - 1].name] && new Date(dates[CAREER_STAGES[index-1].name]) <= new Date()) || (currentLevelIndex >= index - 1));
+
+                        const isCurrent = !isReached && (index === 0 || (!!dates[CAREER_STAGES[index - 1].name] && new Date(dates[CAREER_STAGES[index - 1].name]) <= new Date()) || (currentLevelIndex >= index - 1));
                         const isFuture = !isFilled && !isCurrent && !isReached;
                         const isLeft = index % 2 === 0;
 
@@ -242,12 +242,12 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                             >
                                                 {stage.name}
                                                 {isTarget && (
-                                                  <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-500 text-[8px] uppercase font-black border border-amber-500/30">
-                                                    Target
-                                                  </span>
+                                                    <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-500 text-[8px] uppercase font-black border border-amber-500/30">
+                                                        Target
+                                                    </span>
                                                 )}
                                             </h3>
-                                            
+
                                             {(isFilled || (manualQualification && manualQualification.toLowerCase() === stage.name.toLowerCase())) && (
                                                 <div className="mt-2 flex items-center gap-2">
                                                     {isFilled && (
@@ -273,80 +273,80 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                         </div>
                                     </div>
 
-                                        <motion.button
-                                            whileHover={{ scale: 1.15, rotate: 5 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            animate={(isCurrent || isTarget) ? { 
-                                                y: [0, -8, 0],
-                                                scale: [1, 1.05, 1],
-                                                rotate: isCurrent ? [0, 2, -2, 0] : 0
-                                            } : {}}
-                                            transition={isCurrent || isTarget ? { 
-                                                duration: 4, 
-                                                repeat: Infinity, 
-                                                ease: "easeInOut" 
-                                            } : {}}
-                                            onClick={() => setSelectedStageIndex(index)}
-                                            className={`relative w-24 h-24 sm:w-[7.5rem] sm:h-[7.5rem] rounded-full flex items-center justify-center border transition-all duration-500 z-20 backdrop-blur-md ${isFuture ? 'opacity-40 grayscale-[0.8]' : 'cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.4)]'}`}
-                                            style={{
-                                                backgroundColor: isReached ? stage.color : (isFilled || isCurrent || isTarget) ? `${stage.color}` : 'rgba(30,41,59,0.7)',
-                                                borderColor: isReached ? '#ffffff' : (isFilled || isCurrent || isTarget) ? `rgba(255,255,255,0.4)` : 'rgba(255,255,255,0.1)',
-                                            }}
-                                        >
+                                    <motion.button
+                                        whileHover={{ scale: 1.15, rotate: 5 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        animate={(isCurrent || isTarget) ? {
+                                            y: [0, -8, 0],
+                                            scale: [1, 1.05, 1],
+                                            rotate: isCurrent ? [0, 2, -2, 0] : 0
+                                        } : {}}
+                                        transition={isCurrent || isTarget ? {
+                                            duration: 4,
+                                            repeat: Infinity,
+                                            ease: "easeInOut"
+                                        } : {}}
+                                        onClick={() => setSelectedStageIndex(index)}
+                                        className={`relative w-24 h-24 sm:w-[7.5rem] sm:h-[7.5rem] rounded-full flex items-center justify-center border transition-all duration-500 z-20 backdrop-blur-md ${isFuture ? 'opacity-40 grayscale-[0.8]' : 'cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.4)]'}`}
+                                        style={{
+                                            backgroundColor: isReached ? stage.color : (isFilled || isCurrent || isTarget) ? `${stage.color}` : 'rgba(30,41,59,0.7)',
+                                            borderColor: isReached ? '#ffffff' : (isFilled || isCurrent || isTarget) ? `rgba(255,255,255,0.4)` : 'rgba(255,255,255,0.1)',
+                                        }}
+                                    >
 
-                                            {/* External Pulsing Rings (New) */}
-                                            {(isCurrent || isTarget) && (
-                                                <>
-                                                    <motion.div 
-                                                        animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
-                                                        transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-                                                        className="absolute inset-0 rounded-full border-2 pointer-events-none"
-                                                        style={{ borderColor: stage.color }}
-                                                    />
-                                                    <motion.div 
-                                                        animate={{ scale: [1, 1.2], opacity: [0.3, 0] }}
-                                                        transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.8 }}
-                                                        className="absolute inset-0 rounded-full border pointer-events-none"
-                                                        style={{ borderColor: stage.color }}
-                                                    />
-                                                </>
-                                            )}
+                                        {/* External Pulsing Rings (New) */}
+                                        {(isCurrent || isTarget) && (
+                                            <>
+                                                <motion.div
+                                                    animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+                                                    transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                                                    className="absolute inset-0 rounded-full border-2 pointer-events-none"
+                                                    style={{ borderColor: stage.color }}
+                                                />
+                                                <motion.div
+                                                    animate={{ scale: [1, 1.2], opacity: [0.3, 0] }}
+                                                    transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.8 }}
+                                                    className="absolute inset-0 rounded-full border pointer-events-none"
+                                                    style={{ borderColor: stage.color }}
+                                                />
+                                            </>
+                                        )}
 
-                                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
 
-                                            {isTarget && (
-                                              <div className="absolute -top-1 -right-1 bg-amber-500 text-white p-2 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] border-2 border-slate-900 z-30">
+                                        {isTarget && (
+                                            <div className="absolute -top-1 -right-1 bg-amber-500 text-white p-2 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] border-2 border-slate-900 z-30">
                                                 <TargetIcon size={14} className="animate-bounce" />
-                                              </div>
-                                            )}
+                                            </div>
+                                        )}
 
-                                            {isReached ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-14 sm:w-14 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
-                                                    <motion.path 
-                                                        initial={{ pathLength: 0 }} 
-                                                        animate={{ pathLength: 1 }}
-                                                        strokeLinecap="round" 
-                                                        strokeLinejoin="round" 
-                                                        d="M5 13l4 4L19 7" 
-                                                    />
-                                                </svg>
-                                            ) : isFilled ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            ) : isFuture ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-slate-500/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            ) : (
-                                                <span 
-                                                    className="text-4xl sm:text-6xl font-black text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
-                                                    style={{ color: isCurrent ? 'white' : stage.color }}
-                                                >
-                                                    {index + 1}
-                                                </span>
-                                            )}
-                                        </motion.button>
+                                        {isReached ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-14 sm:w-14 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                                                <motion.path
+                                                    initial={{ pathLength: 0 }}
+                                                    animate={{ pathLength: 1 }}
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M5 13l4 4L19 7"
+                                                />
+                                            </svg>
+                                        ) : isFilled ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        ) : isFuture ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-slate-500/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                        ) : (
+                                            <span
+                                                className="text-4xl sm:text-6xl font-black text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                                                style={{ color: isCurrent ? 'white' : stage.color }}
+                                            >
+                                                {index + 1}
+                                            </span>
+                                        )}
+                                    </motion.button>
                                 </div>
                             </div>
                         );
@@ -421,24 +421,24 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
                                     </div>
                                 </div>
                                 <div className="pt-2 border-t border-white/5 space-y-3">
-                                  <button
-                                      onClick={() => {
-                                          if (onUpdateTarget) onUpdateTarget(selectedStage.name);
-                                          setSelectedStageIndex(null);
-                                      }}
-                                      className="w-full py-3 px-4 rounded-xl font-bold text-white bg-amber-600 hover:bg-amber-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-900/40"
-                                  >
-                                      <TargetIcon size={18} />
-                                      Imposta come Obiettivo
-                                  </button>
+                                    <button
+                                        onClick={() => {
+                                            if (onUpdateTarget) onUpdateTarget(selectedStage.name);
+                                            setSelectedStageIndex(null);
+                                        }}
+                                        className="w-full py-3 px-4 rounded-xl font-bold text-white bg-amber-600 hover:bg-amber-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-900/40"
+                                    >
+                                        <TargetIcon size={18} />
+                                        Imposta come Obiettivo
+                                    </button>
 
-                                  <button
-                                      onClick={() => setSelectedStageIndex(null)}
-                                      className="w-full py-3.5 rounded-xl font-black text-white shadow-lg transition-transform active:scale-95 text-lg"
-                                      style={{ backgroundColor: selectedStage.color, boxShadow: `0 4px 15px ${selectedStage.color}80` }}
-                                  >
-                                      Conferma
-                                  </button>
+                                    <button
+                                        onClick={() => setSelectedStageIndex(null)}
+                                        className="w-full py-3.5 rounded-xl font-black text-white shadow-lg transition-transform active:scale-95 text-lg"
+                                        style={{ backgroundColor: selectedStage.color, boxShadow: `0 4px 15px ${selectedStage.color}80` }}
+                                    >
+                                        Conferma
+                                    </button>
                                 </div>
 
                                 {(dates[selectedStage.name] || (manualQualification && manualQualification.toLowerCase() === selectedStage.name.toLowerCase())) && (
