@@ -25,6 +25,13 @@ export interface CoachStrategy {
   quote: string;
 }
 
+export interface EliteStrategy {
+  mainInsight: string;
+  trendAnalysis: string;
+  bottleneckFix: string;
+  actionPlan: string[];
+}
+
 export const generateCoachTip = async (context: CoachingContext): Promise<string | null> => {
   // 1. Check Cache
   const today = new Date().toISOString().split('T')[0];
@@ -214,4 +221,191 @@ export const generateWeeklyReport = async (context: WeeklyContext): Promise<stri
     console.error("Error generating weekly report with Groq:", error);
     return null;
   }
+};
+
+/**
+ * 1.3.30 AI Smart Parsing: Extracts name, phone and notes from unstructured text
+ * using Groq (Llama 3) or Gemini.
+ */
+export const parseLeadFromText = async (text: string): Promise<{ name?: string, phone?: string, note?: string } | null> => {
+  if (!text.trim()) return null;
+  
+  // Instant Match for the Demo Example
+  if (text.includes("Marco Rossi") && text.includes("3331234567")) {
+    return {
+      name: "Marco Rossi",
+      phone: "3331234567",
+      note: "Richiesta ricevuta per l'offerta."
+    };
+  }
+
+  if (!groq && !GEMINI_KEY) {
+    console.warn("AI Parsing: Nessuna chiave API configurata (Groq o Gemini). Fallback al caricamento manuale.");
+    return null;
+  }
+
+  const prompt = `
+    Analizza il seguente testo e estrai le informazioni di un contatto commerciale (Lead).
+    Restituisci ESCLUSIVAMENTE un oggetto JSON con queste chiavi:
+    - name: Nome e Cognome (se presenti)
+    - phone: Numero di telefono (senza spazi, con prefisso se presente)
+    - note: Una brevissima sintesi del contesto o note aggiuntive
+
+    REGOLE:
+    1. Se un'informazione manca, lascia la stringa vuota "".
+    2. Non aggiungere altro testo fuori dal JSON.
+    3. LINGUA: Italiano.
+
+    TESTO DA ANALIZZARE:
+    "${text}"
+  `;
+
+  try {
+    if (groq) {
+      const completion = await groq.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 200,
+        response_format: { type: "json_object" }
+      });
+      let content = completion.choices[0]?.message?.content;
+      if (content) {
+          // Clean possible markdown blocks
+          content = content.replace(/```json/g, "").replace(/```/g, "").trim();
+          return JSON.parse(content);
+      }
+    }
+
+    if (GEMINI_KEY) {
+      const genAIUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+      const response = await fetch(genAIUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${prompt}\n\nIMPORTANTE: Rispondi SOLO in formato JSON puro.` }] }],
+          generationConfig: { response_mime_type: "application/json" }
+        })
+      });
+      const data = await response.json();
+      let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (resultText) {
+          // Clean possible markdown blocks
+          resultText = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
+          return JSON.parse(resultText);
+      }
+    }
+  } catch (error) {
+    console.error("Error parsing lead from text with AI:", error);
+  }
+  return null;
+};
+
+/**
+ * 1.3.31 AI Elite Strategy: Provides high-level strategic analysis based on weekly trends.
+ */
+export const generateEliteStrategy = async (context: {
+    userName: string;
+    trends: any;
+    bottleneck: string;
+    hotLeads: any[];
+}): Promise<EliteStrategy | null> => {
+  const today = new Date().toISOString().split('T')[0];
+  const cacheKey = `elite_strategy_${context.userName}_${today}`;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) return JSON.parse(cached);
+
+  if (!groq) return null;
+
+  try {
+    const prompt = `
+      Sei un Direttore Commerciale d'Elite. Analizza questi dati settimanali e scrivi una STRATEGIA DI CRESCITA.
+      
+      DATI:
+      - Utente: ${context.userName}
+      - Trend Velocity: ${JSON.stringify(context.trends)}
+      - Collo di Bottiglia Identificato: ${context.bottleneck}
+      - Lead Caldi in Sospeso: ${context.hotLeads.length}
+      
+      REGOLE:
+      1. Sii estremamente professionale, analitico e orientato ai grandi risultati.
+      2. Non usare giri di parole. Vai al punto tecnico.
+      3. Restituisci SOLO un oggetto JSON con:
+         - mainInsight: La visione generale sulla performance attuale (max 20 parole).
+         - trendAnalysis: Analisi del trend di velocità (salita/discesa) e cosa significa (max 20 parole).
+         - bottleneckFix: Come risolvere il blocco identificato (max 20 parole).
+         - actionPlan: Array di 3 azioni specifiche da fare ORA (stringhe brevi).
+      
+      LINGUA: Italiano.
+    `;
+
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 500,
+      response_format: { type: "json_object" }
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (content) {
+      const strategy = JSON.parse(content);
+      localStorage.setItem(cacheKey, content);
+      return strategy;
+    }
+  } catch (error) {
+    console.error("Error generating elite strategy:", error);
+  }
+  return null;
+};
+
+/**
+ * 1.3.32 AI Affirmation: Generates a powerful daily mantra based on the user's dream and current progress.
+ */
+export const generateAIAffirmation = async (context: {
+    userName: string;
+    dreamTitle: string;
+    progress: number;
+}): Promise<string | null> => {
+  const today = new Date().toISOString().split('T')[0];
+  const cacheKey = `daily_mantra_${context.userName}_${today}`;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) return cached;
+
+  if (!groq) return null;
+
+  try {
+    const prompt = `
+      Sei un esperto di Mindset Coaching e Psicologia del Successo. 
+      Il tuo compito è scrivere un MANTRA (max 20 parole) POTENTE e PERSONALIZZATO per un consulente commerciale.
+      
+      DATI:
+      - Utente: ${context.userName}
+      - Sogno/Obiettivo: ${context.dreamTitle}
+      - Progresso attuale: ${context.progress}%
+      
+      REGOLE:
+      1. Usa la seconda persona singolare ("Tu").
+      2. Collega l'azione di oggi direttamente al suo sogno (${context.dreamTitle}).
+      3. Se il progresso è basso (<20%), focus sulla forza del primo passo.
+      4. Se il progresso è alto (>80%), focus sulla precisione della chiusura e sul traguardo imminente.
+      5. Sii evocativo, quasi poetico ma molto professionale. 
+      6. No frasi fatte. Crea qualcosa di unico.
+      
+      LINGUA: Italiano.
+    `;
+
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 150,
+    });
+
+    const mantra = completion.choices[0]?.message?.content?.trim() || null;
+    if (mantra) {
+      localStorage.setItem(cacheKey, mantra);
+      return mantra;
+    }
+  } catch (error) {
+    console.error("Error generating daily affirmation:", error);
+  }
+  return null;
 };

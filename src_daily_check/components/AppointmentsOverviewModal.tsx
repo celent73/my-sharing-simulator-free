@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactDOM from 'react-dom';
 import { ActivityLog, ActivityType, Lead } from '../types';
+import { Calendar, Download, ExternalLink } from 'lucide-react';
+import { generateGoogleCalendarLink, downloadICS } from '../utils/calendarUtils';
 
 interface AppointmentsOverviewModalProps {
     isOpen: boolean;
@@ -98,9 +100,7 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                     <div className="px-8 py-6 flex items-center justify-between sticky top-0 bg-transparent z-10">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner">
-                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
+                                <Calendar className="w-6 h-6 text-white" />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-white tracking-tight">
@@ -207,15 +207,35 @@ const AppointmentsOverviewModal: React.FC<AppointmentsOverviewModalProps> = ({ i
                                                     </div>
                                                 </div>
 
-                                                {/* Action Button */}
-                                                <button
-                                                    onClick={() => onEdit(app)}
-                                                    className="absolute top-6 right-6 sm:static p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all border border-white/10 shadow-sm active:scale-90"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                    </svg>
-                                                </button>
+                                                {/* Action Buttons */}
+                                                <div className="flex gap-2 shrink-0">
+                                                    <a 
+                                                        href={generateGoogleCalendarLink(app.name, app._displayDate)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all border border-white/5 shadow-sm active:scale-90"
+                                                        title="Aggiungi a Google Calendar"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <ExternalLink size={18} />
+                                                    </a>
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); downloadICS(app.name, app._displayDate); }}
+                                                        className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all border border-white/5 shadow-sm active:scale-90"
+                                                        title="Scarica .ics"
+                                                    >
+                                                        <Download size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); onEdit(app); }}
+                                                        className="p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all border border-white/10 shadow-sm active:scale-90"
+                                                        title="Modifica Dettagli"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             {/* Notes - Refined Style */}

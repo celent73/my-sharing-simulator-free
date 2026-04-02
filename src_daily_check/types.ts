@@ -103,6 +103,7 @@ export interface VisionBoardData {
   title: string;
   targetAmount: number;
   imageData: string | null; // Base64 string
+  theme?: 'classic' | 'nebula' | 'ocean' | 'sunset'; // Phase 5: Ambient themes
   personalEarnings?: number;  // Guadagni personali manuali del mese
   networkEarnings?: number;   // Guadagni della rete manuali del mese
   earningsMonth?: string;     // YYYY-MM — per auto-reset ogni mese

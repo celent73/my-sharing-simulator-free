@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, RotateCcw, Target as TargetIcon, X } from 'lucide-react';
+import { Trash2, RotateCcw, Target as TargetIcon, X, Sparkles, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
 
 interface CareerPathModalProps {
     isOpen: boolean;
@@ -158,6 +158,7 @@ const CareerPathModal: React.FC<CareerPathModalProps> = ({
 
             {/* Game Path Content */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide py-16 px-4 md:px-8">
+
                 <div className="flex flex-col items-center max-w-sm mx-auto pb-32">
                     {CAREER_STAGES.map((stage, index) => {
                         const isFilled = !!dates[stage.name];

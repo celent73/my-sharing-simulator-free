@@ -58,7 +58,8 @@ const VisionBoardModal: React.FC<VisionBoardModalProps> = ({
       enabled: false,
       title: '',
       targetAmount: 1000,
-      imageData: null
+      imageData: null,
+      theme: 'classic'
   });
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,7 +69,8 @@ const VisionBoardModal: React.FC<VisionBoardModalProps> = ({
             enabled: false,
             title: '',
             targetAmount: 1000,
-            imageData: null
+            imageData: null,
+            theme: 'classic'
         });
     }
   }, [currentData, isOpen]);
@@ -206,6 +208,33 @@ const VisionBoardModal: React.FC<VisionBoardModalProps> = ({
                     accept="image/*"
                     onChange={handleImageUpload}
                     />
+                </div>
+
+                {/* Theme Selection - Phase 5 */}
+                <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2 ml-1">Atmosfera (Mood)</label>
+                    <div className="grid grid-cols-2 gap-3">
+                        {[
+                            { id: 'classic', label: 'Classic', color: 'from-purple-600 to-indigo-600', icon: '✨' },
+                            { id: 'nebula', label: 'Nebula', color: 'from-indigo-900 via-purple-900 to-slate-900', icon: '🌌' },
+                            { id: 'ocean', label: 'Ocean', color: 'from-cyan-900 via-blue-900 to-indigo-900', icon: '🌊' },
+                            { id: 'sunset', label: 'Sunset', color: 'from-orange-800 via-rose-900 to-purple-950', icon: '🌅' }
+                        ].map((t) => (
+                            <button
+                                key={t.id}
+                                onClick={() => handleChange('theme', t.id)}
+                                className={`relative overflow-hidden p-4 rounded-2xl border-2 transition-all ${
+                                    data.theme === t.id ? 'border-purple-500 scale-[1.02] shadow-lg ring-4 ring-purple-500/20' : 'border-transparent hover:border-slate-300 dark:hover:border-slate-600'
+                                }`}
+                            >
+                                <div className={`absolute inset-0 bg-gradient-to-br ${t.color} opacity-80`} />
+                                <div className="relative z-10 flex items-center gap-2">
+                                    <span className="text-lg">{t.icon}</span>
+                                    <span className="text-sm font-black text-white">{t.label}</span>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

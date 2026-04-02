@@ -41,8 +41,8 @@ interface LeadCaptureModalProps {
     }) => void;
     activityType: ActivityType;
     initialType?: ActivityType;
-    initialData?: Lead | null;
-    forceStatus?: 'pending' | 'won' | 'lost';
+    initialData?: Partial<Lead> | null;
+    forceStatus?: 'won' | 'lost' | 'pending';
     forceWonType?: 'partner' | 'cliente';
 }
 
@@ -309,12 +309,12 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
                         <div className="flex-1">
                             <h2 className="text-2xl font-black text-slate-800 dark:text-white leading-tight underline decoration-slate-200 decoration-4 underline-offset-4">
                                 {initialData 
-                                    ? (isAppointment ? 'Modifica Appuntamento' : isContract ? 'Modifica Contratto' : 'Modifica Contatto') 
+                                    ? (name ? name : (isAppointment ? 'Appuntamento' : isContract ? 'Contratto' : 'Contatto')) 
                                     : (isAppointment ? 'Nuovo Appuntamento' : isContract ? 'Nuovo Contratto' : 'Nuovo Contatto')}
                             </h2>
                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
                                 <span className={isAppointment ? 'text-emerald-500' : isContract ? 'text-orange-500' : 'text-blue-500'}>●</span>
-                                {isContract ? 'Ecosistemi & Utility' : isAppointment ? 'Pianificazione' : 'Database Leads'}
+                                {isContract ? 'Dettagli Contratto' : isAppointment ? 'Dettagli Appuntamento' : 'Scheda Contatto'}
                             </p>
                         </div>
                         <div className="flex gap-2">

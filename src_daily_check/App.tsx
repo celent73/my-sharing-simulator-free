@@ -41,6 +41,8 @@ import { FocusNavigation, ActiveView } from './components/FocusNavigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import GoalReminderModal, { ReminderType } from './components/GoalReminderModal';
 import HabitReminderModal from './components/HabitReminderModal';
+import FocusModeView from './components/FocusModeView';
+
 import { ChevronRight, Calendar, User, ArrowUp, Mail, ArrowRight, X, Phone, UserPlus, FileText, CheckCircle2, AlertCircle, Info, Activity, Clock, Users, Building2, Building, BadgePercent, LayoutDashboard, BrainCog, Presentation, Sparkles, LogOut, ArrowLeft, MoreVertical, Search, Shield, Globe, Award, HelpCircle, FileCheck, Moon, Settings2, Trash2, UserCircle as UserCircleIcon, Target as TargetIcon, Tag as TagIcon, Eye as EyeIcon
 } from 'lucide-react';
 
@@ -59,6 +61,7 @@ import { calculateDailyScore, calculateCoachStreak } from './utils/coachScoreUti
 import WeeklyReportModal from './components/WeeklyReportModal';
 import FollowUpRankingWidget from './components/FollowUpRankingWidget';
 import ResultsDashboard from './components/ResultsDashboard';
+import confetti from 'canvas-confetti';
 const APP_VERSION = "v1.4";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
@@ -167,6 +170,41 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     setNotifications(prev => [...prev, { id: Date.now(), message, type }]);
   }, []);
 
+  const handleCompleteLeadInFocus = async (lead: Lead, status: 'won' | 'lost') => {
+    // 1. Create a copy of the lead with the updated status
+    const updatedLead: Lead = { 
+      ...lead, 
+      status, 
+      updatedAt: new Date().toISOString() 
+    };
+
+    // 2. Save the log for the date
+    const logDate = lead.date || getTodayDateString();
+    const existingLog = activityLogs.find(l => l.date === logDate);
+    
+    if (existingLog) {
+      const updatedLeads = (existingLog.leads || []).map(l => l.id === lead.id ? updatedLead : l);
+      const updatedLog = { ...existingLog, leads: updatedLeads };
+      
+      // Update counts if status changed to won
+      if (status === 'won') {
+        const countsKey = lead.type || ActivityType.CONTACTS;
+        updatedLog.counts = { 
+          ...updatedLog.counts, 
+          [countsKey]: (updatedLog.counts[countsKey] || 0) + 1 
+        };
+        
+        const isFamilyUtility = lead.type === ActivityType.NEW_FAMILY_UTILITY;
+        await createClientFromLead(userId, updatedLead, isFamilyUtility ? 'partner' : 'cliente');
+      }
+
+      const newLogs = activityLogs.map(l => l.date === logDate ? updatedLog : l);
+      setActivityLogs(newLogs);
+      saveLogs(userId, newLogs);
+      addNotification(`Contatto ${status === 'won' ? 'chiuso con successo! ✨' : 'segnato come perso.'}`, 'info');
+    }
+  };
+
   const CAREER_STAGES = useMemo(() => [
     { name: "Family Pro", color: "#ec4899" }, // Vibrant Pink (from-pink-500)
     { name: "Family pro 3x3", color: "#815545" },
@@ -192,7 +230,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
-    return () => window.removeEventListener('scroll', handleScroll, { capture: true } as any);
+    return () => window.removeEventListener('scroll', handleScroll, true);
   }, []);
 
   // --- HABIT STACKING NOTIFICATIONS & EVENTS ---
@@ -292,9 +330,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
     };
     window.addEventListener('test-reminder', handleTestReminder);
 
+    const handleActivateFocus = () => {
+      setActiveView('focus');
+    };
+    window.addEventListener('activate-focus-mode', handleActivateFocus);
+
     return () => {
       window.removeEventListener('open-appointments-overview', handleOpenAppointments);
       window.removeEventListener('test-reminder', handleTestReminder);
+      window.removeEventListener('activate-focus-mode', handleActivateFocus);
     };
   }, []);
 
@@ -382,6 +426,10 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
   useEffect(() => {
     const checkReminders = () => {
+      // 1.3.29 BugFix: Skip reminder check if app is still initializing or checking auth.
+      // This prevents "Daily Missing" from firing against empty local state while cloud data is loading.
+      if (isInitializing || authLoading) return;
+
       const now = new Date();
       const todayStr = getTodayDateString();
       const currentHour = now.getHours();
@@ -867,7 +915,8 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
           }
 
           // AUTO-CREATE CLIENT (NEW persistency)
-          createClientFromLead(userId, newLead as Lead, targetActivity === ActivityType.NEW_FAMILY_UTILITY ? 'partner' : 'cliente')
+          const isFamilyUtility = targetActivity === ActivityType.NEW_FAMILY_UTILITY;
+          createClientFromLead(userId, newLead as Lead, isFamilyUtility ? 'partner' : 'cliente')
             .catch(e => console.error("Error creating persistent client:", e));
         } else {
           dateLog.counts[newLeadType] = (dateLog.counts[newLeadType] || 0) + 1;
@@ -1400,6 +1449,40 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   const selectedDateLog = activityLogs.find(log => log.date === format(selectedInputDate, 'yyyy-MM-dd'));
   const careerStatus = useMemo(() => calculateCareerStatus(activityLogs, settings.userProfile.currentQualification, settings.careerPathDates || {}), [activityLogs, settings.userProfile.currentQualification, settings.careerPathDates]);
   
+  // --- CELEBRATION EFFECT ON LEVEL UP (Moved here to ensure careerStatus is defined) ---
+  const lastLevelRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (isInitializing || !careerStatus.currentLevel.name) return;
+    
+    // Skip the first run or if it's the same level
+    if (lastLevelRef.current && lastLevelRef.current !== careerStatus.currentLevel.name) {
+      // Trigger Celebration!
+      const duration = 5 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 300000 };
+
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval: any = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        // since particles fall down, start a bit higher than random
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      }, 250);
+
+      addNotification(`COMPLIMENTI! 🎉 Sei ora un ${careerStatus.currentLevel.name}!`, 'success');
+    }
+    
+    lastLevelRef.current = careerStatus.currentLevel.name;
+  }, [careerStatus.currentLevel.name, isInitializing, addNotification]);
+
   // Re-inserito qui dopo che careerStatus è definito
   useEffect(() => {
     if (!authLoading && !isInitializing) {
@@ -1509,6 +1592,17 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
       <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 items-end pointer-events-none">
         {notifications.map(n => <NotificationItem key={n.id} notification={n} onClose={() => removeNotification(n.id)} />)}
       </div>
+
+      <AnimatePresence>
+        {activeView === 'focus' && (
+          <FocusModeView 
+            activityLogs={activityLogs}
+            onClose={() => setActiveView('today')}
+            onEditLead={handleOpenLeadCapture}
+            onCompleteLead={handleCompleteLeadInFocus}
+          />
+        )}
+      </AnimatePresence>
 
       <AppointmentsOverviewModal
         isOpen={isGlobalAppointmentsOpen}
@@ -1780,19 +1874,18 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                     className="w-full h-full min-h-[80vh] pb-32"
                   >
                     <div className="h-full">
-                      <CareerPathModal 
-                        isOpen={true} 
-                        isEmbedded={true} 
-                        onClose={() => setActiveView('today')} 
-                        userId={userId}
+                      <CareerPathModal
+                        isOpen={true}
+                        isEmbedded={true}
+                        onClose={() => setActiveView('today')}
                         careerDates={settings.careerPathDates || {}}
                         onUpdateDates={handleUpdateCareerDates}
                         onResetAll={handleResetCareerPath}
                         manualQualification={settings.userProfile.currentQualification}
                         onResetQualification={handleResetManualQualification}
+                        currentLevelName={careerStatus?.currentLevel?.name}
                         targetQualification={settings.userProfile.targetQualification}
                         onUpdateTarget={handleUpdateTargetQualification}
-                        currentLevelName={careerStatus.currentLevel.name}
                       />
                       
                       {/* Footer aggiuntivo per coerenza con le richieste precedenti */}

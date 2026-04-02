@@ -137,7 +137,7 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
                         <div className="flex gap-8 items-center border-b border-white/5 pb-6">
                             {[
                                 { label: 'Totali', value: stats.total, color: 'text-white' },
-                                { label: 'Clienti Priv.', value: stats.contracts, color: 'text-emerald-400' },
+                                { label: 'Cliente Priv.', value: stats.contracts, color: 'text-emerald-400' },
                                 { label: 'Family Utility', value: stats.partners, color: 'text-purple-400' }
                             ].map((s, i) => (
                                 <div key={i} className="flex flex-col">
@@ -178,7 +178,7 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
                                         className={`relative z-10 flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 ${filterType === t ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
                                     >
                                         <span className="hidden sm:inline">
-                                            {t === 'all' ? 'Tutti' : t === 'cliente' ? 'Privilegiati' : 'Family Utility'}
+                                            {t === 'all' ? 'Tutti' : t === 'cliente' ? 'Clienti Privilegiati' : 'Family Utility'}
                                         </span>
                                         <span className="sm:hidden">
                                             {t === 'all' ? 'Tutti' : t === 'cliente' ? 'Priv.' : 'Util.'}
@@ -223,7 +223,7 @@ const ClientsModal: React.FC<ClientsModalProps> = ({ isOpen, onClose }) => {
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                                                     <h4 className="text-base sm:text-lg font-black text-white truncate tracking-tight">{capitalize(client.name)}</h4>
                                                     <span className={`self-start px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${client.type === 'partner' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
-                                                        {client.type === 'partner' ? 'Family Utility' : 'Privilegiato'}
+                                                        {client.type === 'partner' ? 'Family Utility' : 'Cliente Privilegiato'}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-1 text-white/30">

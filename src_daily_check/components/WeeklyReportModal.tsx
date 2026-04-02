@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ActivityLog, ActivityType, Goals, HabitStack, UserProfile } from '../types';
 import { calculateDailyScore, getScoreLabel } from '../utils/coachScoreUtils';
-import { Trophy, TrendingUp, Calendar, CheckCircle2, XCircle, Star } from 'lucide-react';
+import { Trophy, Calendar, Star, Share2, Download, MessageCircle, FileText, Loader2 } from 'lucide-react';
 import { ACTIVITY_LABELS } from '../constants';
+import * as htmlToImage from 'html-to-image';
+import { jsPDF } from 'jspdf';
 
 interface WeeklyReportModalProps {
   isOpen: boolean;
@@ -16,6 +18,9 @@ interface WeeklyReportModalProps {
 const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
   isOpen, onClose, activityLogs, goals, habitStacks, userProfile
 }) => {
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
   const reportData = useMemo(() => {
     const now = new Date();
     const last7Days: string[] = [];
@@ -49,6 +54,58 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
     return { avgScore, bestDay, dailyScores, consistencyDays };
   }, [activityLogs, goals, habitStacks]);
 
+  const handleExportPNG = async () => {
+    if (!reportRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await htmlToImage.toPng(reportRef.current, {
+        backgroundColor: '#0f172a', // Slate-900 for a premium look
+        quality: 1.0,
+      });
+      const link = document.createElement('a');
+      link.download = `WeeklyReport_${userProfile.firstName}_${new Date().toISOString().split('T')[0]}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('oops, something went wrong!', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!reportRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await htmlToImage.toPng(reportRef.current, {
+        backgroundColor: '#0f172a',
+        quality: 1.0,
+      });
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const imgHeight = (reportRef.current.offsetHeight * imgWidth) / reportRef.current.offsetWidth;
+      pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`WeeklyReport_${userProfile.firstName}.pdf`);
+    } catch (err) {
+      console.error('PDF export failed', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = `🏆 *MIO WEEKLY REPORT - AI Sales Copilot* 🏆\n\n` +
+      `👤 *Utente:* ${userProfile.firstName}\n` +
+      `🔥 *Score Medio:* ${reportData.avgScore}/100\n` +
+      `📅 *Coerenza:* ${reportData.consistencyDays}/7 giorni\n` +
+      `⭐ *Miglior Giorno:* ${reportData.bestDay.score} pts (${new Date(reportData.bestDay.date).toLocaleDateString('it-IT', { weekday: 'long' })})\n\n` +
+      `💡 *Focus prossima settimana:* Scalare verso nuovi traguardi! 🚀\n\n` +
+      `Generato con l'app Daily Check Elite.`;
+    
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+  };
+
   if (!isOpen) return null;
 
   const avgLabel = getScoreLabel(reportData.avgScore);
@@ -67,7 +124,10 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
             </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+        </div>
+
+        <div className="flex-1 overflow-y-auto" ref={reportRef}>
+            <div className="p-8 space-y-8 bg-white dark:bg-slate-900">
             
             {/* Average Score */}
             <div className="text-center space-y-2">
@@ -181,6 +241,33 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
                 </div>
             </div>
 
+        </div>
+        
+        {/* ACTION BUTTONS (Phase 4) */}
+        <div className="px-8 py-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-white/10 flex flex-wrap gap-3 justify-center">
+            <button 
+                onClick={handleExportPNG}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+            >
+                {isExporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                PNG
+            </button>
+            <button 
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+            >
+                <FileText size={14} />
+                PDF
+            </button>
+            <button 
+                onClick={handleShareWhatsApp}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+                <MessageCircle size={14} />
+                WhatsApp
+            </button>
         </div>
 
         {/* Footer */}

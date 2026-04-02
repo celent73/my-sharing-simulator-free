@@ -9,7 +9,9 @@ import {
   Calculator, 
   Sparkles,
   ChevronRight,
-  X
+  X,
+  Power,
+  Download
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ActivityType, Lead, ActivityLog, Goals, UserProfile, VisionBoardData, NextAppointment, HabitStack, ViewMode } from '../types';
@@ -22,6 +24,9 @@ import CoachScoreWidget from './CoachScoreWidget';
 import DreamTrackerWidget from './DreamTrackerWidget';
 import HabitStackWidget from './HabitStackWidget';
 import GoalCalendar from './GoalCalendar';
+import AIStrategyWidget from './AIStrategyWidget';
+import { generateGoogleCalendarLink, downloadICS } from '../utils/calendarUtils';
+
 
 interface ResultsDashboardProps {
   activityLogs: ActivityLog[];
@@ -76,6 +81,26 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
     { id: 'growth', label: 'Obiettivi', icon: Trophy, color: 'text-emerald-500' },
   ];
 
+  const handleShowAppointmentDetails = () => {
+    if (!props.nextAppointment) return;
+    
+    // 1. Try to find a matching lead by name in activity logs
+    const matchingLead = props.activityLogs
+        .flatMap(log => log.leads || [])
+        .find(l => l.name.trim().toLowerCase() === props.nextAppointment?.title.trim().toLowerCase());
+        
+    if (matchingLead) {
+        // 1.3.28 Fix: Always open as CONTACTS to ensure it shows "DETTAGLIO CONTATTO" (Contact) 
+        // and doesn't get confused with "CONTRATTO" (Contract) even if it's technically an appointment.
+        props.onEditLead(ActivityType.CONTACTS, matchingLead);
+    } else {
+        // Not found: Fallback to opening the global appointments overview for that date
+        window.dispatchEvent(new CustomEvent('open-appointments-overview', { 
+            detail: { date: props.nextAppointment.date } 
+        }));
+    }
+  };
+
   const renderPerformance = () => (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Top Row: Greeting and Score */}
@@ -102,13 +127,29 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
           />
         </div>
         
+        {/* AI STRATEGY ANALYST (Phase 3) */}
+        <div className="flex flex-col gap-6">
+            <AIStrategyWidget 
+                activityLogs={props.activityLogs} 
+                userName={props.userProfile.firstName} 
+                onEditLead={props.onEditLead}
+            />
+        </div>
+        
         {/* Power Ring / Earnings Card */}
         <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[2.5rem] p-8 border border-white/40 dark:border-white/10 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
           <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] mb-2">GUADAGNO OGGI</p>
           <p className="text-6xl font-black text-slate-900 dark:text-white tracking-tighter">€{Math.round(props.dailyEarnings)}</p>
           
-          <div className="mt-6 flex gap-4">
+          <div className="mt-6 flex flex-wrap gap-4 justify-center">
+            <button
+                onClick={() => window.dispatchEvent(new CustomEvent('activate-focus-mode'))}
+                className="flex items-center gap-3 px-6 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl shadow-xl transition-all border border-white/20 active:scale-95 group"
+            >
+              <Power size={20} className="text-red-500 group-hover:animate-pulse" />
+              <span className="font-black text-[10px] uppercase tracking-widest">Focus Mode</span>
+            </button>
             <button
               onClick={props.onOpenTargetCalculator}
               className="p-4 bg-slate-100 dark:bg-white/10 hover:bg-indigo-500 hover:text-white rounded-2xl transition-all shadow-lg border border-white/20"
@@ -155,10 +196,32 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = (props) => {
                     <p className="text-sm font-bold text-indigo-200 uppercase mb-6 opacity-80">
                         {new Date(props.nextAppointment.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </p>
-                    <div className="w-full h-px bg-white/10 mb-6" />
-                    <button className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all">
-                        Mostra Dettagli
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={handleShowAppointmentDetails}
+                            className="flex-1 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all"
+                        >
+                            Dettagli
+                        </button>
+                        <div className="flex gap-2">
+                            <a 
+                                href={generateGoogleCalendarLink(props.nextAppointment.title, props.nextAppointment.date)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-4 bg-white/10 hover:bg-white/20 rounded-2xl text-white transition-all"
+                                title="Aggiungi a Google Calendar"
+                            >
+                                <CalendarIcon size={18} />
+                            </a>
+                            <button 
+                                onClick={() => downloadICS(props.nextAppointment!.title, props.nextAppointment!.date)}
+                                className="p-4 bg-white/10 hover:bg-white/20 rounded-2xl text-white transition-all"
+                                title="Scarica .ics (Apple/Outlook)"
+                            >
+                                <Download size={18} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/40 dark:border-white/10 flex flex-col items-center justify-center text-center opacity-70">

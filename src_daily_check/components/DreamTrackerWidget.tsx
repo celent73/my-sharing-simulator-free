@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { VisionBoardData } from '../types';
+import { Sparkles, RefreshCw } from 'lucide-react';
+import { generateAIAffirmation } from '../services/aiCoachingService';
 
 interface DreamTrackerWidgetProps {
     visionBoardData: VisionBoardData;
     autoPersonalEarnings: number;
     onUpdateEarnings: (network: number) => void;
     onOpenVisionBoard: () => void;
+    userName?: string;
 }
 
 const getCurrentMonth = () => {
@@ -31,14 +35,13 @@ const DreamTrackerWidget: React.FC<DreamTrackerWidgetProps> = ({
     autoPersonalEarnings,
     onUpdateEarnings,
     onOpenVisionBoard,
+    userName = 'Campione'
 }) => {
     const currentMonth = getCurrentMonth();
+    const [mantra, setMantra] = useState<string | null>(null);
+    const [loadingMantra, setLoadingMantra] = useState(false);
 
     // Auto-reset se siamo in un nuovo mese
-    const savedPersonal =
-        visionBoardData.earningsMonth === currentMonth
-            ? (visionBoardData.personalEarnings ?? 0)
-            : 0;
     const savedNetwork =
         visionBoardData.earningsMonth === currentMonth
             ? (visionBoardData.networkEarnings ?? 0)
@@ -54,6 +57,21 @@ const DreamTrackerWidget: React.FC<DreamTrackerWidgetProps> = ({
     const progress = target > 0 ? Math.min(100, (total / target) * 100) : 0;
     const remaining = Math.max(0, target - total);
     const motivation = getMotivationalMessage(progress);
+
+    const fetchMantra = async () => {
+        setLoadingMantra(true);
+        const res = await generateAIAffirmation({
+            userName,
+            dreamTitle: visionBoardData.title || 'Il mio sogno',
+            progress: Math.floor(progress)
+        });
+        setMantra(res);
+        setLoadingMantra(false);
+    };
+
+    useEffect(() => {
+        fetchMantra();
+    }, [visionBoardData.title, target]);
 
     const startEdit = (field: EditField) => {
         setEditField(field);
@@ -80,18 +98,40 @@ const DreamTrackerWidget: React.FC<DreamTrackerWidgetProps> = ({
 
     return (
         <div className="relative overflow-hidden rounded-3xl mb-6 shadow-2xl group border-2 border-white/10 dark:border-purple-900/40">
-            {/* Background */}
-            {visionBoardData.imageData ? (
-                <>
-                    <div
-                        className="absolute inset-0 bg-cover bg-center scale-105 group-hover:scale-110 transition-transform duration-700"
-                        style={{ backgroundImage: `url(${visionBoardData.imageData})` }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30" />
-                </>
-            ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-700 via-indigo-700 to-violet-900 group-hover:scale-105 transition-transform duration-700" />
-            )}
+            {/* Background Layer (Phase 5) */}
+            <AnimatePresence mode="wait">
+                <motion.div 
+                    key={visionBoardData.theme || 'classic'}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0"
+                >
+                    {visionBoardData.imageData ? (
+                        <>
+                            <motion.div
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-0 bg-cover bg-center"
+                                style={{ backgroundImage: `url(${visionBoardData.imageData})` }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30" />
+                        </>
+                    ) : (
+                        <motion.div 
+                            animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
+                            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                            className={`absolute inset-0 bg-[length:400%_400%] bg-gradient-to-br ${
+                                visionBoardData.theme === 'nebula' ? 'from-indigo-900 via-purple-900 to-slate-900' :
+                                visionBoardData.theme === 'ocean' ? 'from-cyan-900 via-blue-900 to-indigo-900' :
+                                visionBoardData.theme === 'sunset' ? 'from-orange-800 via-rose-900 to-purple-950' :
+                                'from-purple-700 via-indigo-700 to-violet-900'
+                            }`}
+                        />
+                    )}
+                </motion.div>
+            </AnimatePresence>
 
             {/* Glow effect when close to target */}
             {progress >= 75 && (
@@ -207,8 +247,29 @@ const DreamTrackerWidget: React.FC<DreamTrackerWidgetProps> = ({
                     </>
                 )}
 
-                {/* Motivational Message */}
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/15">
+                {/* AI MANTRA - Phase 5 */}
+                <div className="mt-4 p-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 relative overflow-hidden group/mantra">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover/mantra:opacity-100 transition-opacity" />
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={14} className="text-purple-300" />
+                            <span className="text-[10px] font-black text-purple-200 uppercase tracking-widest">Mantra del Giorno (AI)</span>
+                        </div>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); fetchMantra(); }}
+                            disabled={loadingMantra}
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all disabled:opacity-30"
+                        >
+                            <RefreshCw size={12} className={loadingMantra ? 'animate-spin' : ''} />
+                        </button>
+                    </div>
+                    <p className="text-xs font-bold text-white leading-relaxed italic pr-4">
+                        {loadingMantra ? "Sintonizzando l'energia..." : mantra || "Visualizza il tuo successo e agisci di conseguenza."}
+                    </p>
+                </div>
+
+                {/* Status Indicator */}
+                <div className="mt-4 flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/15">
                     <span className="text-lg">{motivation.emoji}</span>
                     <p className={`text-[12px] font-black ${motivation.color} leading-tight`}>
                         {motivation.text}
