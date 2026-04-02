@@ -353,8 +353,12 @@ export const saveSettings = async (userId: string | null, settings: AppSettings)
     });
 
     if (settingsError) {
-      console.error("Error saving settings to Supabase:", settingsError);
-      // We don't alert here to avoid spamming the user, but it's the reason why sync might fail
+      console.error("[saveSettings] Error saving settings to Supabase:", settingsError);
+      // v1.4: Special case for missing columns (Habit Stacking sync fix)
+      if (settingsError.message?.includes('column "habit_stacks" does not exist')) {
+          console.warn("[saveSettings] Missing DB columns discovered. SQL migration needed.");
+      }
+      throw settingsError; // Re-throw to allow App.tsx to catch and notify
     }
 
     // Save Profile - ALWAYS SAVE if it exists, to preserve commissionStatus and qualifications even if name is blank

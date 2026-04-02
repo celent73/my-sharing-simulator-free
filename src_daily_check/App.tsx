@@ -1186,9 +1186,14 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
   useEffect(() => {
     if (!isInitializing && !authLoading) {
-      saveSettings(userId, settings).catch(err => console.error(err));
+      saveSettings(userId, settings).catch(err => {
+          console.error("[SettingsSync] Failed:", err);
+          if (err.message?.includes('column "habit_stacks" does not exist')) {
+              addNotification("Sync Fallito: Esegui la migrazione SQL per gli Habit Stack 🔔", "info");
+          }
+      });
     }
-  }, [settings, isInitializing, authLoading, userId]);
+  }, [settings, isInitializing, authLoading, userId, addNotification]);
 
   useEffect(() => {
     if (!isInitializing && !authLoading) {
