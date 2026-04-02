@@ -40,6 +40,26 @@ const getLocalAchievements = (): UnlockedAchievements => {
   } catch (e) { return {}; }
 };
 
+// --- SMART MERGE HELPERS ---
+const mergeHabitStacks = (local: any[] = [], cloud: any[] = []): any[] => {
+  const mergedMap = new Map<string, any>();
+  local.forEach(s => mergedMap.set(s.id, { ...s }));
+  cloud.forEach(s => {
+    const existing = mergedMap.get(s.id);
+    if (!existing) {
+      mergedMap.set(s.id, { ...s });
+    } else {
+      // Merge: favor cloud if it has a more recent completion date or other updates
+      const localDate = existing.lastCompletedDate || '';
+      const cloudDate = s.lastCompletedDate || '';
+      if (cloudDate >= localDate) {
+        mergedMap.set(s.id, { ...existing, ...s });
+      }
+    }
+  });
+  return Array.from(mergedMap.values());
+};
+
 // --- SMART MERGE LOGIC ---
 const mergeActivityLogs = (local: ActivityLog[], cloud: ActivityLog[]): ActivityLog[] => {
   const mergedMap = new Map<string, ActivityLog>();
@@ -250,7 +270,7 @@ export const loadSettings = async (userId: string | null): Promise<AppSettings |
         enableCustomLabels: data.enable_custom_labels !== undefined ? data.enable_custom_labels : (localSettings?.enableCustomLabels !== undefined ? localSettings.enableCustomLabels : true),
         nextAppointment: data.next_appointment, // Cloud is source of truth for sync
         careerPathDates: (data.career_path_dates && Object.keys(data.career_path_dates).length > 0) ? data.career_path_dates : (localSettings?.careerPathDates || {}),
-        habitStacks: data.habit_stacks || localSettings?.habitStacks || [],
+        habitStacks: mergeHabitStacks(localSettings?.habitStacks || [], data.habit_stacks || []),
         enableHabitStacking: data.enable_habit_stacking !== undefined ? data.enable_habit_stacking : (localSettings?.enableHabitStacking !== undefined ? localSettings.enableHabitStacking : true),
       };
       
