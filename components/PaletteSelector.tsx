@@ -13,6 +13,14 @@ const PALETTES: { id: AccentColor; color: string; label: string }[] = [
     { id: 'viola-imperiale', color: '#6b21a8', label: 'Viola Imperiale' },
     { id: 'tramonto', color: '#be123c', label: 'Tramonto' },
     { id: 'oro-antico', color: '#854d0e', label: 'Oro Antico' },
+    { id: 'juventus', color: '#1a1a1a', label: 'Juventus (Sport)' },
+    { id: 'inter', color: '#0058b0', label: 'Inter (Sport)' },
+    { id: 'milan', color: '#ff0000', label: 'Milan (Sport)' },
+    { id: 'napoli', color: '#71c5ee', label: 'Napoli (Sport)' },
+    { id: 'bologna', color: '#9c1c2e', label: 'Bologna (Sport)' },
+    { id: 'roma', color: '#d8ad3d', label: 'Roma (Sport)' },
+    { id: 'lazio', color: '#87ceeb', label: 'Lazio (Sport)' },
+    { id: 'fiorentina', color: '#4b2e83', label: 'Fiorentina (Sport)' },
 ];
 
 const PaletteSelector: React.FC = () => {

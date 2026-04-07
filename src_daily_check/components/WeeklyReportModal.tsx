@@ -21,6 +21,23 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Helper per mostrare etichette leggibili invece degli ID habit
+  const getActivityLabel = (key: string) => {
+    if (ACTIVITY_LABELS[key as ActivityType]) return ACTIVITY_LABELS[key as ActivityType];
+    
+    // Cerca tra gli habit personalizzati
+    const stack = habitStacks.find(s => s.id === key);
+    if (stack) {
+      if (stack.customActionName) return stack.customActionName;
+      // Fallback: Trigger + Azione
+      const triggerLabel = ACTIVITY_LABELS[stack.trigger as ActivityType] || stack.trigger;
+      const actionLabel = ACTIVITY_LABELS[stack.action as ActivityType] || stack.action;
+      return `${triggerLabel} → ${actionLabel}`;
+    }
+    
+    return key;
+  };
+
   const reportData = useMemo(() => {
     const now = new Date();
     const last7Days: string[] = [];
@@ -59,8 +76,14 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
     setIsExporting(true);
     try {
       const dataUrl = await htmlToImage.toPng(reportRef.current, {
-        backgroundColor: '#0f172a', // Slate-900 for a premium look
+        backgroundColor: '#0f172a',
         quality: 1.0,
+        pixelRatio: 2,
+        width: 450, // Fixed width for consistent capture
+        style: {
+          overflow: 'visible',
+          height: 'auto'
+        }
       });
       const link = document.createElement('a');
       link.download = `WeeklyReport_${userProfile.firstName}_${new Date().toISOString().split('T')[0]}.png`;
@@ -80,11 +103,17 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
       const dataUrl = await htmlToImage.toPng(reportRef.current, {
         backgroundColor: '#0f172a',
         quality: 1.0,
+        pixelRatio: 2,
+        width: 450,
+        style: {
+          overflow: 'visible',
+          height: 'auto'
+        }
       });
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210;
-      const imgHeight = (reportRef.current.offsetHeight * imgWidth) / reportRef.current.offsetWidth;
-      pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+      const imgWidth = 190; // Fit inside A4
+      const imgHeight = (reportRef.current.offsetHeight * imgWidth) / 450;
+      pdf.addImage(dataUrl, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`WeeklyReport_${userProfile.firstName}.pdf`);
     } catch (err) {
       console.error('PDF export failed', err);
@@ -122,8 +151,6 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
                 <h2 className="text-xl font-black text-white uppercase tracking-widest">WEEKLY REPORT</h2>
                 <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Gli ultimi 7 giorni</p>
             </div>
-        </div>
-
         </div>
 
         <div className="flex-1 overflow-y-auto" ref={reportRef}>
@@ -187,7 +214,7 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
                                     .map(([key, count]) => (
                                         <div key={key} className="flex justify-between items-center group">
                                             <span className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
-                                                {ACTIVITY_LABELS[key as ActivityType] || key}
+                                                {getActivityLabel(key)}
                                             </span>
                                             <span className="text-sm font-black text-white bg-white/10 px-3 py-1.5 rounded-xl border border-white/5">
                                                 {count}
@@ -241,6 +268,7 @@ const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({
                 </div>
             </div>
 
+            </div>
         </div>
         
         {/* ACTION BUTTONS (Phase 4) */}

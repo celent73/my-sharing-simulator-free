@@ -172,9 +172,20 @@ const VisionBoardModal: React.FC<VisionBoardModalProps> = ({
                         className="relative aspect-video w-full rounded-xl overflow-hidden cursor-pointer shadow-md border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-900 hover:border-purple-400 transition-colors"
                         onClick={() => imageInputRef.current?.click()}
                     >
+                        {/* Real-time mood preview aura - Dramatic update */}
+                        <div 
+                            className="absolute inset-0 opacity-60 blur-[30px] transition-all bg-blend-soft-light"
+                            style={{ 
+                                background: data.theme === 'nebula' ? 'radial-gradient(circle, #a855f7 0%, #3b82f6 50%, #0f172a 100%)' :
+                                           data.theme === 'ocean' ? 'radial-gradient(circle, #06b6d4 0%, #3b82f6 50%, #1e3a8a 100%)' :
+                                           data.theme === 'sunset' ? 'radial-gradient(circle, #f97316 0%, #ec4899 50%, #4c1d95 100%)' :
+                                           'transparent'
+                            }}
+                        />
+
                         {data.imageData ? (
                             <>
-                                <img src={data.imageData} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <img src={data.imageData} alt="Preview" className="relative w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                                     <p className="text-white font-bold flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-lg border border-white/20">
                                         <UploadIcon /> Cambia Foto

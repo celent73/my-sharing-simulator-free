@@ -1,11 +1,9 @@
-
 import React, { useMemo, useState } from 'react';
 import { ActivityLog, ActivityType, UserProfile } from '../types';
 import { getCommercialMonthRange, getCommercialMonthString } from '../utils/dateUtils';
 import { ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
-
-// Declare globals loaded via script tags
-declare const window: any;
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface MonthlyReportModalProps {
     isOpen: boolean;
@@ -60,37 +58,18 @@ const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                 throw new Error("Elemento del report non trovato.");
             }
 
-            // 1. Verifica Librerie
-            if (typeof window.html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
-                throw new Error("Librerie PDF non caricate. Ricarica la pagina e riprova.");
-            }
+            // 1. Inizializza jsPDF (l'import moderno è diretto)
+            const pdf = new jsPDF('p', 'mm', 'a4');
 
-            // 2. Determina il costruttore jsPDF corretto
-            // jspdf.umd.min.js solitamente espone window.jspdf.jsPDF
-            let jsPDFConstructor = window.jspdf.jsPDF;
-            if (!jsPDFConstructor && window.jspdf) {
-                // A volte è direttamente l'oggetto se la build è diversa
-                jsPDFConstructor = window.jspdf;
-            }
-            if (!jsPDFConstructor && window.jsPDF) {
-                // Fallback per vecchie versioni
-                jsPDFConstructor = window.jsPDF;
-            }
-
-            if (!jsPDFConstructor) {
-                throw new Error("Impossibile inizializzare jsPDF.");
-            }
-
-            // 3. Genera Canvas
-            const canvas = await window.html2canvas(element, {
-                scale: 1.5, // Riduco leggermente la scala per evitare crash su mobile/tablet
+            // 2. Genera Canvas
+            const canvas = await html2canvas(element, {
+                scale: 2.0, // Alta qualità ma bilanciata
                 useCORS: true,
                 logging: false,
                 backgroundColor: '#ffffff'
             });
 
             const imgData = canvas.toDataURL('image/jpeg', 0.9); // Uso JPEG leggermente compresso per file più leggeri
-            const pdf = new jsPDFConstructor('p', 'mm', 'a4');
 
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
@@ -150,10 +129,10 @@ const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
 
                 {/* Report Paper Container */}
                 <div className="flex-1 sm:flex-none sm:bg-slate-800 sm:rounded-xl overflow-hidden shadow-2xl relative">
-                    <div className="overflow-auto h-full sm:max-h-[80vh] p-4 sm:p-8 bg-slate-50 flex justify-center sm:block">
+                    <div className="overflow-auto h-full sm:max-h-[80vh] p-1 sm:p-8 bg-slate-50 flex justify-center items-start">
 
-                        {/* Actual Printable Content - Min Width to preserve A4 layout on mobile scroll */}
-                        <div id="report-content" className="bg-white w-[210mm] min-w-[210mm] min-h-[297mm] p-10 shadow-sm text-slate-800 relative mx-auto">
+                        {/* Actual Printable Content - Scaling for preview on mobile */}
+                        <div id="report-content" className="bg-white w-[210mm] min-w-[210mm] min-h-[297mm] p-10 shadow-sm text-slate-800 relative mx-auto origin-top sm:scale-100 scale-[0.45] sm:my-0 -my-[30rem]">
 
                             {/* Header */}
                             <div className="flex justify-between items-start border-b-2 border-blue-600 pb-6 mb-8">

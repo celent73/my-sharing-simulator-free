@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles } from 'lucide-react';
 import { AppSettings, ActivityType, NotificationVariant, CommissionStatus, Goals, Qualification } from '../types';
 import { ACTIVITY_LABELS, SETTINGS_ACTIVITY_LABELS, ACTIVITY_COLORS, activityIcons } from '../constants';
 import { getBackupData, restoreBackupData } from '../services/storageService';
@@ -11,12 +12,13 @@ interface SettingsModalProps {
     currentSettings: AppSettings;
     addNotification: (message: string, type: NotificationVariant) => void;
     onDataRestore?: () => void;
-    initialTab?: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking';
+    initialTab?: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking' | 'vision';
     onLogout?: () => void;
+    onOpenVisionBoard?: () => void;
 }
 
 type GoalView = 'daily' | 'weekly' | 'monthly';
-type TabView = 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking';
+type TabView = 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking' | 'vision';
 
 // --- Icons ---
 const CloseIcon = () => (
@@ -75,6 +77,11 @@ const TrashIcon = () => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
     </svg>
 );
+const VisionIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+    </svg>
+);
 
 const ToggleSwitch: React.FC<{
     label: string;
@@ -110,7 +117,7 @@ const DEFAULT_GOALS_STRUCTURE: Goals = {
 };
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, onSaveSettings, currentSettings, addNotification, onDataRestore, initialTab, onLogout
+    isOpen, onClose, onSaveSettings, currentSettings, addNotification, onDataRestore, initialTab, onLogout, onOpenVisionBoard
 }) => {
     const [settings, setSettings] = useState<AppSettings>(currentSettings);
     const [activeGoalTab, setActiveGoalTab] = useState<GoalView>('monthly');
@@ -123,7 +130,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             ...prev,
             ...currentSettings,
             goals: { ...DEFAULT_GOALS_STRUCTURE, ...(currentSettings.goals || {}) },
-            customLabels: { ...ACTIVITY_LABELS, ...(currentSettings.customLabels || {}) }
+            customLabels: { ...ACTIVITY_LABELS, ...(currentSettings.customLabels || {}) },
+            visionBoard: currentSettings.visionBoard || { enabled: false, title: '', targetAmount: 0, imageData: null }
         }));
     }, [currentSettings, isOpen]);
 
@@ -150,6 +158,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
     const handleTargetQualificationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSettings(prev => ({ ...prev, userProfile: { ...prev.userProfile, targetQualification: e.target.value as Qualification } }));
+    };
+
+    const handleVisionBoardEnableChange = (enabled: boolean) => {
+        setSettings(prev => ({ 
+            ...prev, 
+            visionBoard: { ...(prev.visionBoard || { title: '', targetAmount: 0, imageData: null }), enabled } 
+        }));
     };
 
     const handleStartDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -280,6 +295,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="flex border-b border-slate-100 dark:border-slate-700 shrink-0 overflow-x-auto">
                     <button onClick={() => setActiveMainTab('profile')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'profile' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Profilo</button>
                     <button onClick={() => setActiveMainTab('goals')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'goals' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Obiettivi</button>
+                    <button onClick={() => setActiveMainTab('vision')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'vision' ? 'border-purple-500 text-purple-600 dark:text-purple-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Vision Board</button>
                     <button onClick={() => setActiveMainTab('stacking')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'stacking' ? 'border-orange-500 text-orange-500' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Habit Stacking</button>
                     <button onClick={() => setActiveMainTab('labels')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'labels' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Etichette</button>
                     <button onClick={() => setActiveMainTab('notifications')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeMainTab === 'notifications' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400'}`}>Notifiche</button>
@@ -336,7 +352,54 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
                     )}
 
-                    {/* GOALS */}
+                    {/* VISION BOARD */}
+                    {activeMainTab === 'vision' && (
+                        <div className="space-y-6">
+                            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-6 rounded-3xl text-white shadow-lg mb-6">
+                                <h3 className="text-xl font-black mb-1 flex items-center gap-2"><VisionIcon /> Vision Board</h3>
+                                <p className="text-xs opacity-90">Visualizza i tuoi sogni per realizzarli.</p>
+                            </div>
+
+                            <ToggleSwitch 
+                                label="Abilita Vision Board" 
+                                description="Mostra il tuo obiettivo nella dashboard" 
+                                enabled={settings.visionBoard?.enabled ?? false} 
+                                onChange={handleVisionBoardEnableChange} 
+                            />
+
+                            <div className="bg-white dark:bg-slate-700/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Anteprima Obiettivo</h4>
+                                
+                                {settings.visionBoard?.imageData ? (
+                                    <div className="relative aspect-video rounded-2xl overflow-hidden mb-4 border border-slate-100 dark:border-slate-600">
+                                        <img src={settings.visionBoard.imageData} alt="Preview" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
+                                            <div className="text-white font-bold text-lg leading-tight">{settings.visionBoard.title || 'Nessun Titolo'}</div>
+                                            <div className="text-white/80 text-sm font-black">€ {settings.visionBoard.targetAmount?.toLocaleString('it-IT') || 0}</div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="aspect-video rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-600 flex flex-col items-center justify-center gap-2 text-slate-400 mb-4">
+                                        <VisionIcon />
+                                        <span className="text-xs font-bold">Nessuna immagine impostata</span>
+                                    </div>
+                                )}
+
+                                <button 
+                                    onClick={() => {
+                                        if (onOpenVisionBoard) {
+                                            onOpenVisionBoard();
+                                            onClose();
+                                        }
+                                    }}
+                                    className="w-full py-4 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl font-black uppercase tracking-widest hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Sparkles className="w-5 h-5" />
+                                    Personalizza Vision Board
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     {activeMainTab === 'goals' && (
                         <div className="space-y-6">
                             <ToggleSwitch label="Abilita Obiettivi" enabled={settings.enableGoals ?? true} onChange={handleEnableGoalsChange} />

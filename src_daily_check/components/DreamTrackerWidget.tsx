@@ -116,7 +116,55 @@ const DreamTrackerWidget: React.FC<DreamTrackerWidgetProps> = ({
                                 className="absolute inset-0 bg-cover bg-center"
                                 style={{ backgroundImage: `url(${visionBoardData.imageData})` }}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30" />
+                            {/* Animated Atmospheric Spots */}
+                            <motion.div 
+                                animate={{ 
+                                    scale: [1, 1.2, 1],
+                                    opacity: [0.3, 0.6, 0.3],
+                                    x: [0, 50, 0],
+                                    y: [0, -30, 0]
+                                }}
+                                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute -top-20 -left-20 w-64 h-64 rounded-full blur-[80px] mix-blend-screen pointer-events-none"
+                                style={{ 
+                                    background: visionBoardData.theme === 'nebula' ? 'radial-gradient(circle, #a855f7 0%, #3b82f6 80%, transparent)' :
+                                               visionBoardData.theme === 'ocean' ? 'radial-gradient(circle, #06b6d4 0%, #3b82f6 80%, transparent)' :
+                                               visionBoardData.theme === 'sunset' ? 'radial-gradient(circle, #f97316 0%, #ec4899 80%, transparent)' :
+                                               'transparent'
+                                }}
+                            />
+                            <motion.div 
+                                animate={{ 
+                                    scale: [1.2, 1, 1.2],
+                                    opacity: [0.2, 0.5, 0.2],
+                                    x: [0, -40, 0],
+                                    y: [0, 60, 0]
+                                }}
+                                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                                className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full blur-[100px] mix-blend-screen pointer-events-none"
+                                style={{ 
+                                    background: visionBoardData.theme === 'nebula' ? 'radial-gradient(circle, rgba(59,130,246,0.3), transparent)' :
+                                               visionBoardData.theme === 'ocean' ? 'radial-gradient(circle, rgba(59,130,246,0.3), transparent)' :
+                                               visionBoardData.theme === 'sunset' ? 'radial-gradient(circle, rgba(236,72,153,0.3), transparent)' :
+                                               'transparent'
+                                }}
+                            />
+
+                            {/* Theme-based Overlay Gradient */}
+                            <div className={`absolute inset-0 bg-gradient-to-t transition-colors duration-1000 ${
+                                visionBoardData.theme === 'nebula' ? 'from-slate-950 via-indigo-900/40 to-transparent mix-blend-multiply' :
+                                visionBoardData.theme === 'ocean' ? 'from-blue-950 via-cyan-900/40 to-transparent mix-blend-multiply' :
+                                visionBoardData.theme === 'sunset' ? 'from-orange-950 via-rose-900/40 to-transparent mix-blend-multiply' :
+                                'from-black/90 via-black/60 to-black/30'
+                            }`} />
+                            
+                            {/* Color tint layer for image */}
+                            <div className={`absolute inset-0 opacity-20 pointer-events-none transition-colors duration-1000 ${
+                                visionBoardData.theme === 'nebula' ? 'bg-indigo-600' :
+                                visionBoardData.theme === 'ocean' ? 'bg-cyan-600' :
+                                visionBoardData.theme === 'sunset' ? 'bg-rose-600' :
+                                'bg-transparent'
+                            }`} />
                         </>
                     ) : (
                         <motion.div 

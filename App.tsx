@@ -36,7 +36,7 @@ import { Presentation, Fuel, Share2, Compass, Sparkles } from 'lucide-react'; //
 
 // --- IMPORTAZIONI LEGALI E UI ---
 import LegalFooter from './components/LegalFooter';
-const APP_VERSION = "v1.3.3";
+const APP_VERSION = "v1.3.5";
 
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 
@@ -102,10 +102,10 @@ const initialCondoInputs: CondoInput = {
 };
 
 const AppContent = () => {
-    console.log("AppContent Render Start - v1.3.3");
+    console.log("AppContent Render Start - v1.3.5");
     const { openModal, closeModal } = useModalDispatch();
   const { activeModal } = useModalState();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme, accentColor } = useTheme();
   const [isStandalone, setIsStandalone] = useState(false);
 
   const [canInstall, setCanInstall] = useState(false); // New state to track if install is possible
@@ -182,7 +182,7 @@ const AppContent = () => {
           }
         }).then(() => {
           // Register new one with version query param
-          navigator.serviceWorker.register('/service-worker.js?v=1.3.3')
+          navigator.serviceWorker.register('/service-worker.js?v=1.3.5')
             .then(reg => console.log('Service Worker registered with new version:', reg))
             .catch(err => console.error('Service Worker registration failed:', err));
         });
@@ -194,10 +194,12 @@ const AppContent = () => {
         }
       });
 
+      /* 
       // Reload only if it's not a fresh install (to avoid infinite loops on first visit loops, though version check prevents it)
       if (storedVersion) {
         window.location.reload();
       }
+      */
     }
 
     return () => {
@@ -632,7 +634,12 @@ const AppContent = () => {
                     {language === 'it' ? <ItalyFlag /> : (language === 'de' ? <GermanyFlag /> : <UKFlag />)}
                     <span>My Sharing</span>
                     <span className="text-main-accent">Simulator</span>
-                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2" style={{ color: 'var(--header-text)' }}>v1.3.3</span>
+                    {['juventus', 'milan', 'inter', 'napoli', 'bologna', 'roma', 'lazio', 'fiorentina'].includes(accentColor) && (
+                      <span className="ml-2 px-2 py-0.5 bg-main-accent text-white rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-widest shadow-lg animate-pulse whitespace-nowrap">
+                        Sport Edition
+                      </span>
+                    )}
+                    <span className="text-[10px] font-bold opacity-30 tracking-[0.2em] ml-2" style={{ color: 'var(--header-text)' }}>v1.3.5</span>
                     <img
                       src="/logo_v2_main.png"
                       alt="Logo"

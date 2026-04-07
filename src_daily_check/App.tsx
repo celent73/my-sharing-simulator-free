@@ -62,7 +62,7 @@ import WeeklyReportModal from './components/WeeklyReportModal';
 import FollowUpRankingWidget from './components/FollowUpRankingWidget';
 import ResultsDashboard from './components/ResultsDashboard';
 import confetti from 'canvas-confetti';
-const APP_VERSION = "v1.4";
+const APP_VERSION = "v1.3.5";
 
 // Helper per normalizzazione dati (Deduplicazione robusta)
 const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -343,7 +343,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
   }, []);
 
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'goals' | 'labels' | 'notifications' | 'stacking'>('profile');
+  const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'goals' | 'labels' | 'notifications' | 'stacking' | 'vision'>('profile');
   const [isDeleteDataModalOpen, setDeleteDataModalOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -687,7 +687,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
   const removeNotification = useCallback((id: number) => setNotifications(prev => prev.filter(n => n.id !== id)), []);
 
-  const handleOpenSettings = (tab: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking' = 'profile') => {
+  const handleOpenSettings = (tab: 'profile' | 'goals' | 'labels' | 'notifications' | 'stacking' | 'vision' = 'profile') => {
     setSettingsInitialTab(tab);
     setSettingsModalOpen(true);
   };
@@ -1595,11 +1595,15 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
       <AnimatePresence>
         {activeView === 'focus' && (
-          <FocusModeView 
-            activityLogs={activityLogs}
+          <FocusModeModal 
+            isOpen={true} 
             onClose={() => setActiveView('today')}
-            onEditLead={handleOpenLeadCapture}
-            onCompleteLead={handleCompleteLeadInFocus}
+            initialGoalText={recoveryFocusGoal}
+            initialTargetContacts={recoveryFocusTarget}
+            onAddContact={() => {
+              // Option to record a contact manually from the timer
+              handleOpenLeadCapture(ActivityType.CONTACTS);
+            }}
           />
         )}
       </AnimatePresence>
@@ -1614,7 +1618,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
 
       <div className="relative w-full h-full flex bg-slate-50 dark:bg-black overflow-hidden text-slate-900 dark:text-slate-100 transition-colors duration-500">
         <BackgroundMesh />
-        {activeView !== 'focus' && (
+        {activeView !== 'focus' && !isVisionBoardModalOpen && (
           <FocusNavigation activeView={activeView} onViewChange={setActiveView} />
         )}
 
@@ -1858,16 +1862,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                   );
                 })()}
 
-                {activeView === 'focus' && (
-                  <motion.div key="focus" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1">
-                    <FocusModeModal 
-                      isOpen={true} 
-                      onClose={() => setActiveView('today')}
-                      initialGoalText={recoveryFocusGoal}
-                      initialTargetContacts={recoveryFocusTarget}
-                    />
-                  </motion.div>
-                )}
+
 
                 {activeView === 'career' && (
                   <motion.div key="career" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1895,7 +1890,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                           alt="Union Energia" 
                           className="h-8 w-auto opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all" 
                         />
-                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.4</p>
+                        <p className="text-slate-500 text-sm font-medium">My Sharing Simulator v1.3.5</p>
                         <button onClick={signOut} className="px-10 py-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl font-black uppercase tracking-widest transition-all">Sconnetti</button>
                       </div>
                     </div>
@@ -1957,14 +1952,27 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                           <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
                         </button>
 
-                        <button onClick={() => handleOpenSettings('stacking')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
+                         <button onClick={() => handleOpenSettings('stacking')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
                           <div className="flex items-center gap-4">
                             <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
-                              <Sparkles size={28} />
+                              <BrainCog size={28} />
                             </div>
                             <div className="text-left">
                               <p className="font-black text-slate-900 dark:text-white text-xl">Habit Stacking</p>
                               <p className="text-sm font-medium text-slate-500">Collega abitudini ad azioni di vendita</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+
+                        <button onClick={() => handleOpenSettings('vision')} className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-3xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-slate-200/50 dark:border-white/5 group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-600/20 group-hover:scale-110 transition-transform">
+                              <Sparkles size={28} />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-black text-slate-900 dark:text-white text-xl">Vision Board</p>
+                              <p className="text-sm font-medium text-slate-500">Personalizza i tuoi sogni e obiettivi</p>
                             </div>
                           </div>
                           <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
@@ -1992,7 +2000,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
                         />
                         <div className="text-center">
                           <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">My Sharing Simulator</p>
-                          <p className="text-slate-500 text-xs mt-1">Versione 1.4 • Protetto da crittografia SSL</p>
+                          <p className="text-slate-500 text-xs mt-1">Versione 1.3.5 • Protetto da crittografia SSL</p>
                         </div>
                         <button onClick={signOut} className="w-full max-w-xs py-4 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest transition-all hover:bg-slate-900">Sconnetti</button>
                       </div>
@@ -2023,6 +2031,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
         initialTab={settingsInitialTab}
         addNotification={addNotification}
         onLogout={signOut}
+        onOpenVisionBoard={() => setIsVisionBoardModalOpen(true)}
       />
       <WeeklyReportModal isOpen={isWeeklyReportOpen} onClose={() => setIsWeeklyReportOpen(false)} activityLogs={activityLogs} goals={settings.goals} habitStacks={settings.habitStacks || []} userProfile={settings.userProfile} />
       <DeleteDataModal
@@ -2036,7 +2045,7 @@ const AppContent: React.FC<AppContentProps> = ({ onClose, initialView }) => {
         onClose={() => setResetGoalsModalOpen(false)}
         onConfirm={handleResetGoals}
       />
-      <AchievementsModal isOpen={isAchievementsModalOpen} onClose={() => setAchievementsModalOpen(false)} unlockedAchievements={unlockedAchievements} careerDates={settings.careerPathDates} />
+      <AchievementsModal isOpen={isAchievementsModalOpen} onClose={() => setAchievementsModalOpen(false)} unlockedAchievements={unlockedAchievements} careerDates={settings.careerPathDates} currentQualification={settings.userProfile.currentQualification} />
       <MonthlyReportModal isOpen={isMonthlyReportModalOpen} onClose={() => setIsMonthlyReportModalOpen(false)} activityLogs={activityLogs} commercialMonthStartDay={settings.commercialMonthStartDay} userProfile={settings.userProfile} customLabels={effectiveCustomLabels} />
       <ContractSelectorModal isOpen={isContractSelectorModalOpen} onClose={() => setIsContractSelectorModalOpen(false)} onSelectContract={handleContractSelection} userStatus={settings.userProfile.commissionStatus} />
       <VisionBoardModal

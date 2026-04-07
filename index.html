@@ -14,12 +14,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="My Sharing Simulator">
 
-  <title>My Sharing Simulator v1.3.3</title>
+  <title>My Sharing Simulator v1.3.5</title>
 
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/logo_new.png">
 
-  <!-- EMERGENCY SW FIX (v1.3.3): Disabilitiamo in sviluppo per evitare white screen -->
+  <!-- EMERGENCY SW FIX (v1.3.5): Disabilitiamo in sviluppo per evitare white screen -->
   <script>
     if ('serviceWorker' in navigator) {
       // Forza l'unregistration di eventuali worker bloccati
@@ -49,7 +49,7 @@
     // Register service worker SOLO IN PRODUZIONE (non su localhost)
     if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js?v=1.3.3')
+        navigator.serviceWorker.register('/service-worker.js?v=1.3.5')
           .then(registration => {
             console.log('Service Worker registered with scope:', registration.scope);
           })
@@ -302,6 +302,76 @@
       --accent-glow: rgba(234, 179, 8, 0.4);
       --header-bg: rgba(28, 25, 23, 0.95);
       --footer-bg: #0c0a09;
+    }
+
+    /* --- SERIE A FOOTBALL PACKAGE (SPORT EDITION) --- */
+    
+    /* JUVENTUS */
+    .theme-juventus {
+      --accent-main: #ffffff;
+      --accent-glow: rgba(255, 255, 255, 0.3);
+      --header-bg: rgba(0, 0, 0, 0.98);
+      --footer-bg: #000000;
+      --header-text: #ffffff;
+    }
+
+    /* INTER */
+    .theme-inter {
+      --accent-main: #0058b0;
+      --accent-glow: rgba(0, 88, 176, 0.4);
+      --header-bg: rgba(0, 0, 0, 0.98);
+      --footer-bg: #000000;
+    }
+
+    /* MILAN */
+    .theme-milan {
+      --accent-main: #ff0000;
+      --accent-glow: rgba(255, 0, 0, 0.4);
+      --header-bg: rgba(0, 0, 0, 0.98);
+      --footer-bg: #000000;
+    }
+
+    /* NAPOLI */
+    .theme-napoli {
+      --accent-main: #71c5ee;
+      --accent-glow: rgba(113, 197, 238, 0.4);
+      --header-bg: rgba(255, 255, 255, 0.95);
+      --footer-bg: #f8fafc;
+      --header-text: #0077c8;
+      --footer-text: #0077c8;
+    }
+
+    /* BOLOGNA */
+    .theme-bologna {
+      --accent-main: #9c1c2e;
+      --accent-glow: rgba(156, 28, 46, 0.4);
+      --header-bg: rgba(0, 29, 61, 0.98);
+      --footer-bg: #000814;
+    }
+
+    /* ROMA */
+    .theme-roma {
+      --accent-main: #d8ad3d;
+      --accent-glow: rgba(216, 173, 61, 0.4);
+      --header-bg: rgba(142, 28, 46, 0.98);
+      --footer-bg: #3d0a0f;
+    }
+
+    /* LAZIO */
+    .theme-lazio {
+      --accent-main: #87ceeb;
+      --accent-glow: rgba(135, 206, 235, 0.4);
+      --header-bg: rgba(255, 255, 255, 0.95);
+      --footer-bg: #f0f9ff;
+      --header-text: #1e3a8a;
+    }
+
+    /* FIORENTINA */
+    .theme-fiorentina {
+      --accent-main: #cdb4db;
+      --accent-glow: rgba(205, 180, 219, 0.4);
+      --header-bg: rgba(75, 46, 131, 0.98);
+      --footer-bg: #1e1b4b;
     }
   </style>
 

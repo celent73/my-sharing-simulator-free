@@ -6,10 +6,11 @@ interface AchievementsModalProps {
   isOpen: boolean;
   onClose: () => void;
   careerDates?: Record<string, string>;
+  currentQualification?: string;
   unlockedAchievements?: any;
 }
 
-const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose, careerDates = {} }) => {
+const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose, careerDates = {}, currentQualification }) => {
 
 
   if (!isOpen) return null;
@@ -38,14 +39,21 @@ const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose, 
               const unlockedDate = careerDates[stage.name];
               const parsedDate = unlockedDate ? new Date(unlockedDate) : null;
               const hasDate = !!parsedDate;
-              // Normalizziamo le date per confrontare solo i giorni
+              
+              const stageIndex = CAREER_STAGES.findIndex(s => s.name === stage.name);
+              const currentQualIndex = CAREER_STAGES.findIndex(s => s.name === currentQualification);
+              
+              // Una qualifica è "Sbloccata" (Raggiunta) se l'utente ha quel grado o superiore
+              const isUnlocked = currentQualIndex >= stageIndex;
+              
+              // Un obiettivo è "Pianificato" se esiste una data ed è nel futuro
               const today = new Date();
               today.setHours(0, 0, 0, 0);
               const targetDate = parsedDate ? new Date(parsedDate) : null;
               if (targetDate) targetDate.setHours(0, 0, 0, 0);
               
-              const isUnlocked = targetDate ? targetDate <= today : false;
               const isTarget = targetDate ? targetDate > today : false;
+              const isExpiredTarget = !isUnlocked && targetDate && targetDate <= today;
 
               return (
                 <div
@@ -74,12 +82,12 @@ const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose, 
                     >
                       {stage.name}
                     </h3>
-                    <p className={`text-sm transition-colors duration-300 text-slate-500 font-medium`}>
-                      {isUnlocked ? 'Qualifica raggiunta' : isTarget ? 'Obiettivo pianificato' : 'Da raggiungere'}
+                    <p className={`text-sm transition-colors duration-300 font-medium ${isUnlocked ? 'text-emerald-600' : isExpiredTarget ? 'text-rose-500' : 'text-slate-500'}`}>
+                      {isUnlocked ? 'Qualifica raggiunta' : isTarget ? 'Obiettivo pianificato' : isExpiredTarget ? 'Obiettivo scaduto' : 'Da raggiungere'}
                     </p>
-                    {isUnlocked && (
+                    {isUnlocked && unlockedDate && (
                       <p className="text-xs text-slate-500 mt-1">
-                        Sbloccato il: {formatItalianDate(parsedDate!)}
+                        Raggiunto il: {formatItalianDate(parsedDate!)}
                       </p>
                     )}
                     {isTarget && (
